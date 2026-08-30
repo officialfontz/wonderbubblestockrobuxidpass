@@ -6,7 +6,7 @@
   <title>Cozy Robux Studio — ร้านเติมเกม & สต็อกเมล</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -177,13 +177,12 @@
     <!-- ======================================================== -->
     <section id="tab-cashier" class="tab-content space-y-6">
       
-      <!-- Studio Fulfillment Card -->
       <div class="cozy-card p-5 sm:p-7 space-y-5 bg-white">
         
         <div class="flex items-center justify-between border-b border-[#F7F3FD] pb-3">
           <div>
             <h2 class="text-base sm:text-lg font-bold text-[#2E2544]">บันทึกการเติมเงิน</h2>
-            <p class="text-xs text-[#857B9B]">เลือกแพ็กเกจ ➔ ระบบบอกวิธีกด ตัดสต็อกเมล และคำนวณกำไรทันที</p>
+            <p class="text-xs text-[#857B9B]">เลือกแพ็กเกจ ➔ ระบบบอกวิธีกดตัวโตๆ ตัดสต็อกเมล และคำนวณกำไรทันที</p>
           </div>
           <div class="text-xs font-mono font-semibold text-[#8054F7] bg-[#F5EFFF] px-3 py-1 rounded-xl border border-[#E8DDFF]">
             พร้อมเติม ✨
@@ -209,7 +208,6 @@
               </select>
             </div>
 
-            <!-- EXPLICIT ACTIVE MAIL SELECTOR -->
             <div>
               <div class="flex items-center justify-between mb-1.5">
                 <label class="text-xs font-semibold text-[#2E2544] flex items-center gap-1">
@@ -218,7 +216,6 @@
                 <a href="javascript:void(0)" onclick="switchTab('stocks')" class="text-[10px] text-[#8054F7] hover:underline">จัดการเมล ➔</a>
               </div>
               <select id="cashier-stock-select" onchange="handleSelectMailChange(this.value)" class="w-full px-3 py-2.5 bg-[#FAF8FF] border border-[#DDD0FA] rounded-2xl text-xs font-mono font-bold text-[#8054F7] focus:outline-none focus:ring-2 focus:ring-[#DDD0FA] focus:border-[#8054F7] cursor-pointer">
-                <!-- Rendered via JS -->
               </select>
             </div>
           </div>
@@ -231,14 +228,12 @@
                 <span class="text-[10px] text-[#857B9B] font-normal">(คลิกเลือกแพ็กเกจ)</span>
               </label>
               
-              <!-- Subtle Overpress Expander -->
               <button type="button" onclick="toggleOverpressSection()" id="btn-toggle-overpress" class="text-[11px] font-semibold text-[#8054F7] hover:underline flex items-center gap-1 cursor-pointer">
                 <span>+ มีเผลอกดเกิน / เพิ่มเติม</span>
               </button>
             </div>
 
             <div id="cashier-pkg-pills" class="grid grid-cols-3 sm:grid-cols-4 gap-2.5 min-h-[90px]">
-              <!-- Rendered via JS -->
             </div>
           </div>
 
@@ -276,9 +271,8 @@
             <div id="cashier-overpress-summary-badge" class="text-[11px] text-[#857B9B] hidden"></div>
           </div>
 
-          <!-- Step 3: Clean Press Guide & Direct Fulfillment Card -->
-          <div id="cashier-smart-preview" class="p-4 sm:p-5 rounded-2xl border transition-all">
-            <!-- Rendered via JS -->
+          <!-- Step 3: EXTRA-LARGE & PROMINENT PRESS GUIDE -->
+          <div id="cashier-smart-preview" class="p-4 sm:p-5 rounded-3xl border transition-all">
           </div>
 
           <!-- Step 4: Submit Button -->
@@ -345,7 +339,6 @@
         </button>
       </div>
 
-      <!-- Stock Cards Grid with 1-Click Toggle -->
       <div id="stocks-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5"></div>
 
     </section>
@@ -654,7 +647,7 @@
 
   <!-- APPLICATION SCRIPT -->
   <script>
-    const STORAGE_KEY = 'COZY_ROBUX_STUDIO_V10_DIRECTMAIL';
+    const STORAGE_KEY = 'COZY_ROBUX_STUDIO_V11_BIGGUIDE';
     const FIREBASE_CONFIG_KEY = 'COZY_FIREBASE_CONFIG';
     const ROBUX_ICON_URL = 'https://img.bubbleshoproblox.store/img/2026-08/3a9b1e8f-f363-4469-8081-e6e708faa92b.webp';
 
@@ -12814,8 +12807,8 @@
 
     let appData = JSON.parse(JSON.stringify(INITIAL_SEED));
     let currentTab = 'cashier';
-    let selectedRobux = 1000;
-    let selectedStockId = 'PC-009'; // Default active mail
+    let selectedRobux = 10000;
+    let selectedStockId = 'PC-009';
     let currentPricingRate = 25.50;
     let salesSearchQuery = '';
     let salesDisplayLimit = 30;
@@ -12851,12 +12844,11 @@
       }
 
       currentPricingRate = (appData.settings && appData.settings.defaultEvalRate) || 25.50;
-      selectedRobux = 1000;
+      selectedRobux = 10000;
 
-      // Find first active stock
       const activeStocks = (appData.stockAccounts || []).filter(s => s.status === 'พร้อมใช้');
       if (activeStocks.length > 0) {
-        selectedStockId = activeStocks[activeStocks.length - 1].id; // latest active e.g. PC-009
+        selectedStockId = activeStocks[activeStocks.length - 1].id;
       } else if (appData.stockAccounts && appData.stockAccounts.length > 0) {
         selectedStockId = appData.stockAccounts[appData.stockAccounts.length - 1].id;
       }
@@ -13111,9 +13103,6 @@
       else if (currentTab === 'summary') renderSummary();
     }
 
-    // ========================================================
-    // TAB 1: CASHIER WITH EXPLICIT MAIL SELECTION & PRESS GUIDE
-    // ========================================================
     function toggleOverpressSection() {
       const box = document.getElementById('cashier-overpress-box');
       const btn = document.getElementById('btn-toggle-overpress');
@@ -13189,7 +13178,6 @@
         }).join('');
       }
 
-      // Staff selector
       const staffSelect = document.getElementById('cashier-staff');
       if (staffSelect) {
         const curVal = staffSelect.value;
@@ -13197,7 +13185,6 @@
         staffSelect.innerHTML = employees.map(e => `<option value="${e}" ${e === curVal ? 'selected' : ''}>${e}</option>`).join('');
       }
 
-      // Stock account selector (Only active open mails by default, or all if none active)
       const stockSelect = document.getElementById('cashier-stock-select');
       if (stockSelect) {
         const balances = calculateStockBalances();
@@ -13225,6 +13212,9 @@
       renderCashier();
     }
 
+    // ========================================================
+    // EXTRA-LARGE & PROMINENT PRESS GUIDE BANNER
+    // ========================================================
     function renderSmartFulfillmentPreview() {
       const box = document.getElementById('cashier-smart-preview');
       if (!box) return;
@@ -13232,7 +13222,6 @@
       const pkgs = appData.packages || INITIAL_SEED.packages;
       const pkg = pkgs.find(p => p.robux === selectedRobux) || pkgs[0];
 
-      // Calculate total USD with extra packs
       let totalUsd = pkg.usd;
       let extraParts = [];
       Object.entries(cashierExtraPacks).forEach(([k, count]) => {
@@ -13243,7 +13232,6 @@
       });
       totalUsd = Number(totalUsd.toFixed(2));
 
-      // Get user-selected stock account
       const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts;
       let stock = accounts.find(s => s.id === selectedStockId);
       if (!stock) stock = accounts.find(s => s.status === 'พร้อมใช้') || accounts[0];
@@ -13258,43 +13246,52 @@
 
       let guideText = pkg.pressGuide;
       if (extraParts.length > 0) {
-        guideText += ` <span class="text-[#E11D48] font-bold">(เผลอกดเกิน ${extraParts.join(' + ')})</span>`;
+        guideText += ` <span class="text-[#E11D48] text-base font-extrabold bg-[#FFF1F2] px-2 py-0.5 rounded-lg border border-[#FECDD3] ml-1">(เผลอกดเกิน ${extraParts.join(' + ')})</span>`;
       }
 
-      box.className = 'p-4 sm:p-5 rounded-2xl border border-[#D1FAE5] bg-[#F0FDF4] space-y-3';
+      box.className = 'p-5 sm:p-6 rounded-3xl border-2 border-[#86EFAC] bg-gradient-to-br from-[#F0FDF4] via-[#F6FDF9] to-[#ECFDF5] space-y-4 shadow-sm';
       box.innerHTML = `
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-[#D1FAE5]">
-          <div class="flex items-center gap-2">
-            <div class="w-7 h-7 rounded-xl bg-[#059669] text-white flex items-center justify-center text-xs font-bold shrink-0">
-              ✓
+        <!-- BIG PROMINENT PRESS GUIDE BANNER -->
+        <div class="bg-white/95 p-4 sm:p-5 rounded-2xl border border-[#A7F3D0] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex items-start sm:items-center gap-3.5">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#059669] to-[#10B981] text-white flex items-center justify-center text-xl shrink-0 shadow-md">
+              🎮
             </div>
             <div>
-              <span class="text-xs text-[#059669] font-semibold">วิธีกดในเกม:</span>
-              <strong class="text-xs text-[#2E2544] ml-1 font-mono">${guideText}</strong>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-extrabold text-[#059669] uppercase tracking-wider bg-[#DCFCE7] px-2 py-0.5 rounded-md border border-[#BBF7D0]">
+                  วิธีกดในเกม (ทำรายการตามนี้)
+                </span>
+              </div>
+              <div class="text-lg sm:text-2xl font-black text-[#1E1B4B] font-mono tracking-tight mt-1.5 flex items-center gap-2">
+                👉 <span class="text-[#059669] bg-[#F0FDF4] px-2.5 py-1 rounded-xl border border-[#BBF7D0]">${guideText}</span>
+              </div>
             </div>
           </div>
-          <div class="text-[11px] text-[#059669] font-mono bg-white/90 px-2.5 py-1 rounded-xl border border-[#D1FAE5] self-start sm:self-auto flex items-center gap-1.5">
-            <img src="${ROBUX_ICON_URL}" class="w-3.5 h-3.5 object-contain" alt="Robux" onerror="this.style.display='none'">
+
+          <div class="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-[#F0FDF4] border border-[#A7F3D0] text-xs sm:text-sm font-mono font-bold text-[#059669] self-start sm:self-auto shrink-0 shadow-xs">
+            <img src="${ROBUX_ICON_URL}" class="w-4 h-4 object-contain" alt="Robux" onerror="this.style.display='none'">
             <span>ตัดเครดิต $${totalUsd.toFixed(2)} USD</span>
           </div>
         </div>
 
+        <!-- 3 SUMMARY BOXES -->
         <div class="grid grid-cols-3 gap-2.5 text-center text-xs">
-          <div class="bg-white p-2.5 rounded-xl border border-[#D1FAE5]">
-            <div class="text-[10px] text-[#857B9B] mb-0.5">เมลที่ใช้ตัด</div>
-            <div class="font-mono font-bold text-[#8054F7] text-xs sm:text-sm">${stock.id}</div>
+          <div class="bg-white p-3 rounded-2xl border border-[#D1FAE5] shadow-xs">
+            <div class="text-[10px] font-semibold text-[#857B9B] mb-0.5">เมลที่ใช้ตัด</div>
+            <div class="font-mono font-bold text-[#8054F7] text-sm sm:text-base">${stock.id}</div>
             <div class="text-[10px] text-[#857B9B] mt-0.5">เรท ${stock.rate} ฿/$ • เหลือ $${formatNumber(remainAfter)}</div>
           </div>
 
-          <div class="bg-white p-2.5 rounded-xl border border-[#D1FAE5]">
-            <div class="text-[10px] text-[#857B9B] mb-0.5">ราคาขาย / ต้นทุน</div>
-            <div class="font-mono font-bold text-[#2E2544] text-xs sm:text-sm">฿${formatNumber(pkg.price)}</div>
+          <div class="bg-white p-3 rounded-2xl border border-[#D1FAE5] shadow-xs">
+            <div class="text-[10px] font-semibold text-[#857B9B] mb-0.5">ราคาขาย / ต้นทุน</div>
+            <div class="font-mono font-bold text-[#2E2544] text-sm sm:text-base">฿${formatNumber(pkg.price)}</div>
             <div class="text-[10px] text-[#857B9B] mt-0.5">ทุน ฿${formatNumber(costThb)}</div>
           </div>
 
-          <div class="bg-[#059669] p-2.5 rounded-xl text-white shadow-xs">
-            <div class="text-[10px] text-white/80 mb-0.5">กำไรสุทธิที่จะได้</div>
-            <div class="font-mono font-black text-xs sm:text-sm">${profitThb >= 0 ? '+฿' + formatNumber(profitThb) : '-฿' + formatNumber(Math.abs(profitThb))}</div>
+          <div class="bg-[#059669] p-3 rounded-2xl text-white shadow-xs">
+            <div class="text-[10px] font-semibold text-white/85 mb-0.5">กำไรสุทธิที่จะได้</div>
+            <div class="font-mono font-black text-sm sm:text-base">${profitThb >= 0 ? '+฿' + formatNumber(profitThb) : '-฿' + formatNumber(Math.abs(profitThb))}</div>
             <div class="text-[10px] text-white/90 mt-0.5">มาร์จิ้น ${marginPct}%</div>
           </div>
         </div>
@@ -13508,9 +13505,7 @@
       }
     }
 
-    // ========================================================
-    // TAB 2: STOCKS (1-CLICK TOGGLE OPEN/CLOSE)
-    // ========================================================
+    // Stocks
     function toggleStockStatus(idx) {
       const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts;
       const acc = accounts[idx];
@@ -13520,7 +13515,7 @@
       acc.status = newStatus;
       saveData();
       renderApp();
-      showToast(`เปลี่ยนสถานะ ${acc.id} เป็น "${newStatus}" แล้ว (คนอื่นจะเห็นตรงกันทันที)`, 'success');
+      showToast(`เปลี่ยนสถานะ ${acc.id} เป็น "${newStatus}" แล้ว`, 'success');
     }
 
     function renderStocks() {
@@ -13548,7 +13543,6 @@
                 <span class="text-xs font-semibold text-[#2E2544] truncate max-w-[130px]">${acc.email || '(ไม่มีอีเมล)'}</span>
               </div>
               
-              <!-- 1-CLICK TOGGLE BUTTON -->
               <div class="flex items-center gap-1.5">
                 <button type="button" onclick="toggleStockStatus(${idx})" class="px-3 py-1 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${isOpen ? 'bg-[#F0FDF4] text-[#059669] border border-[#D1FAE5] hover:bg-[#DCFCE7]' : 'bg-[#FAF8FF] text-slate-500 border border-slate-200 hover:bg-[#F3ECFF] hover:text-[#8054F7]'}">
                   <span class="w-2 h-2 rounded-full ${isOpen ? 'bg-[#059669]' : 'bg-slate-400'}"></span>
