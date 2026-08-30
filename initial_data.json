@@ -1,0 +1,315 @@
+{
+  "settings": {
+    "baseUsdRates": {
+      "80R": 0.99,
+      "500R": 4.99,
+      "1000R": 9.99,
+      "2000R": 19.99
+    },
+    "defaultEvalRate": 25.5,
+    "employees": [
+      "ฟ้อน",
+      "เม้กโกะกีระบิด",
+      "แอดมินบอส"
+    ]
+  },
+  "packages": [
+    {
+      "robux": 80,
+      "price": 35,
+      "press80": 1,
+      "press500": 0,
+      "press1000": 0,
+      "press2000": 0,
+      "usd": 0.99,
+      "pressGuide": "กด 80R × 1"
+    },
+    {
+      "robux": 160,
+      "price": 69,
+      "press80": 2,
+      "press500": 0,
+      "press1000": 0,
+      "press2000": 0,
+      "usd": 1.98,
+      "pressGuide": "กด 80R × 2"
+    },
+    {
+      "robux": 240,
+      "price": 99,
+      "press80": 3,
+      "press500": 0,
+      "press1000": 0,
+      "press2000": 0,
+      "usd": 2.97,
+      "pressGuide": "กด 80R × 3"
+    },
+    {
+      "robux": 400,
+      "price": 159,
+      "press80": 5,
+      "press500": 0,
+      "press1000": 0,
+      "press2000": 0,
+      "usd": 4.95,
+      "pressGuide": "กด 80R × 5"
+    },
+    {
+      "robux": 500,
+      "price": 169,
+      "press80": 0,
+      "press500": 1,
+      "press1000": 0,
+      "press2000": 0,
+      "usd": 4.99,
+      "pressGuide": "กด 500R × 1"
+    },
+    {
+      "robux": 1000,
+      "price": 325,
+      "press80": 0,
+      "press500": 0,
+      "press1000": 1,
+      "press2000": 0,
+      "usd": 9.99,
+      "pressGuide": "กด 1,000R × 1"
+    },
+    {
+      "robux": 2000,
+      "price": 639,
+      "press80": 0,
+      "press500": 0,
+      "press1000": 0,
+      "press2000": 1,
+      "usd": 19.99,
+      "pressGuide": "กด 2,000R × 1"
+    },
+    {
+      "robux": 3000,
+      "price": 949,
+      "press80": 0,
+      "press500": 0,
+      "press1000": 1,
+      "press2000": 1,
+      "usd": 29.98,
+      "pressGuide": "กด 2,000R × 1 + กด 1,000R × 1"
+    },
+    {
+      "robux": 4000,
+      "price": 1249,
+      "press80": 0,
+      "press500": 0,
+      "press1000": 0,
+      "press2000": 2,
+      "usd": 39.98,
+      "pressGuide": "กด 2,000R × 2"
+    },
+    {
+      "robux": 5000,
+      "price": 1549,
+      "press80": 0,
+      "press500": 0,
+      "press1000": 1,
+      "press2000": 2,
+      "usd": 49.97,
+      "pressGuide": "กด 2,000R × 2 + กด 1,000R × 1"
+    },
+    {
+      "robux": 10000,
+      "price": 2990,
+      "press80": 0,
+      "press500": 0,
+      "press1000": 0,
+      "press2000": 5,
+      "usd": 99.95,
+      "pressGuide": "กด 2,000R × 5"
+    },
+    {
+      "robux": 20000,
+      "price": 5890,
+      "press80": 0,
+      "press500": 0,
+      "press1000": 0,
+      "press2000": 10,
+      "usd": 199.9,
+      "pressGuide": "กด 2,000R × 10"
+    }
+  ],
+  "stockAccounts": [
+    {
+      "id": "PC-001",
+      "email": "account01@gmail.com",
+      "type": "PC",
+      "extraType": "Xbox US",
+      "initialUsd": 410,
+      "investmentThb": 11275,
+      "status": "พร้อมใช้",
+      "rate": 27.5,
+      "note": ""
+    },
+    {
+      "id": "PC-002",
+      "email": "account02@gmail.com",
+      "type": "PC",
+      "extraType": "Xbox US",
+      "initialUsd": 450,
+      "investmentThb": 11655,
+      "status": "พร้อมใช้",
+      "rate": 25.9,
+      "note": ""
+    },
+    {
+      "id": "PC-003",
+      "email": "8QHUadyJj6wqqe@qwbak.com",
+      "type": "PC",
+      "extraType": "Xbox US",
+      "initialUsd": 500,
+      "investmentThb": 12750,
+      "status": "พร้อมใช้",
+      "rate": 25.5,
+      "note": ""
+    },
+    {
+      "id": "PC-004",
+      "email": "hJD4LnRtBqmst@qwbak.com",
+      "type": "PC",
+      "extraType": "Xbox US",
+      "initialUsd": 305,
+      "investmentThb": 7960.5,
+      "status": "พร้อมใช้",
+      "rate": 26.1,
+      "note": ""
+    },
+    {
+      "id": "PC-005",
+      "email": "U4ZCw7SYBncVk@qwbak.com",
+      "type": "PC",
+      "extraType": "Xbox US",
+      "initialUsd": 303,
+      "investmentThb": 7847.7,
+      "status": "พร้อมใช้",
+      "rate": 25.9,
+      "note": ""
+    },
+    {
+      "id": "PC-006",
+      "email": "pGWDMhK4xpT7C5@qwbak.com",
+      "type": "PC",
+      "extraType": "Xbox US",
+      "initialUsd": 304,
+      "investmentThb": 7934.4,
+      "status": "พร้อมใช้",
+      "rate": 26.1,
+      "note": ""
+    },
+    {
+      "id": "PC-007",
+      "email": "Dy5mTEwPdW5B@qwbak.com",
+      "type": "PC",
+      "extraType": "Xbox US",
+      "initialUsd": 460,
+      "investmentThb": 11822,
+      "status": "พร้อมใช้",
+      "rate": 25.7,
+      "note": ""
+    }
+  ],
+  "orders": [
+    {
+      "orderId": "ORD-0001",
+      "date": "2026-08-28 14:05",
+      "username": "Takanashi_Hoshino113",
+      "robux": 1000,
+      "stockAccount": "PC-001",
+      "priceThb": 325,
+      "pressGuide": "กด 1,000R × 1",
+      "rate": 27.5,
+      "usd": 9.99,
+      "costThb": 274.725,
+      "profitThb": 50.275,
+      "staff": "ฟ้อน",
+      "status": "สำเร็จ",
+      "note": ""
+    },
+    {
+      "orderId": "ORD-0002",
+      "date": "2026-08-28 15:20",
+      "username": "SuperGamerTH_99",
+      "robux": 2000,
+      "stockAccount": "PC-002",
+      "priceThb": 639,
+      "pressGuide": "กด 2,000R × 1",
+      "rate": 25.9,
+      "usd": 19.99,
+      "costThb": 517.741,
+      "profitThb": 121.259,
+      "staff": "เม้กโกะกีระบิด",
+      "status": "สำเร็จ",
+      "note": ""
+    },
+    {
+      "orderId": "ORD-0003",
+      "date": "2026-08-29 11:10",
+      "username": "BloxFruitsKing",
+      "robux": 5000,
+      "stockAccount": "PC-003",
+      "priceThb": 1549,
+      "pressGuide": "กด 2,000R × 2 + กด 1,000R × 1",
+      "rate": 25.5,
+      "usd": 49.97,
+      "costThb": 1274.235,
+      "profitThb": 274.765,
+      "staff": "ฟ้อน",
+      "status": "สำเร็จ",
+      "note": "ลูกค้าประจำ"
+    },
+    {
+      "orderId": "ORD-0004",
+      "date": "2026-08-30 07:30",
+      "username": "NekoSamurai01",
+      "robux": 1000,
+      "stockAccount": "PC-003",
+      "priceThb": 325,
+      "pressGuide": "กด 1,000R × 1",
+      "rate": 25.5,
+      "usd": 9.99,
+      "costThb": 254.745,
+      "profitThb": 70.255,
+      "staff": "ฟ้อน",
+      "status": "สำเร็จ",
+      "note": ""
+    },
+    {
+      "orderId": "ORD-0005",
+      "date": "2026-08-30 08:10",
+      "username": "RobloxProMaster",
+      "robux": 2000,
+      "stockAccount": "PC-003",
+      "priceThb": 639,
+      "pressGuide": "กด 2,000R × 1",
+      "rate": 25.5,
+      "usd": 19.99,
+      "costThb": 509.745,
+      "profitThb": 129.255,
+      "staff": "เม้กโกะกีระบิด",
+      "status": "กำลังเติม",
+      "note": ""
+    },
+    {
+      "orderId": "ORD-0006",
+      "date": "2026-08-30 08:20",
+      "username": "Krit_DragonWarrior",
+      "robux": 500,
+      "stockAccount": "PC-003",
+      "priceThb": 169,
+      "pressGuide": "กด 500R × 1",
+      "rate": 25.5,
+      "usd": 4.99,
+      "costThb": 127.245,
+      "profitThb": 41.755,
+      "staff": "ฟ้อน",
+      "status": "รอดำเนินการ",
+      "note": ""
+    }
+  ]
+}
