@@ -66,7 +66,6 @@ app.post('/api/sync', (req, res) => {
 
 // WebSocket Server
 wss.on('connection', (ws) => {
-  // Send current data immediately upon connection
   if (shopData) {
     ws.send(JSON.stringify({ type: 'INIT_DATA', data: shopData }));
   }
@@ -77,7 +76,6 @@ wss.on('connection', (ws) => {
       if (parsed.type === 'UPDATE_DATA' && parsed.data) {
         shopData = parsed.data;
         saveShopDataToFile();
-        // Broadcast update to all other connected clients
         broadcast({ type: 'DATA_SYNC', data: shopData }, ws);
       }
     } catch (err) {
