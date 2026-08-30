@@ -8,6 +8,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <!-- Firebase Realtime Database SDK (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
   <style>
     :root {
       --bg-page: #FAF8FF;
@@ -86,6 +89,14 @@
       background: #E4D8FA;
       border-radius: 999px;
     }
+    /* Pulse dot */
+    .pulse-dot {
+      animation: pulse-animation 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulse-animation {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-[#EADBFC] selection:text-[#523A7E]">
@@ -96,7 +107,7 @@
       
       <div class="flex items-center justify-between h-16">
         
-        <!-- Brand with Robux Icon -->
+        <!-- Brand with Robux Icon & Database Status Pill -->
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#F5F0FF] to-[#EBE0FF] border border-[#DDD0FA] flex items-center justify-center p-1.5 shadow-xs">
             <img src="https://img.bubbleshoproblox.store/img/2026-08/3a9b1e8f-f363-4469-8081-e6e708faa92b.webp" class="w-6 h-6 object-contain" alt="Robux" onerror="this.style.display='none'">
@@ -104,11 +115,14 @@
           <div>
             <div class="flex items-center gap-2">
               <span class="font-bold text-base text-[#2E2544] tracking-tight">Cozy Robux Studio</span>
-              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#F5F0FF] text-[#8B5CF6] border border-[#E8DDFF]">
-                pastel
-              </span>
+              
+              <!-- Realtime Cloud Database Status Pill -->
+              <button onclick="openDatabaseSettingsModal()" id="db-status-pill" class="flex items-center gap-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-full border transition cursor-pointer bg-[#F0FDF4] text-[#059669] border-[#D1FAE5]">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#059669] pulse-dot"></span>
+                <span id="db-status-text">Cloud DB</span>
+              </button>
             </div>
-            <p class="text-[11px] text-[#857B9B]">ระบบเติมเกม & สต็อกเมล • คำนวณกำไรอัตโนมัติ</p>
+            <p class="text-[11px] text-[#857B9B]">ระบบเติมเกม & สต็อกเมล • Real-time Sync หลายอุปกรณ์</p>
           </div>
         </div>
 
@@ -232,7 +246,6 @@
               </button>
             </div>
 
-            <!-- Quick Counter Pills -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <button type="button" onclick="addCashierExtraPack('80')" class="py-1.5 px-3 rounded-xl border border-[#E2D5F8] bg-white hover:bg-[#F3ECFF] text-xs font-mono font-semibold text-[#2E2544] flex items-center justify-between transition cursor-pointer">
                 <span>+ 80R</span>
@@ -252,10 +265,7 @@
               </button>
             </div>
 
-            <!-- Overpress summary badge -->
-            <div id="cashier-overpress-summary-badge" class="text-[11px] text-[#857B9B] hidden">
-              <!-- Rendered via JS -->
-            </div>
+            <div id="cashier-overpress-summary-badge" class="text-[11px] text-[#857B9B] hidden"></div>
           </div>
 
           <!-- Step 3: Smart Fulfillment Card -->
@@ -389,7 +399,7 @@
             </svg>
             <span>ส่งออก & สำรองข้อมูล</span>
           </h3>
-          <p class="text-xs text-[#857B9B]">ข้อมูลทั้งหมดบันทึกในเครื่อง สามารถโหลดไฟล์ Excel หรือ Backup ได้ตลอดเวลา</p>
+          <p class="text-xs text-[#857B9B]">ข้อมูลทั้งหมดบันทึกในเครื่องและบนคลาวด์ สามารถโหลดไฟล์ Excel หรือ Backup ได้ตลอดเวลา</p>
           <div class="space-y-2 pt-2">
             <button onclick="exportOrdersCsv()" class="w-full py-2.5 bg-[#FAF8FF] hover:bg-[#F3ECFF] text-[#8054F7] border border-[#E4D7FC] rounded-2xl text-xs font-semibold transition flex items-center justify-center gap-2 cursor-pointer">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
@@ -398,6 +408,9 @@
             <button onclick="exportBackupJson()" class="w-full py-2.5 bg-[#FAF8FF] hover:bg-[#F3ECFF] text-[#2E2544] border border-[#EFE9F9] rounded-2xl text-xs font-semibold transition flex items-center justify-center gap-2 cursor-pointer">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
               <span>ดาวน์โหลด Backup ทั้งระบบ (JSON)</span>
+            </button>
+            <button onclick="openDatabaseSettingsModal()" class="w-full py-2 bg-[#F3ECFF] text-[#8054F7] hover:bg-[#E8DDFF] rounded-2xl text-xs font-semibold transition cursor-pointer">
+              ⚙️ ตั้งค่า Real-time Cloud Database
             </button>
             <button onclick="resetToInitialData()" class="w-full py-2 text-[#E11D48] hover:bg-[#FFF5F7] rounded-2xl text-xs font-medium transition cursor-pointer">
               รีเซ็ตข้อมูลเริ่มต้น (Factory Reset)
@@ -409,6 +422,68 @@
     </section>
 
   </main>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: CLOUD DATABASE SETTINGS (FIREBASE REALTIME DB) -->
+  <!-- ======================================================== -->
+  <div id="db-settings-modal" onclick="handleModalBackdropClick(event, 'db-settings-modal')" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-[2px] hidden">
+    <div class="bg-white border border-[#EFE9F9] rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      
+      <div class="px-6 py-4 border-b border-[#F5EFFF] flex items-center justify-between bg-[#FAF8FF]">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-xl bg-[#F0FDF4] text-[#059669] border border-[#D1FAE5] flex items-center justify-center font-bold text-xs">
+            ☁️
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-[#2E2544]">ตั้งค่า Cloud Database (Real-time Sync)</h3>
+            <p class="text-[11px] text-[#857B9B]">เพื่อให้แฟนและคนในร้านเห็นข้อมูลตรงกันทันที</p>
+          </div>
+        </div>
+        <button onclick="closeDatabaseSettingsModal()" class="w-7 h-7 rounded-full text-[#857B9B] hover:bg-[#F5EFFF] hover:text-[#2E2544] flex items-center justify-center text-sm transition cursor-pointer">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <form onsubmit="handleSaveFirebaseConfig(event)" class="p-6 space-y-3.5 text-xs">
+        
+        <div class="p-3 bg-[#FAF8FF] rounded-2xl border border-[#EDE5FC] space-y-1.5">
+          <div class="font-bold text-[#8054F7] flex items-center gap-1.5">
+            <span>✨ วิธีเชื่อมต่อฐานข้อมูลส่วนกลางฟรี (Firebase)</span>
+          </div>
+          <ol class="list-decimal list-inside text-[11px] text-[#665B7D] space-y-0.5">
+            <li>สร้างโปรเจกต์ฟรีที่ <a href="https://console.firebase.google.com" target="_blank" class="text-[#8054F7] underline font-semibold">firebase.google.com</a></li>
+            <li>กดสร้าง **Realtime Database** (เลือกโหมด Test)</li>
+            <li>คัดลอก **Database URL** หรือ **Firebase Config** มาวางด้านล่าง</li>
+          </ol>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-[#665B7D] mb-1">Firebase Realtime Database URL</label>
+          <input type="text" id="input-firebase-db-url" placeholder="https://your-shop-robux-default-rtdb.firebaseio.com" class="w-full px-3.5 py-2 bg-white border border-[#E2D5F8] rounded-xl text-xs font-mono text-[#2E2544] focus:outline-none focus:border-[#8054F7]">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-[#665B7D] mb-1">Firebase Config JSON (หรือวางทั้งหมด)</label>
+          <textarea id="input-firebase-config-json" rows="3" placeholder='{"databaseURL": "https://...", "apiKey": "..."}' class="w-full px-3.5 py-2 bg-white border border-[#E2D5F8] rounded-xl text-xs font-mono text-[#2E2544] focus:outline-none focus:border-[#8054F7]"></textarea>
+        </div>
+
+        <div class="flex items-center justify-between pt-2 border-t border-[#F5EFFF]">
+          <button type="button" onclick="disconnectCloudDb()" class="text-[#E11D48] hover:underline text-[11px] cursor-pointer">
+            ตัดการเชื่อมต่อ Cloud
+          </button>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="closeDatabaseSettingsModal()" class="px-4 py-2 text-xs font-medium text-[#857B9B] hover:bg-[#FAF8FF] rounded-xl transition cursor-pointer">
+              ปิด
+            </button>
+            <button type="submit" class="btn-cute-primary px-5 py-2 text-white text-xs font-semibold rounded-xl">
+              บันทึก & ซิงค์ข้อมูล
+            </button>
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </div>
 
   <!-- ======================================================== -->
   <!-- MODAL: ADD / EDIT STOCK ACCOUNT -->
@@ -481,7 +556,7 @@
   </div>
 
   <!-- ======================================================== -->
-  <!-- MODAL: EDIT ORDER & ADJUST OVERPRESS (EASY BUTTONS - NO USD MATH) -->
+  <!-- MODAL: EDIT ORDER & ADJUST OVERPRESS -->
   <!-- ======================================================== -->
   <div id="order-edit-modal" onclick="handleModalBackdropClick(event, 'order-edit-modal')" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-[2px] hidden">
     <div class="bg-white border border-[#EFE9F9] rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
@@ -498,7 +573,6 @@
 
       <form onsubmit="handleSaveOrderEdit(event)" class="p-6 space-y-4 text-xs">
         
-        <!-- Summary Strip -->
         <div class="p-3 bg-[#FAF8FF] rounded-2xl border border-[#EDE5FC] flex items-center justify-between">
           <div>
             <div class="text-[10px] text-[#857B9B]">ลูกค้า & แพ็กเกจ</div>
@@ -510,7 +584,6 @@
           </div>
         </div>
 
-        <!-- Overpress Steppers (Simply click buttons to add/remove) -->
         <div class="space-y-2">
           <div class="flex items-center justify-between">
             <label class="font-bold text-[#2E2544] flex items-center gap-1.5">
@@ -523,7 +596,6 @@
           </div>
 
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <!-- 80R -->
             <div class="p-2 bg-white rounded-xl border border-[#E2D5F8] text-center space-y-1">
               <div class="text-[11px] font-mono font-bold text-[#2E2544]">+80R</div>
               <div class="flex items-center justify-center gap-1">
@@ -533,7 +605,6 @@
               </div>
             </div>
 
-            <!-- 500R -->
             <div class="p-2 bg-white rounded-xl border border-[#E2D5F8] text-center space-y-1">
               <div class="text-[11px] font-mono font-bold text-[#2E2544]">+500R</div>
               <div class="flex items-center justify-center gap-1">
@@ -543,7 +614,6 @@
               </div>
             </div>
 
-            <!-- 1000R -->
             <div class="p-2 bg-white rounded-xl border border-[#E2D5F8] text-center space-y-1">
               <div class="text-[11px] font-mono font-bold text-[#2E2544]">+1,000R</div>
               <div class="flex items-center justify-center gap-1">
@@ -553,7 +623,6 @@
               </div>
             </div>
 
-            <!-- 2000R -->
             <div class="p-2 bg-white rounded-xl border border-[#E2D5F8] text-center space-y-1">
               <div class="text-[11px] font-mono font-bold text-[#2E2544]">+2,000R</div>
               <div class="flex items-center justify-center gap-1">
@@ -565,12 +634,8 @@
           </div>
         </div>
 
-        <!-- Live Calculation Box -->
-        <div id="modal-edit-calc-preview" class="p-3 bg-[#FAF8FF] rounded-2xl border border-[#E8DDFF] text-xs">
-          <!-- Rendered via JS -->
-        </div>
+        <div id="modal-edit-calc-preview" class="p-3 bg-[#FAF8FF] rounded-2xl border border-[#E8DDFF] text-xs"></div>
 
-        <!-- Note Input & Claim Checkbox -->
         <div class="space-y-2 pt-1">
           <div>
             <label class="block font-semibold text-[#665B7D] mb-1">หมายเหตุออเดอร์ (ถ้ามี)</label>
@@ -600,10 +665,11 @@
   <div id="toast-box" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
   <!-- ======================================================== -->
-  <!-- APPLICATION SCRIPT -->
+  <!-- APPLICATION SCRIPT (WITH FIREBASE REAL-TIME SYNC) -->
   <!-- ======================================================== -->
   <script>
-    const STORAGE_KEY = 'COZY_ROBUX_STUDIO_V8_CLUTTERFREE';
+    const STORAGE_KEY = 'COZY_ROBUX_STUDIO_V9_FIREBASE';
+    const FIREBASE_CONFIG_KEY = 'COZY_FIREBASE_CONFIG';
     const ROBUX_ICON_URL = 'https://img.bubbleshoproblox.store/img/2026-08/3a9b1e8f-f363-4469-8081-e6e708faa92b.webp';
 
     const PACK_USD_RATES = {
@@ -12767,8 +12833,12 @@
     let salesSearchQuery = '';
     let salesDisplayLimit = 30;
 
-    // Cashier Overpress state
     let cashierExtraPacks = { '80': 0, '500': 0, '1000': 0, '2000': 0 };
+
+    // Firebase Database State
+    let dbRef = null;
+    let isCloudConnected = false;
+    let isInitialSyncDone = false;
 
     function initData() {
       try {
@@ -12786,24 +12856,171 @@
           };
         } else {
           appData = JSON.parse(JSON.stringify(INITIAL_SEED));
-          saveData();
+          saveDataLocal();
         }
       } catch (e) {
         console.error("Init Error:", e);
         appData = JSON.parse(JSON.stringify(INITIAL_SEED));
-        saveData();
+        saveDataLocal();
       }
 
       currentPricingRate = (appData.settings && appData.settings.defaultEvalRate) || 25.50;
       selectedRobux = 1000;
       renderApp();
+
+      // Attempt to connect Firebase if configured
+      initFirebaseConnection();
+    }
+
+    function initFirebaseConnection() {
+      const savedConfig = localStorage.getItem(FIREBASE_CONFIG_KEY);
+      if (savedConfig) {
+        try {
+          let configObj = null;
+          if (savedConfig.startsWith('http')) {
+            configObj = { databaseURL: savedConfig };
+          } else {
+            configObj = JSON.parse(savedConfig);
+          }
+
+          if (configObj && (configObj.databaseURL || configObj.projectId)) {
+            if (!firebase.apps.length) {
+              firebase.initializeApp(configObj);
+            }
+            const db = firebase.database();
+            dbRef = db.ref('shop_data');
+
+            // Listen for Realtime Updates from Cloud
+            dbRef.on('value', (snapshot) => {
+              const val = snapshot.val();
+              if (val) {
+                appData = {
+                  settings: val.settings || appData.settings,
+                  packages: val.packages || appData.packages,
+                  stockAccounts: val.stockAccounts || appData.stockAccounts,
+                  salesLogs: val.salesLogs || appData.salesLogs
+                };
+                saveDataLocal();
+                renderApp();
+                setDbStatusUI('connected');
+                if (!isInitialSyncDone) {
+                  showToast('เชื่อมต่อ Real-time Cloud สำเร็จ ข้อมูลตรงกัน 100%', 'success');
+                  isInitialSyncDone = true;
+                }
+              } else {
+                // First time setup: upload local data to cloud
+                syncDataToCloud();
+                setDbStatusUI('connected');
+              }
+            }, (error) => {
+              console.warn('Firebase sync error:', error);
+              setDbStatusUI('error');
+            });
+
+            isCloudConnected = true;
+            return;
+          }
+        } catch (err) {
+          console.warn('Failed to parse Firebase config:', err);
+          setDbStatusUI('local');
+        }
+      } else {
+        setDbStatusUI('local');
+      }
+    }
+
+    function setDbStatusUI(status) {
+      const pill = document.getElementById('db-status-pill');
+      const text = document.getElementById('db-status-text');
+      if (!pill || !text) return;
+
+      if (status === 'connected') {
+        pill.className = 'flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-0.5 rounded-full border transition cursor-pointer bg-[#F0FDF4] text-[#059669] border-[#D1FAE5]';
+        pill.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-[#059669] pulse-dot"></span><span>Real-time Cloud Synced</span>';
+      } else if (status === 'error') {
+        pill.className = 'flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-0.5 rounded-full border transition cursor-pointer bg-[#FFF1F2] text-[#E11D48] border-[#FECDD3]';
+        pill.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-[#E11D48]"></span><span>Cloud Error (กำลังต่อใหม่)</span>';
+      } else {
+        pill.className = 'flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-0.5 rounded-full border transition cursor-pointer bg-[#FAF8FF] text-[#8054F7] border-[#E8DDFF] hover:bg-[#F3ECFF]';
+        pill.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-[#8054F7]"></span><span>เชื่อมต่อ Cloud DB</span>';
+      }
     }
 
     function saveData() {
+      saveDataLocal();
+      syncDataToCloud();
+    }
+
+    function saveDataLocal() {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
       } catch (e) {
         console.error("Save Error:", e);
+      }
+    }
+
+    function syncDataToCloud() {
+      if (dbRef) {
+        try {
+          dbRef.set(appData);
+        } catch (e) {
+          console.error("Cloud sync write error:", e);
+        }
+      }
+    }
+
+    // Modal for DB Settings
+    function openDatabaseSettingsModal() {
+      const modal = document.getElementById('db-settings-modal');
+      if (!modal) return;
+      const savedConfig = localStorage.getItem(FIREBASE_CONFIG_KEY) || '';
+      if (savedConfig.startsWith('http')) {
+        document.getElementById('input-firebase-db-url').value = savedConfig;
+        document.getElementById('input-firebase-config-json').value = '';
+      } else {
+        document.getElementById('input-firebase-config-json').value = savedConfig;
+      }
+      modal.classList.remove('hidden');
+    }
+
+    function closeDatabaseSettingsModal() {
+      const modal = document.getElementById('db-settings-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function handleSaveFirebaseConfig(e) {
+      e.preventDefault();
+      const urlInput = document.getElementById('input-firebase-db-url').value.trim();
+      const jsonInput = document.getElementById('input-firebase-config-json').value.trim();
+
+      let toSave = '';
+      if (jsonInput) {
+        toSave = jsonInput;
+      } else if (urlInput) {
+        toSave = urlInput;
+      }
+
+      if (toSave) {
+        localStorage.setItem(FIREBASE_CONFIG_KEY, toSave);
+        closeDatabaseSettingsModal();
+        showToast('กำลังเชื่อมต่อ Cloud Database...', 'info');
+        initFirebaseConnection();
+      } else {
+        showToast('กรุณากรอก Database URL หรือ Config', 'error');
+      }
+    }
+
+    function disconnectCloudDb() {
+      if (confirm('ต้องการตัดการเชื่อมต่อ Cloud และใช้โหมดในเครื่อง (Local) ใช่หรือไม่?')) {
+        localStorage.removeItem(FIREBASE_CONFIG_KEY);
+        if (dbRef) {
+          dbRef.off();
+          dbRef = null;
+        }
+        isCloudConnected = false;
+        closeDatabaseSettingsModal();
+        setDbStatusUI('local');
+        showToast('เปลี่ยนเป็นโหมดบันทึกในเครื่องแล้ว', 'info');
       }
     }
 
@@ -12925,9 +13142,7 @@
       else if (currentTab === 'summary') renderSummary();
     }
 
-    // ========================================================
-    // TAB 1: CASHIER & OVERPRESS CONTROLS
-    // ========================================================
+    // Cashier overpress toggles
     function toggleOverpressSection() {
       const box = document.getElementById('cashier-overpress-box');
       const btn = document.getElementById('btn-toggle-overpress');
@@ -13022,7 +13237,6 @@
       const pkgs = appData.packages || INITIAL_SEED.packages;
       const pkg = pkgs.find(p => p.robux === selectedRobux) || pkgs[0];
 
-      // Calculate total USD with extra packs
       let totalUsd = pkg.usd;
       let extraParts = [];
       Object.entries(cashierExtraPacks).forEach(([k, count]) => {
@@ -13174,7 +13388,7 @@
       if (usernameInput) usernameInput.value = '';
       resetCashierOverpress();
       renderApp();
-      showToast(`เติมสำเร็จ! ${username} (${pkg.robux}R) • กำไร ${profitThb >= 0 ? '+฿' + formatNumber(profitThb) : '-฿' + formatNumber(Math.abs(profitThb))}`, 'success');
+      showToast(`เติมสำเร็จ! ${username} (${pkg.robux}R) • ซิงค์คลาวด์แล้ว`, 'success');
     }
 
     function handleSearchSales(query) {
@@ -13258,11 +13472,10 @@
               <div class="text-right">
                 <div class="font-mono font-bold text-[#2E2544]">฿${formatNumber(log.priceThb)}</div>
                 <div class="font-mono font-bold text-[11px] ${log.profitThb >= 0 ? 'text-[#059669]' : 'text-[#E11D48]'}">
-                  ${log.profitThb >= 0 ? '+฿' + formatNumber(log.profitThb) : '-฿' + formatNumber(Math.abs(log.profitThb))}
+                  ${log.profitThb >= 0 ? '+฿' + formatNumber(log.profitThb) : '-฿' + formatNumber(Math.abs(profitThb))}
                 </div>
               </div>
               
-              <!-- Edit Button -->
               <button onclick="openOrderEditModal('${log.id}')" class="p-1.5 text-[#857B9B] hover:text-[#8054F7] hover:bg-[#F5EFFF] rounded-xl transition cursor-pointer" title="แก้ไข / ปรับยอดกดเกิน">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -13270,7 +13483,6 @@
                 </svg>
               </button>
 
-              <!-- Delete Button -->
               <button onclick="removeSalesLogById('${log.id}')" class="p-1.5 text-[#AAA0C0] hover:text-[#E11D48] hover:bg-[#FFF5F7] rounded-xl transition cursor-pointer" title="ลบรายการ (คืนสต็อก)">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -13311,9 +13523,7 @@
       }
     }
 
-    // ========================================================
-    // ORDER EDIT MODAL (EASY & NO USD MATH)
-    // ========================================================
+    // ORDER EDIT MODAL
     let editingOrderId = null;
     let modalEditExtraPacks = { '80': 0, '500': 0, '1000': 0, '2000': 0 };
 
@@ -13331,7 +13541,6 @@
       document.getElementById('edit-modal-note').value = log.note || '';
       document.getElementById('edit-modal-zero-profit').checked = (log.profitThb === 0 && log.costThb > 0);
 
-      // Extract existing extra packs if any
       modalEditExtraPacks = { '80': 0, '500': 0, '1000': 0, '2000': 0 };
       if (log.extraPacks) {
         modalEditExtraPacks = { ...modalEditExtraPacks, ...log.extraPacks };
@@ -13441,12 +13650,10 @@
       saveData();
       closeOrderEditModal();
       renderApp();
-      showToast(`อัปเดตออเดอร์ ${log.id} สำเร็จ`, 'success');
+      showToast(`อัปเดตออเดอร์ ${log.id} สำเร็จ • ซิงค์คลาวด์แล้ว`, 'success');
     }
 
-    // ========================================================
-    // TAB 2: STOCKS
-    // ========================================================
+    // Stocks
     function renderStocks() {
       const grid = document.getElementById('stocks-cards-grid');
       if (!grid) return;
@@ -13589,6 +13796,7 @@
       if (e.target && e.target.id === modalId) {
         if (modalId === 'stock-modal') closeStockModal();
         if (modalId === 'order-edit-modal') closeOrderEditModal();
+        if (modalId === 'db-settings-modal') closeDatabaseSettingsModal();
       }
     }
 
@@ -13627,9 +13835,7 @@
       renderApp();
     }
 
-    // ========================================================
-    // TAB 3: PRICING
-    // ========================================================
+    // Pricing
     function renderPricing() {
       const container = document.getElementById('pricing-table-container');
       if (!container) return;
@@ -13696,9 +13902,7 @@
       }
     }
 
-    // ========================================================
-    // TAB 4: SUMMARY
-    // ========================================================
+    // Summary
     function renderSummary() {
       const today = new Date().toISOString().slice(0, 10);
       const logs = appData.salesLogs || [];
@@ -13868,6 +14072,7 @@
       if (e.key === 'Escape') {
         closeStockModal();
         closeOrderEditModal();
+        closeDatabaseSettingsModal();
       }
     });
 
