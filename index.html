@@ -13243,7 +13243,7 @@
 
           <div class="bg-[#059669] p-3 rounded-2xl text-white shadow-xs">
             <div class="text-[10px] font-semibold text-white/85 mb-0.5">กำไรสุทธิที่จะได้</div>
-            <div class="font-mono font-black text-sm sm:text-base">${profitThb >= 0 ? '+฿' + formatNumber(profitThb) : '-฿' + formatNumber(Math.abs(profitThb))}</div>
+            <div class="font-mono font-black text-sm sm:text-base">${profitThb >= 0 ? '+฿' + formatNumber(profitThb) : '-฿' + formatNumber(Math.abs(log.profitThb))}</div>
             <div class="text-[10px] text-white/90 mt-0.5">มาร์จิ้น ${marginPct}%</div>
           </div>
         </div>
@@ -13406,7 +13406,7 @@
               <div class="text-right">
                 <div class="font-mono font-bold text-[#2E2544]">฿${formatNumber(log.priceThb)}</div>
                 <div class="font-mono font-bold text-[11px] ${log.profitThb >= 0 ? 'text-[#059669]' : 'text-[#E11D48]'}">
-                  ${log.profitThb >= 0 ? '+฿' + formatNumber(log.profitThb) : '-฿' + formatNumber(Math.abs(profitThb))}
+                  ${log.profitThb >= 0 ? '+฿' + formatNumber(log.profitThb) : '-฿' + formatNumber(Math.abs(log.profitThb))}
                 </div>
               </div>
               
@@ -13745,7 +13745,7 @@
         <div class="flex items-center justify-between text-xs pt-1">
           <span class="text-[#857B9B]">ต้นทุน: <strong>฿${formatNumber(costThb)}</strong></span>
           <span class="font-mono font-bold ${profitThb >= 0 ? 'text-[#059669]' : 'text-[#E11D48]'}">
-            กำไรสุทธิ: ${profitThb >= 0 ? '+฿' + formatNumber(profitThb) : '-฿' + formatNumber(Math.abs(profitThb))}
+            กำไรสุทธิ: ${profitThb >= 0 ? '+฿' + formatNumber(profitThb) : '-฿' + formatNumber(Math.abs(log.profitThb))}
           </span>
         </div>
       `;
