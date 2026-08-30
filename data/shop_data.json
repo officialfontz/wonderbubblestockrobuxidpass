@@ -186,6 +186,16 @@
       "investmentThb": 7888,
       "status": "พร้อมใช้",
       "note": "⚠️ ยอดจริงเหลือ $6 — ระบบจะแสดงมากกว่านี้จนกว่าออเดอร์ที่หายจะกู้ครบ"
+    },
+    {
+      "id": "PC-011",
+      "email": "khadiryildaxa@outlook.com",
+      "buyDate": "2026-08-30",
+      "initialUsd": 490,
+      "rate": 27.3,
+      "investmentThb": 13377,
+      "status": "พร้อมใช้",
+      "note": ""
     }
   ],
   "salesLogs": [

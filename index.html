@@ -1466,6 +1466,23 @@
       let stock = accounts.find(s => s.id === selectedStockId);
       if (!stock) stock = accounts.find(s => s.status === 'พร้อมใช้') || accounts[0];
 
+      if (!stock) {
+        showToast('ยังไม่มีบัญชีสต็อกเมลในระบบ เพิ่มเมลก่อนบันทึกออเดอร์', 'error');
+        return;
+      }
+
+      // Nothing used to stop a sale being booked against a mail that could not
+      // cover it, which is how two accounts ended up with a negative balance.
+      const remainNow = (calculateStockBalances()[stock.id] || {}).remainingUsd;
+      const remaining = Number(remainNow !== undefined ? remainNow : stock.initialUsd) || 0;
+      if (remaining < totalUsd) {
+        const go = confirm(
+          'เครดิตของ ' + stock.id + ' ไม่พอ\n\n' +
+          'เหลือ $' + remaining.toFixed(2) + ' แต่รายการนี้ต้องใช้ $' + totalUsd.toFixed(2) + '\n\n' +
+          'กดตกลงเพื่อบันทึกต่อ (ยอดจะติดลบ) หรือยกเลิกเพื่อเปลี่ยนเมล');
+        if (!go) return;
+      }
+
       const logs = appData.salesLogs || [];
       let maxNum = 0;
       logs.forEach(s => {
@@ -1853,6 +1870,26 @@
       const investmentThb = Number((initialUsd * rate).toFixed(2));
       const status = document.getElementById('form-stock-status').value;
       const note = document.getElementById('form-stock-note').value.trim();
+
+      if (!id) {
+        showToast('กรุณากรอกรหัสเมล เช่น PC-011', 'error');
+        return;
+      }
+      // A second account with the same id splits its balance across two records
+      // and both end up wrong.
+      const clash = (appData.stockAccounts || []).findIndex(a => a && a.id === id);
+      if (clash !== -1 && clash !== curStockEditIdx) {
+        showToast('มีเมล ' + id + ' อยู่แล้ว ใช้รหัสอื่น', 'error');
+        return;
+      }
+      if (!(initialUsd > 0)) {
+        showToast('กรุณากรอกยอดเงิน USD ให้ถูกต้อง', 'error');
+        return;
+      }
+      if (!(rate > 0)) {
+        showToast('กรุณากรอกเรทให้ถูกต้อง', 'error');
+        return;
+      }
 
       const obj = { id, email, buyDate, initialUsd, rate, investmentThb, status, note };
 
@@ -2577,13 +2614,88 @@
       showToast('ดาวน์โหลด Backup JSON เรียบร้อย', 'success');
     }
 
-    function resetToInitialData() {
-      if (confirm('คุณแน่ใจหรือไม่ว่าต้องการรีเซ็ตข้อมูลทั้งหมดกลับเป็นค่าเริ่มต้น?')) {
-        appData = JSON.parse(JSON.stringify(INITIAL_SEED));
+    // The restore button had markup but no handler at all, so picking a backup
+    // file did nothing. It merges rather than replaces: the point is to bring
+    // lost orders back without dropping anything newer.
+    function handleImportBackupJson(event) {
+      const input = event && event.target;
+      const file = input && input.files && input.files[0];
+      if (!file) return;
+      const clear = () => { try { input.value = ''; } catch (e) {} };
+
+      const reader = new FileReader();
+      reader.onerror = () => { showToast('อ่านไฟล์ไม่สำเร็จ', 'error'); clear(); };
+      reader.onload = () => {
+        let parsed;
+        try {
+          parsed = JSON.parse(String(reader.result));
+        } catch (err) {
+          showToast('ไฟล์นี้อ่านไม่ออก ต้องเป็นไฟล์ .json ที่ดาวน์โหลดจากระบบ', 'error');
+          clear();
+          return;
+        }
+
+        // Accept a bare appData object or a saved server reply {data:{...}}.
+        const data = (parsed && Array.isArray(parsed.salesLogs)) ? parsed
+          : (parsed && parsed.data && Array.isArray(parsed.data.salesLogs)) ? parsed.data
+          : null;
+        if (!data) {
+          showToast('ไฟล์นี้ไม่มีข้อมูลออเดอร์', 'error');
+          clear();
+          return;
+        }
+
+        const sig = l => [l.id, l.date, l.username, l.robux].join('|');
+        const have = new Set((appData.salesLogs || []).map(sig));
+        const freshOrders = data.salesLogs.filter(l => l && !have.has(sig(l)));
+
+        const knownAccounts = new Set((appData.stockAccounts || []).map(a => a.id));
+        const freshAccounts = (data.stockAccounts || []).filter(a => a && a.id && !knownAccounts.has(a.id));
+
+        if (!freshOrders.length && !freshAccounts.length) {
+          showToast('ไฟล์นี้ไม่มีอะไรใหม่ ข้อมูลครบอยู่แล้ว', 'info');
+          clear();
+          return;
+        }
+
+        const ok = confirm(
+          'นำเข้าไฟล์สำรองนี้?\n\n' +
+          '• ออเดอร์ใหม่ ' + freshOrders.length + ' รายการ\n' +
+          '• เมลใหม่ ' + freshAccounts.length + ' บัญชี\n\n' +
+          'ข้อมูลเดิมจะไม่ถูกลบ ระบบจะรวมเข้าด้วยกัน');
+        if (!ok) { clear(); return; }
+
+        if (!appData.salesLogs) appData.salesLogs = [];
+        if (!appData.stockAccounts) appData.stockAccounts = [];
+        appData.salesLogs.push(...freshOrders);
+        appData.stockAccounts.push(...freshAccounts);
+        appData.salesLogs.sort((a, b) => String(a.date).localeCompare(String(b.date)));
+
         saveData();
         renderApp();
-        showToast('รีเซ็ตข้อมูลสำเร็จ', 'info');
+        showToast('นำเข้าสำเร็จ • เพิ่ม ' + formatInt(freshOrders.length) + ' ออเดอร์, ' +
+          freshAccounts.length + ' เมล', 'success');
+        clear();
+      };
+      reader.readAsText(file);
+    }
+
+    function resetToInitialData() {
+      const answer = prompt(
+        'ล้างข้อมูลในเครื่องนี้ทั้งหมด?\n\n' +
+        'พิมพ์  RESET  แล้วกดตกลงเพื่อยืนยัน\n\n' +
+        'ข้อมูลบนเซิร์ฟเวอร์จะไม่ถูกลบ และจะถูกดึงกลับมาให้ทันที');
+      if (String(answer || '').trim().toUpperCase() !== 'RESET') {
+        showToast('ยกเลิกการรีเซ็ต', 'info');
+        return;
       }
+      // Local only - deliberately not saveData(), so an empty set is never
+      // pushed up to the server.
+      appData = JSON.parse(JSON.stringify(INITIAL_SEED));
+      saveDataLocal();
+      renderApp();
+      showToast('ล้างข้อมูลในเครื่องแล้ว กำลังดึงจากเซิร์ฟเวอร์', 'info');
+      fetchServerData();
     }
 
     document.addEventListener('keydown', (e) => {
