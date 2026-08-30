@@ -12822,6 +12822,12 @@
     let isPollingActive = false;
 
     let cashierExtraPacks = { '80': 0, '500': 0, '1000': 0, '2000': 0 };
+    let currentLeaderboardPeriod = 'today';
+
+    function setLeaderboardPeriod(p) {
+      currentLeaderboardPeriod = p;
+      renderSummary();
+    }
 
     async function initData() {
       try {
