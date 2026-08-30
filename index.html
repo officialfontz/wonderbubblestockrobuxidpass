@@ -582,6 +582,7 @@
             </label>
             <select id="edit-modal-stock-select" onchange="renderEditModalCalcPreview()" class="w-full px-2.5 py-1.5 bg-white border border-[#DDD0FA] rounded-xl text-xs font-mono font-bold text-[#8054F7] focus:outline-none focus:border-[#8054F7] cursor-pointer">
             </select>
+            <div id="edit-modal-stock-info" class="text-[10px] text-[#857B9B] mt-1"></div>
           </div>
         </div>
 
@@ -1872,11 +1873,36 @@
       const modal = document.getElementById('order-edit-modal');
       if (!modal) return;
 
-      document.getElementById('order-edit-title').textContent = `แก้ไข ${log.id} • ${log.username}`;
-      document.getElementById('edit-modal-customer-info').textContent = `${log.username} (${formatInt(log.robux)} Robux • ฿ ${formatNumber(log.priceThb)})`;
-      document.getElementById('edit-modal-stock-info').textContent = `${log.stockAccount} (เรท ${log.rate} ฿/$)`;
-      document.getElementById('edit-modal-note').value = log.note || '';
-      document.getElementById('edit-modal-zero-profit').checked = (log.profitThb === 0 && log.costThb > 0);
+      // Written defensively: a missing #edit-modal-stock-info used to throw here
+      // and the modal never opened, so the edit button did nothing at all.
+      const setText = (id, text) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = text;
+      };
+      const setValue = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.value = value;
+      };
+
+      setText('order-edit-title', `แก้ไข ${log.id} • ${log.username}`);
+      setText('edit-modal-customer-info', `${log.username} (${formatInt(log.robux)} Robux • ฿ ${formatNumber(log.priceThb)})`);
+      setValue('edit-modal-note', log.note || '');
+
+      // The mail selector shipped as empty markup with no code behind it.
+      const stockSelect = document.getElementById('edit-modal-stock-select');
+      if (stockSelect) {
+        const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts || [];
+        const known = accounts.some(a => a.id === log.stockAccount);
+        const options = accounts.map(a =>
+          `<option value="${a.id}">${a.id} — เรท ${a.rate} ฿/$${a.status === 'พร้อมใช้' ? '' : ' (ปิดใช้งาน)'}</option>`);
+        // Keep the order's own account selectable even if it was removed later.
+        if (!known) options.unshift(`<option value="${log.stockAccount}">${log.stockAccount} — เรท ${log.rate} ฿/$ (ไม่อยู่ในรายการแล้ว)</option>`);
+        stockSelect.innerHTML = options.join('');
+        stockSelect.value = log.stockAccount;
+      }
+
+      const zero = document.getElementById('edit-modal-zero-profit');
+      if (zero) zero.checked = (log.profitThb === 0 && log.costThb > 0);
 
       modalEditExtraPacks = { '80': 0, '500': 0, '1000': 0, '2000': 0 };
       if (log.extraPacks) {
@@ -1913,6 +1939,15 @@
       });
     }
 
+    // Which stock account the edit modal is currently pointing at, falling back
+    // to the one the order was booked against.
+    function getEditModalStock(log) {
+      const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts || [];
+      const sel = document.getElementById('edit-modal-stock-select');
+      const id = (sel && sel.value) || log.stockAccount;
+      return accounts.find(a => a.id === id) || { id: log.stockAccount, rate: log.rate };
+    }
+
     function renderEditModalCalcPreview() {
       const preview = document.getElementById('modal-edit-calc-preview');
       if (!preview || !editingOrderId) return;
@@ -1931,10 +1966,18 @@
         }
       });
 
+      const stock = getEditModalStock(log);
       const totalUsd = Number((baseUsd + extraUsd).toFixed(2));
-      const costThb = Number((totalUsd * log.rate).toFixed(2));
+      const costThb = Number((totalUsd * stock.rate).toFixed(2));
       const isZeroProfit = document.getElementById('edit-modal-zero-profit').checked;
       const profitThb = isZeroProfit ? 0 : Number((log.priceThb - costThb).toFixed(2));
+
+      const info = document.getElementById('edit-modal-stock-info');
+      if (info) {
+        info.textContent = stock.id === log.stockAccount
+          ? `เรท ${stock.rate} ฿/$`
+          : `ย้ายจาก ${log.stockAccount} → ${stock.id} • เรทใหม่ ${stock.rate} ฿/$`;
+      }
 
       preview.innerHTML = `
         <div class="flex items-center justify-between text-xs pb-1 border-b border-[#E8DDFF]">
@@ -1968,17 +2011,22 @@
         }
       });
 
+      const stock = getEditModalStock(log);
       const totalUsd = Number((baseUsd + extraUsd).toFixed(2));
-      const costThb = Number((totalUsd * log.rate).toFixed(2));
-      const isZeroProfit = document.getElementById('edit-modal-zero-profit').checked;
+      const costThb = Number((totalUsd * stock.rate).toFixed(2));
+      const zeroBox = document.getElementById('edit-modal-zero-profit');
+      const isZeroProfit = zeroBox ? zeroBox.checked : false;
       const profitThb = isZeroProfit ? 0 : Number((log.priceThb - costThb).toFixed(2));
-      let note = document.getElementById('edit-modal-note').value.trim();
+      const noteBox = document.getElementById('edit-modal-note');
+      let note = noteBox ? noteBox.value.trim() : (log.note || '');
 
       if (extraParts.length > 0 && !note) {
         note = `กดเกิน: ${extraParts.join(', ')}`;
       }
 
       log.usd = totalUsd;
+      log.stockAccount = stock.id;
+      log.rate = stock.rate;
       log.costThb = costThb;
       log.profitThb = profitThb;
       log.note = note;
