@@ -470,14 +470,17 @@
       </div>
 
       <form onsubmit="handleSaveOrderEdit(event)" class="p-6 space-y-4 text-xs">
-        <div class="p-3 bg-[#FAF8FF] rounded-2xl border border-[#EDE5FC] flex items-center justify-between">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-[#FAF8FF] rounded-2xl border border-[#EDE5FC]">
           <div>
-            <div class="text-[10px] text-[#857B9B]">ลูกค้า & แพ็กเกจ</div>
+            <div class="text-[10px] font-semibold text-[#857B9B] mb-0.5">ลูกค้า & แพ็กเกจ</div>
             <div id="edit-modal-customer-info" class="font-bold text-[#2E2544] text-xs"></div>
           </div>
-          <div class="text-right">
-            <div class="text-[10px] text-[#857B9B]">เมลที่ตัด</div>
-            <div id="edit-modal-stock-info" class="font-mono font-bold text-[#8054F7] text-xs"></div>
+          <div>
+            <label class="block text-[10px] font-semibold text-[#2E2544] mb-1">
+              🔄 บัญชีเมลที่ใช้ตัด (เปลี่ยนได้)
+            </label>
+            <select id="edit-modal-stock-select" onchange="renderEditModalCalcPreview()" class="w-full px-2.5 py-1.5 bg-white border border-[#DDD0FA] rounded-xl text-xs font-mono font-bold text-[#8054F7] focus:outline-none focus:border-[#8054F7] cursor-pointer">
+            </select>
           </div>
         </div>
 
@@ -13357,10 +13360,10 @@
       const logs = appData.salesLogs || [];
       let maxNum = 0;
       logs.forEach(s => {
-        const m = (s.id || '').match(/ORD-(d+)/);
-        if (m) {
-          const n = parseInt(m[1]);
-          if (n > maxNum) maxNum = n;
+        if (s && s.id) {
+          const digits = String(s.id).replace(/D/g, '');
+          const n = parseInt(digits, 10);
+          if (!isNaN(n) && n > maxNum) maxNum = n;
         }
       });
       const nextId = 'ORD-' + String(maxNum + 1).padStart(4, '0');
