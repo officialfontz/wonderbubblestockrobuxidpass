@@ -3,9 +3,14 @@
     "defaultEvalRate": 25.5,
     "employees": [
       "ฟ้อน",
-      "เม้กโกะกีระบิด",
-      "แอดมินบอส"
-    ]
+      "เม้กกะโลดอน",
+      "นุ้งสล็อต"
+    ],
+    "employeeEmojis": {
+      "ฟ้อน": "🐰",
+      "เม้กกะโลดอน": "🦈",
+      "นุ้งสล็อต": "🍭"
+    }
   },
   "packages": [
     {
@@ -169,7 +174,7 @@
       "initialUsd": 370,
       "rate": 27.1,
       "investmentThb": 10027,
-      "status": "พร้อมใช้",
+      "status": "ปิดใช้งาน",
       "note": ""
     }
   ],
@@ -220,7 +225,7 @@
       "usd": 0.99,
       "costThb": 26.83,
       "profitThb": 8.17,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -237,7 +242,7 @@
       "usd": 4.99,
       "costThb": 135.23,
       "profitThb": 33.77,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -254,7 +259,7 @@
       "usd": 2.97,
       "costThb": 80.49,
       "profitThb": 18.51,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -271,7 +276,7 @@
       "usd": 2.97,
       "costThb": 80.49,
       "profitThb": 18.51,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -288,7 +293,7 @@
       "usd": 14.97,
       "costThb": 405.69,
       "profitThb": -80.69,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "สั่ง 500R x 2 (เผลอกดเกิน 500R x 1)",
       "extraPacks": {
@@ -1378,7 +1383,7 @@
       "usd": 0.99,
       "costThb": 25.44,
       "profitThb": 9.56,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4387,7 +4392,7 @@
       "usd": 0.99,
       "costThb": 25.44,
       "profitThb": 9.56,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4404,7 +4409,7 @@
       "usd": 2.97,
       "costThb": 76.33,
       "profitThb": 22.67,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4455,7 +4460,7 @@
       "usd": 2.97,
       "costThb": 76.33,
       "profitThb": 22.67,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4472,7 +4477,7 @@
       "usd": 4.99,
       "costThb": 128.24,
       "profitThb": 40.76,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4489,7 +4494,7 @@
       "usd": 4.99,
       "costThb": 128.24,
       "profitThb": 40.76,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4506,7 +4511,7 @@
       "usd": 9.99,
       "costThb": 256.74,
       "profitThb": 68.26,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4523,7 +4528,7 @@
       "usd": 2.97,
       "costThb": 76.33,
       "profitThb": 22.67,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4540,7 +4545,7 @@
       "usd": 0.99,
       "costThb": 25.44,
       "profitThb": 9.56,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4557,7 +4562,7 @@
       "usd": 9.99,
       "costThb": 256.74,
       "profitThb": 68.26,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4574,7 +4579,7 @@
       "usd": 4.99,
       "costThb": 128.24,
       "profitThb": 40.76,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4591,7 +4596,7 @@
       "usd": 0.99,
       "costThb": 25.44,
       "profitThb": 9.56,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4608,7 +4613,7 @@
       "usd": 0.99,
       "costThb": 25.44,
       "profitThb": 9.56,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4625,7 +4630,7 @@
       "usd": 2.97,
       "costThb": 76.33,
       "profitThb": 22.67,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4642,7 +4647,7 @@
       "usd": 4.99,
       "costThb": 128.24,
       "profitThb": 40.76,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4659,7 +4664,7 @@
       "usd": 4.99,
       "costThb": 128.24,
       "profitThb": 40.76,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4676,7 +4681,7 @@
       "usd": 4.99,
       "costThb": 128.24,
       "profitThb": 40.76,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4693,7 +4698,7 @@
       "usd": 9.99,
       "costThb": 256.74,
       "profitThb": 68.26,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4710,7 +4715,7 @@
       "usd": 2.97,
       "costThb": 76.33,
       "profitThb": 22.67,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4727,7 +4732,7 @@
       "usd": 0.99,
       "costThb": 25.44,
       "profitThb": 9.56,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4744,7 +4749,7 @@
       "usd": 2.97,
       "costThb": 76.33,
       "profitThb": 22.67,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4761,7 +4766,7 @@
       "usd": 4.99,
       "costThb": 128.24,
       "profitThb": 40.76,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4778,7 +4783,7 @@
       "usd": 0.99,
       "costThb": 25.44,
       "profitThb": 9.56,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4795,7 +4800,7 @@
       "usd": 4.99,
       "costThb": 128.24,
       "profitThb": 40.76,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4812,7 +4817,7 @@
       "usd": 4.99,
       "costThb": 128.24,
       "profitThb": 40.76,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4829,7 +4834,7 @@
       "usd": 4.99,
       "costThb": 128.24,
       "profitThb": 40.76,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4846,7 +4851,7 @@
       "usd": 0.99,
       "costThb": 25.44,
       "profitThb": 9.56,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4863,7 +4868,7 @@
       "usd": 4.99,
       "costThb": 128.24,
       "profitThb": 40.76,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4880,7 +4885,7 @@
       "usd": 0.99,
       "costThb": 25.44,
       "profitThb": 9.56,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4897,7 +4902,7 @@
       "usd": 2.97,
       "costThb": 76.33,
       "profitThb": 22.67,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4914,7 +4919,7 @@
       "usd": 1.98,
       "costThb": 50.89,
       "profitThb": 18.11,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4931,7 +4936,7 @@
       "usd": 0.99,
       "costThb": 25.44,
       "profitThb": 9.56,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4948,7 +4953,7 @@
       "usd": 4.99,
       "costThb": 128.24,
       "profitThb": 40.76,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4965,7 +4970,7 @@
       "usd": 9.99,
       "costThb": 256.74,
       "profitThb": 68.26,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4982,7 +4987,7 @@
       "usd": 9.99,
       "costThb": 256.74,
       "profitThb": 68.26,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -4999,7 +5004,7 @@
       "usd": 2.97,
       "costThb": 76.33,
       "profitThb": 22.67,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -5016,7 +5021,7 @@
       "usd": 2.97,
       "costThb": 76.33,
       "profitThb": 22.67,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -5033,7 +5038,7 @@
       "usd": 4.99,
       "costThb": 128.24,
       "profitThb": 40.76,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -5050,7 +5055,7 @@
       "usd": 4.99,
       "costThb": 128.24,
       "profitThb": 40.76,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -5067,7 +5072,7 @@
       "usd": 4.99,
       "costThb": 128.24,
       "profitThb": 40.76,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "กดออเดอร์ผิด",
       "extraPacks": {}
@@ -5084,7 +5089,7 @@
       "usd": 0.99,
       "costThb": 25.44,
       "profitThb": 9.56,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -5101,7 +5106,7 @@
       "usd": 0.99,
       "costThb": 25.44,
       "profitThb": 9.56,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -5118,7 +5123,7 @@
       "usd": 9.99,
       "costThb": 256.74,
       "profitThb": 68.26,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -5135,7 +5140,7 @@
       "usd": 4.99,
       "costThb": 128.24,
       "profitThb": 40.76,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -5152,7 +5157,7 @@
       "usd": 0.99,
       "costThb": 25.44,
       "profitThb": 9.56,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -5169,7 +5174,7 @@
       "usd": 1.98,
       "costThb": 50.89,
       "profitThb": 18.11,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -7328,7 +7333,7 @@
       "usd": 4.99,
       "costThb": 129.24,
       "profitThb": 39.76,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -7345,7 +7350,7 @@
       "usd": 0.99,
       "costThb": 25.64,
       "profitThb": 9.36,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -7362,7 +7367,7 @@
       "usd": 2.97,
       "costThb": 76.92,
       "profitThb": 22.08,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -7379,7 +7384,7 @@
       "usd": 9.99,
       "costThb": 258.74,
       "profitThb": 66.26,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -7396,7 +7401,7 @@
       "usd": 1.98,
       "costThb": 51.28,
       "profitThb": 17.72,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -9215,7 +9220,7 @@
       "usd": 0.99,
       "costThb": 25.25,
       "profitThb": 9.75,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -9232,7 +9237,7 @@
       "usd": 4.99,
       "costThb": 127.25,
       "profitThb": 41.75,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -9249,7 +9254,7 @@
       "usd": 0.99,
       "costThb": 25.25,
       "profitThb": 9.75,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -11017,7 +11022,7 @@
       "usd": 4.99,
       "costThb": 129.24,
       "profitThb": 39.76,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -11085,7 +11090,7 @@
       "usd": 0.99,
       "costThb": 25.64,
       "profitThb": 9.36,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "",
       "extraPacks": {}
@@ -12275,7 +12280,7 @@
       "usd": 4.99,
       "costThb": 135.23,
       "profitThb": 33.77,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "[กู้คืนจาก Edge cache]",
       "extraPacks": {
@@ -12297,7 +12302,7 @@
       "usd": 2.97,
       "costThb": 80.49,
       "profitThb": 18.51,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "[กู้คืนจาก Edge cache]",
       "extraPacks": {
@@ -12319,7 +12324,7 @@
       "usd": 0.99,
       "costThb": 26.83,
       "profitThb": 8.17,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "[กู้คืนจาก Edge cache]",
       "extraPacks": {
@@ -12341,7 +12346,7 @@
       "usd": 0.99,
       "costThb": 26.83,
       "profitThb": 8.17,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "[กู้คืนจาก Edge cache]",
       "extraPacks": {
@@ -12363,7 +12368,7 @@
       "usd": 9.99,
       "costThb": 270.73,
       "profitThb": 54.27,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "[กู้คืนจาก Edge cache]",
       "extraPacks": {
@@ -12385,7 +12390,7 @@
       "usd": 0.99,
       "costThb": 26.83,
       "profitThb": 8.17,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "[กู้คืนจาก Edge cache]",
       "extraPacks": {
@@ -12407,7 +12412,7 @@
       "usd": 0.99,
       "costThb": 26.83,
       "profitThb": 8.17,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "[กู้คืนจาก Edge cache]",
       "extraPacks": {
@@ -12429,7 +12434,7 @@
       "usd": 4.99,
       "costThb": 135.23,
       "profitThb": 33.77,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "[กู้คืนจาก Edge cache]",
       "extraPacks": {
@@ -12451,7 +12456,7 @@
       "usd": 4.99,
       "costThb": 135.23,
       "profitThb": 33.77,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "[กู้คืนจาก Edge cache]",
       "extraPacks": {
@@ -12473,7 +12478,7 @@
       "usd": 2.97,
       "costThb": 80.49,
       "profitThb": 18.51,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "[กู้คืนจาก Edge cache]",
       "extraPacks": {
@@ -12495,7 +12500,7 @@
       "usd": 2.97,
       "costThb": 80.49,
       "profitThb": 18.51,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "[กู้คืนจาก Edge cache]",
       "extraPacks": {
@@ -12517,7 +12522,7 @@
       "usd": 0.99,
       "costThb": 26.83,
       "profitThb": 8.17,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "[กู้คืนจาก Edge cache]",
       "extraPacks": {
@@ -12539,7 +12544,7 @@
       "usd": 0.99,
       "costThb": 26.83,
       "profitThb": 8.17,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "[กู้คืนจาก Edge cache]",
       "extraPacks": {
@@ -12605,7 +12610,7 @@
       "usd": 1.98,
       "costThb": 53.66,
       "profitThb": 15.34,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "[กู้คืนจาก Edge cache]",
       "extraPacks": {
@@ -12671,7 +12676,7 @@
       "usd": 4.99,
       "costThb": 135.23,
       "profitThb": 33.77,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "[กู้คืนจาก Edge cache]",
       "extraPacks": {
@@ -12715,7 +12720,7 @@
       "usd": 1.98,
       "costThb": 53.66,
       "profitThb": 15.34,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "[กู้คืนจาก Edge cache]",
       "extraPacks": {
@@ -12781,7 +12786,7 @@
       "usd": 4.99,
       "costThb": 135.23,
       "profitThb": 33.77,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "[กู้คืนจาก Edge cache]",
       "extraPacks": {
@@ -12803,7 +12808,7 @@
       "usd": 4.99,
       "costThb": 135.23,
       "profitThb": 33.77,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "[กู้คืนจาก Edge cache]",
       "extraPacks": {
@@ -12935,7 +12940,7 @@
       "usd": 0.99,
       "costThb": 26.83,
       "profitThb": 8.17,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "[กู้คืนจาก Edge cache]",
       "extraPacks": {
@@ -12957,7 +12962,7 @@
       "usd": 9.99,
       "costThb": 270.73,
       "profitThb": 54.27,
-      "staff": "เม้กโกะกีระบิด",
+      "staff": "เม้กกะโลดอน",
       "status": "สำเร็จ",
       "note": "[กู้คืนจาก Edge cache]",
       "extraPacks": {
