@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
-  <!-- Firebase Realtime Database SDK (Compat) -->
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
   <style>
@@ -89,7 +89,6 @@
       background: #E4D8FA;
       border-radius: 999px;
     }
-    /* Pulse dot */
     .pulse-dot {
       animation: pulse-animation 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     }
@@ -107,7 +106,7 @@
       
       <div class="flex items-center justify-between h-16">
         
-        <!-- Brand with Robux Icon & Database Status Pill -->
+        <!-- Brand & DB Status -->
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#F5F0FF] to-[#EBE0FF] border border-[#DDD0FA] flex items-center justify-center p-1.5 shadow-xs">
             <img src="https://img.bubbleshoproblox.store/img/2026-08/3a9b1e8f-f363-4469-8081-e6e708faa92b.webp" class="w-6 h-6 object-contain" alt="Robux" onerror="this.style.display='none'">
@@ -115,25 +114,21 @@
           <div>
             <div class="flex items-center gap-2">
               <span class="font-bold text-base text-[#2E2544] tracking-tight">Cozy Robux Studio</span>
-              
-              <!-- Realtime Cloud Database Status Pill -->
               <button onclick="openDatabaseSettingsModal()" id="db-status-pill" class="flex items-center gap-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-full border transition cursor-pointer bg-[#F0FDF4] text-[#059669] border-[#D1FAE5]">
                 <span class="w-1.5 h-1.5 rounded-full bg-[#059669] pulse-dot"></span>
                 <span id="db-status-text">Cloud DB</span>
               </button>
             </div>
-            <p class="text-[11px] text-[#857B9B]">ระบบเติมเกม & สต็อกเมล • Real-time Sync หลายอุปกรณ์</p>
+            <p class="text-[11px] text-[#857B9B]">ระบบเติมเกม & สต็อกเมล • Real-time Sync</p>
           </div>
         </div>
 
         <!-- Today Sales Mini Pill -->
-        <div id="topbar-kpi-pill" class="flex items-center gap-2.5 bg-[#FAF8FF] px-3.5 py-1.5 rounded-2xl border border-[#EDE5FC] text-xs text-[#857B9B]">
-          <!-- Rendered via JS -->
-        </div>
+        <div id="topbar-kpi-pill" class="flex items-center gap-2.5 bg-[#FAF8FF] px-3.5 py-1.5 rounded-2xl border border-[#EDE5FC] text-xs text-[#857B9B]"></div>
 
       </div>
 
-      <!-- Sweet Segmented Nav Tabs -->
+      <!-- Segmented Nav Tabs -->
       <div class="flex items-center gap-1.5 border-t border-[#F7F3FD] py-2 overflow-x-auto scrollbar-none">
         <button onclick="switchTab('cashier')" data-tab="cashier" class="nav-tab-btn px-4 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-2 bg-[#F3ECFF] text-[#8054F7] cursor-pointer">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -182,13 +177,13 @@
     <!-- ======================================================== -->
     <section id="tab-cashier" class="tab-content space-y-6">
       
-      <!-- Studio Fulfillment Card (Clutter-Free, Minimal & Delightful) -->
+      <!-- Studio Fulfillment Card -->
       <div class="cozy-card p-5 sm:p-7 space-y-5 bg-white">
         
         <div class="flex items-center justify-between border-b border-[#F7F3FD] pb-3">
           <div>
             <h2 class="text-base sm:text-lg font-bold text-[#2E2544]">บันทึกการเติมเงิน</h2>
-            <p class="text-xs text-[#857B9B]">เลือกแพ็กเกจ ➔ ระบบบอกวิธีกด ตัดสต็อก และคำนวณกำไรทันที</p>
+            <p class="text-xs text-[#857B9B]">เลือกแพ็กเกจ ➔ ระบบบอกวิธีกด ตัดสต็อกเมล และคำนวณกำไรทันที</p>
           </div>
           <div class="text-xs font-mono font-semibold text-[#8054F7] bg-[#F5EFFF] px-3 py-1 rounded-xl border border-[#E8DDFF]">
             พร้อมเติม ✨
@@ -197,13 +192,13 @@
 
         <form id="cashier-form" onsubmit="handleDirectFulfill(event)" class="space-y-4">
           
-          <!-- Step 1: Customer Username & Staff -->
+          <!-- Step 1: Customer Username, Staff & Active Mail Selector -->
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div class="sm:col-span-2">
+            <div class="sm:col-span-1">
               <label class="block text-xs font-semibold text-[#2E2544] mb-1.5">
-                1. Username ในเกม (Roblox) <span class="text-rose-400">*</span>
+                1. Username ในเกม <span class="text-rose-400">*</span>
               </label>
-              <input type="text" id="cashier-username" required placeholder="เช่น Takanashi_Hoshino113" class="w-full px-4 py-2.5 bg-white border border-[#E2D5F8] rounded-2xl text-sm font-medium text-[#2E2544] placeholder-[#AAA0C0] focus:outline-none focus:ring-2 focus:ring-[#DDD0FA] focus:border-[#8054F7]">
+              <input type="text" id="cashier-username" required placeholder="เช่น Takanashi_Hoshino113" class="w-full px-3.5 py-2.5 bg-white border border-[#E2D5F8] rounded-2xl text-sm font-medium text-[#2E2544] placeholder-[#AAA0C0] focus:outline-none focus:ring-2 focus:ring-[#DDD0FA] focus:border-[#8054F7]">
             </div>
 
             <div>
@@ -211,6 +206,19 @@
                 ผู้ทำรายการ
               </label>
               <select id="cashier-staff" class="w-full px-3.5 py-2.5 bg-white border border-[#E2D5F8] rounded-2xl text-xs font-medium text-[#2E2544] focus:outline-none focus:ring-2 focus:ring-[#DDD0FA] focus:border-[#8054F7] cursor-pointer">
+              </select>
+            </div>
+
+            <!-- EXPLICIT ACTIVE MAIL SELECTOR -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="text-xs font-semibold text-[#2E2544] flex items-center gap-1">
+                  <span>บัญชีเมลที่ใช้</span>
+                </label>
+                <a href="javascript:void(0)" onclick="switchTab('stocks')" class="text-[10px] text-[#8054F7] hover:underline">จัดการเมล ➔</a>
+              </div>
+              <select id="cashier-stock-select" onchange="handleSelectMailChange(this.value)" class="w-full px-3 py-2.5 bg-[#FAF8FF] border border-[#DDD0FA] rounded-2xl text-xs font-mono font-bold text-[#8054F7] focus:outline-none focus:ring-2 focus:ring-[#DDD0FA] focus:border-[#8054F7] cursor-pointer">
+                <!-- Rendered via JS -->
               </select>
             </div>
           </div>
@@ -223,7 +231,7 @@
                 <span class="text-[10px] text-[#857B9B] font-normal">(คลิกเลือกแพ็กเกจ)</span>
               </label>
               
-              <!-- Subtle Overpress Expander Toggle (0 Clutter when not needed) -->
+              <!-- Subtle Overpress Expander -->
               <button type="button" onclick="toggleOverpressSection()" id="btn-toggle-overpress" class="text-[11px] font-semibold text-[#8054F7] hover:underline flex items-center gap-1 cursor-pointer">
                 <span>+ มีเผลอกดเกิน / เพิ่มเติม</span>
               </button>
@@ -234,7 +242,7 @@
             </div>
           </div>
 
-          <!-- OPTIONAL OVERPRESS SECTION (Hidden by default, easy button counters - NO USD MATH NEEDED) -->
+          <!-- OPTIONAL OVERPRESS SECTION -->
           <div id="cashier-overpress-box" class="hidden p-3.5 rounded-2xl border border-[#EDE5FC] bg-[#FAF8FF] space-y-2.5 transition-all">
             <div class="flex items-center justify-between">
               <span class="text-xs font-bold text-[#2E2544] flex items-center gap-1.5">
@@ -268,7 +276,7 @@
             <div id="cashier-overpress-summary-badge" class="text-[11px] text-[#857B9B] hidden"></div>
           </div>
 
-          <!-- Step 3: Smart Fulfillment Card -->
+          <!-- Step 3: Clean Press Guide & Direct Fulfillment Card -->
           <div id="cashier-smart-preview" class="p-4 sm:p-5 rounded-2xl border transition-all">
             <!-- Rendered via JS -->
           </div>
@@ -308,33 +316,28 @@
             <span id="sales-count-badge" class="text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-[#F5EFFF] text-[#8054F7] border border-[#E8DDFF]">0 รายการ</span>
           </div>
 
-          <!-- Instant Search Box -->
           <div class="relative w-full sm:w-64">
             <input type="text" id="sales-search-input" oninput="handleSearchSales(this.value)" placeholder="ค้นหา Username หรือ Order ID..." class="w-full pl-8 pr-3 py-1.5 bg-white border border-[#E2D5F8] rounded-xl text-xs text-[#2E2544] placeholder-[#AAA0C0] focus:outline-none focus:border-[#8054F7]">
             <svg class="w-3.5 h-3.5 text-[#AAA0C0] absolute left-2.5 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           </div>
         </div>
 
-        <div id="sales-log-container" class="space-y-2.5">
-          <!-- Rendered via JS -->
-        </div>
+        <div id="sales-log-container" class="space-y-2.5"></div>
 
-        <div id="sales-pagination-controls" class="flex justify-center pt-2">
-          <!-- Load more button -->
-        </div>
+        <div id="sales-pagination-controls" class="flex justify-center pt-2"></div>
       </div>
 
     </section>
 
     <!-- ======================================================== -->
-    <!-- TAB 2: STOCKS -->
+    <!-- TAB 2: STOCKS (WITH 1-CLICK TOGGLE OPEN/CLOSE) -->
     <!-- ======================================================== -->
     <section id="tab-stocks" class="tab-content hidden space-y-5">
       
       <div class="cozy-card p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 class="text-base font-bold text-[#2E2544]">สต็อกเมล & เครดิต USD</h2>
-          <p class="text-xs text-[#857B9B]">ดูยอด USD คงเหลือ และมูลค่าเงินบาทที่เหลือของแต่ละเมล</p>
+          <p class="text-xs text-[#857B9B]">กดปุ่มเปิด/ปิดเมลได้ง่ายๆ (ถ้าปิดแล้ว คนอื่นในร้านจะเห็นปิดตรงกันทันที)</p>
         </div>
         <button onclick="openAddStockModal()" class="btn-cute-primary px-4 py-2 text-white rounded-2xl text-xs font-semibold flex items-center gap-1.5 self-start sm:self-auto">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -342,7 +345,7 @@
         </button>
       </div>
 
-      <!-- Stock Cards Grid -->
+      <!-- Stock Cards Grid with 1-Click Toggle -->
       <div id="stocks-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5"></div>
 
     </section>
@@ -351,7 +354,6 @@
     <!-- TAB 3: PRICING -->
     <!-- ======================================================== -->
     <section id="tab-pricing" class="tab-content hidden space-y-5">
-      
       <div class="cozy-card p-5 space-y-3">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
@@ -368,28 +370,20 @@
         </div>
       </div>
 
-      <!-- Pricing Table -->
       <div class="cozy-card overflow-hidden">
         <div id="pricing-table-container"></div>
       </div>
-
     </section>
 
     <!-- ======================================================== -->
     <!-- TAB 4: SUMMARY & EXPORT -->
     <!-- ======================================================== -->
     <section id="tab-summary" class="tab-content hidden space-y-5">
-      
-      <!-- KPI Stats -->
       <div id="summary-kpi-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
 
-      <!-- Staff Performance & Export Box -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        
-        <!-- Staff Box with Add Staff Feature -->
         <div id="summary-staff-box"></div>
         
-        <!-- Export & Backup Box -->
         <div class="cozy-card p-5 space-y-3">
           <h3 class="text-sm font-bold text-[#2E2544] flex items-center gap-2">
             <svg class="w-4 h-4 text-[#8054F7]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -418,17 +412,13 @@
           </div>
         </div>
       </div>
-
     </section>
 
   </main>
 
-  <!-- ======================================================== -->
-  <!-- MODAL: CLOUD DATABASE SETTINGS (FIREBASE REALTIME DB) -->
-  <!-- ======================================================== -->
+  <!-- MODAL: CLOUD DATABASE SETTINGS -->
   <div id="db-settings-modal" onclick="handleModalBackdropClick(event, 'db-settings-modal')" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-[2px] hidden">
     <div class="bg-white border border-[#EFE9F9] rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-      
       <div class="px-6 py-4 border-b border-[#F5EFFF] flex items-center justify-between bg-[#FAF8FF]">
         <div class="flex items-center gap-2">
           <div class="w-7 h-7 rounded-xl bg-[#F0FDF4] text-[#059669] border border-[#D1FAE5] flex items-center justify-center font-bold text-xs">
@@ -445,7 +435,6 @@
       </div>
 
       <form onsubmit="handleSaveFirebaseConfig(event)" class="p-6 space-y-3.5 text-xs">
-        
         <div class="p-3 bg-[#FAF8FF] rounded-2xl border border-[#EDE5FC] space-y-1.5">
           <div class="font-bold text-[#8054F7] flex items-center gap-1.5">
             <span>✨ วิธีเชื่อมต่อฐานข้อมูลส่วนกลางฟรี (Firebase)</span>
@@ -480,17 +469,13 @@
             </button>
           </div>
         </div>
-
       </form>
     </div>
   </div>
 
-  <!-- ======================================================== -->
   <!-- MODAL: ADD / EDIT STOCK ACCOUNT -->
-  <!-- ======================================================== -->
   <div id="stock-modal" onclick="handleModalBackdropClick(event, 'stock-modal')" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-[2px] hidden">
     <div class="bg-white border border-[#EFE9F9] rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-      
       <div class="px-6 py-4 border-b border-[#F5EFFF] flex items-center justify-between bg-[#FAF8FF]">
         <div>
           <h3 id="stock-modal-title" class="text-sm font-bold text-[#2E2544]">เพิ่มสต็อกเมลใหม่</h3>
@@ -536,16 +521,16 @@
         </div>
 
         <div>
-          <label class="block font-semibold text-[#665B7D] mb-1">หมายเหตุ</label>
-          <input type="text" id="form-stock-note" placeholder="เช่น สต็อกล็อตพิเศษ" class="w-full px-3 py-2 bg-white border border-[#EFE9F9] rounded-xl text-[#2E2544]">
+          <label class="block font-semibold text-[#665B7D] mb-1">สถานะ</label>
+          <select id="form-stock-status" class="w-full px-3 py-2 bg-white border border-[#EFE9F9] rounded-xl text-[#2E2544]">
+            <option value="พร้อมใช้">พร้อมใช้ (เปิดใช้งาน)</option>
+            <option value="ปิดใช้งาน">ปิดใช้งาน (หมดแล้ว / พักไว้)</option>
+          </select>
         </div>
 
         <div>
-          <label class="block font-semibold text-[#665B7D] mb-1">การแสดงในหน้าจิ้มสต๊อก</label>
-          <select id="form-stock-status" class="w-full px-3 py-2 bg-white border border-[#EFE9F9] rounded-xl text-[#2E2544] cursor-pointer">
-            <option value="พร้อมใช้">เปิดใช้งาน — แสดงให้เลือก</option>
-            <option value="ปิดใช้งาน">ปิดใช้งาน — ซ่อนจากหน้าจิ้มสต๊อก</option>
-          </select>
+          <label class="block font-semibold text-[#665B7D] mb-1">หมายเหตุ</label>
+          <input type="text" id="form-stock-note" placeholder="เช่น สต็อกล็อตพิเศษ" class="w-full px-3 py-2 bg-white border border-[#EFE9F9] rounded-xl text-[#2E2544]">
         </div>
 
         <div class="pt-2 border-t border-[#F5EFFF] flex items-center justify-between gap-2">
@@ -563,12 +548,9 @@
     </div>
   </div>
 
-  <!-- ======================================================== -->
-  <!-- MODAL: EDIT ORDER & ADJUST OVERPRESS -->
-  <!-- ======================================================== -->
+  <!-- MODAL: EDIT ORDER -->
   <div id="order-edit-modal" onclick="handleModalBackdropClick(event, 'order-edit-modal')" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-[2px] hidden">
     <div class="bg-white border border-[#EFE9F9] rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-      
       <div class="px-6 py-4 border-b border-[#F5EFFF] flex items-center justify-between bg-[#FAF8FF]">
         <div>
           <h3 id="order-edit-title" class="text-sm font-bold text-[#2E2544]">แก้ไขออเดอร์</h3>
@@ -580,7 +562,6 @@
       </div>
 
       <form onsubmit="handleSaveOrderEdit(event)" class="p-6 space-y-4 text-xs">
-        
         <div class="p-3 bg-[#FAF8FF] rounded-2xl border border-[#EDE5FC] flex items-center justify-between">
           <div>
             <div class="text-[10px] text-[#857B9B]">ลูกค้า & แพ็กเกจ</div>
@@ -664,7 +645,6 @@
             บันทึกการแก้ไข
           </button>
         </div>
-
       </form>
     </div>
   </div>
@@ -672,11 +652,9 @@
   <!-- Toast Container -->
   <div id="toast-box" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
-  <!-- ======================================================== -->
-  <!-- APPLICATION SCRIPT (WITH FIREBASE REAL-TIME SYNC) -->
-  <!-- ======================================================== -->
+  <!-- APPLICATION SCRIPT -->
   <script>
-    const STORAGE_KEY = 'COZY_ROBUX_STUDIO_V9_FIREBASE';
+    const STORAGE_KEY = 'COZY_ROBUX_STUDIO_V10_DIRECTMAIL';
     const FIREBASE_CONFIG_KEY = 'COZY_FIREBASE_CONFIG';
     const ROBUX_ICON_URL = 'https://img.bubbleshoproblox.store/img/2026-08/3a9b1e8f-f363-4469-8081-e6e708faa92b.webp';
 
@@ -778,7 +756,7 @@
       "initialUsd": 410,
       "rate": 27.5,
       "investmentThb": 11275,
-      "status": "พร้อมใช้",
+      "status": "ปิดใช้งาน",
       "note": "⚠️ ตรวจยอด USD/บาท จากสลิปให้ตรง"
     },
     {
@@ -788,7 +766,7 @@
       "initialUsd": 450,
       "rate": 25.9,
       "investmentThb": 11655,
-      "status": "พร้อมใช้",
+      "status": "ปิดใช้งาน",
       "note": ""
     },
     {
@@ -798,7 +776,7 @@
       "initialUsd": 500,
       "rate": 25.5,
       "investmentThb": 12750,
-      "status": "พร้อมใช้",
+      "status": "ปิดใช้งาน",
       "note": ""
     },
     {
@@ -808,7 +786,7 @@
       "initialUsd": 305,
       "rate": 26.1,
       "investmentThb": 7960.5,
-      "status": "พร้อมใช้",
+      "status": "ปิดใช้งาน",
       "note": ""
     },
     {
@@ -818,7 +796,7 @@
       "initialUsd": 303,
       "rate": 25.9,
       "investmentThb": 7847.7,
-      "status": "พร้อมใช้",
+      "status": "ปิดใช้งาน",
       "note": ""
     },
     {
@@ -828,7 +806,7 @@
       "initialUsd": 304,
       "rate": 26.1,
       "investmentThb": 7934.4,
-      "status": "พร้อมใช้",
+      "status": "ปิดใช้งาน",
       "note": ""
     },
     {
@@ -838,7 +816,7 @@
       "initialUsd": 460,
       "rate": 25.7,
       "investmentThb": 11822,
-      "status": "พร้อมใช้",
+      "status": "ปิดใช้งาน",
       "note": ""
     },
     {
@@ -848,7 +826,7 @@
       "initialUsd": 500,
       "rate": 26.2,
       "investmentThb": 13100,
-      "status": "พร้อมใช้",
+      "status": "ปิดใช้งาน",
       "note": ""
     },
     {
@@ -12837,13 +12815,13 @@
     let appData = JSON.parse(JSON.stringify(INITIAL_SEED));
     let currentTab = 'cashier';
     let selectedRobux = 1000;
+    let selectedStockId = 'PC-009'; // Default active mail
     let currentPricingRate = 25.50;
     let salesSearchQuery = '';
     let salesDisplayLimit = 30;
 
     let cashierExtraPacks = { '80': 0, '500': 0, '1000': 0, '2000': 0 };
 
-    // Firebase Database State
     let dbRef = null;
     let isCloudConnected = false;
     let isInitialSyncDone = false;
@@ -12874,9 +12852,16 @@
 
       currentPricingRate = (appData.settings && appData.settings.defaultEvalRate) || 25.50;
       selectedRobux = 1000;
-      renderApp();
 
-      // Attempt to connect Firebase if configured
+      // Find first active stock
+      const activeStocks = (appData.stockAccounts || []).filter(s => s.status === 'พร้อมใช้');
+      if (activeStocks.length > 0) {
+        selectedStockId = activeStocks[activeStocks.length - 1].id; // latest active e.g. PC-009
+      } else if (appData.stockAccounts && appData.stockAccounts.length > 0) {
+        selectedStockId = appData.stockAccounts[appData.stockAccounts.length - 1].id;
+      }
+
+      renderApp();
       initFirebaseConnection();
     }
 
@@ -12898,7 +12883,6 @@
             const db = firebase.database();
             dbRef = db.ref('shop_data');
 
-            // Listen for Realtime Updates from Cloud
             dbRef.on('value', (snapshot) => {
               const val = snapshot.val();
               if (val) {
@@ -12916,7 +12900,6 @@
                   isInitialSyncDone = true;
                 }
               } else {
-                // First time setup: upload local data to cloud
                 syncDataToCloud();
                 setDbStatusUI('connected');
               }
@@ -12939,8 +12922,7 @@
 
     function setDbStatusUI(status) {
       const pill = document.getElementById('db-status-pill');
-      const text = document.getElementById('db-status-text');
-      if (!pill || !text) return;
+      if (!pill) return;
 
       if (status === 'connected') {
         pill.className = 'flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-0.5 rounded-full border transition cursor-pointer bg-[#F0FDF4] text-[#059669] border-[#D1FAE5]';
@@ -12977,7 +12959,6 @@
       }
     }
 
-    // Modal for DB Settings
     function openDatabaseSettingsModal() {
       const modal = document.getElementById('db-settings-modal');
       if (!modal) return;
@@ -13000,13 +12981,7 @@
       e.preventDefault();
       const urlInput = document.getElementById('input-firebase-db-url').value.trim();
       const jsonInput = document.getElementById('input-firebase-config-json').value.trim();
-
-      let toSave = '';
-      if (jsonInput) {
-        toSave = jsonInput;
-      } else if (urlInput) {
-        toSave = urlInput;
-      }
+      let toSave = jsonInput || urlInput;
 
       if (toSave) {
         localStorage.setItem(FIREBASE_CONFIG_KEY, toSave);
@@ -13071,29 +13046,6 @@
       return balances;
     }
 
-    function isStockActive(stock) {
-      if (!stock || stock.isActive === false) return false;
-      const status = String(stock.status || '').trim().toLowerCase();
-      return !['ปิดใช้งาน', 'ปิด', 'inactive', 'disabled'].includes(status);
-    }
-
-    function getBestStock(usdRequired) {
-      if (!usdRequired || usdRequired <= 0) return null;
-      const balances = calculateStockBalances();
-      const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts;
-      const candidates = accounts
-        .filter(isStockActive)
-        .map(acc => ({
-          ...acc,
-          remainingUsd: balances[acc.id] ? balances[acc.id].remainingUsd : acc.initialUsd
-        }))
-        .filter(acc => (acc.remainingUsd + 0.001) >= usdRequired && acc.rate > 0);
-        
-      if (candidates.length === 0) return null;
-      candidates.sort((a, b) => a.rate - b.rate);
-      return candidates[0];
-    }
-
     function showToast(msg, type = 'success') {
       const box = document.getElementById('toast-box');
       if (!box) return;
@@ -13127,7 +13079,10 @@
 
     function renderApp() {
       const bStocks = document.getElementById('nav-count-stocks');
-      if (bStocks) bStocks.textContent = (appData.stockAccounts || []).filter(isStockActive).length;
+      if (bStocks) {
+        const activeCount = (appData.stockAccounts || []).filter(s => s.status === 'พร้อมใช้').length;
+        bStocks.textContent = `${activeCount} พร้อมใช้`;
+      }
 
       const today = new Date().toISOString().slice(0, 10);
       const logs = appData.salesLogs || [];
@@ -13156,7 +13111,9 @@
       else if (currentTab === 'summary') renderSummary();
     }
 
-    // Cashier overpress toggles
+    // ========================================================
+    // TAB 1: CASHIER WITH EXPLICIT MAIL SELECTION & PRESS GUIDE
+    // ========================================================
     function toggleOverpressSection() {
       const box = document.getElementById('cashier-overpress-box');
       const btn = document.getElementById('btn-toggle-overpress');
@@ -13201,11 +13158,16 @@
       if (summaryBadge) {
         if (parts.length > 0) {
           summaryBadge.classList.remove('hidden');
-          summaryBadge.innerHTML = `<span class="font-bold text-[#8054F7]">${parts.join(', ')}</span> ➔ เพิ่มเครดิต USD อีก <strong>+$${extraUsd.toFixed(2)}</strong> (คิดยอดตัดเมลให้อัตโนมัติ)`;
+          summaryBadge.innerHTML = `<span class="font-bold text-[#8054F7]">${parts.join(', ')}</span> ➔ เพิ่มเครดิต USD อีก <strong>+$${extraUsd.toFixed(2)}</strong>`;
         } else {
           summaryBadge.classList.add('hidden');
         }
       }
+    }
+
+    function handleSelectMailChange(stockId) {
+      selectedStockId = stockId;
+      renderSmartFulfillmentPreview();
     }
 
     function renderCashier() {
@@ -13227,11 +13189,30 @@
         }).join('');
       }
 
+      // Staff selector
       const staffSelect = document.getElementById('cashier-staff');
       if (staffSelect) {
         const curVal = staffSelect.value;
         const employees = (appData.settings && appData.settings.employees) ? appData.settings.employees : INITIAL_SEED.settings.employees;
         staffSelect.innerHTML = employees.map(e => `<option value="${e}" ${e === curVal ? 'selected' : ''}>${e}</option>`).join('');
+      }
+
+      // Stock account selector (Only active open mails by default, or all if none active)
+      const stockSelect = document.getElementById('cashier-stock-select');
+      if (stockSelect) {
+        const balances = calculateStockBalances();
+        const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts;
+        const openAccounts = accounts.filter(s => s.status === 'พร้อมใช้');
+        const displayAccounts = openAccounts.length > 0 ? openAccounts : accounts;
+
+        if (!displayAccounts.some(s => s.id === selectedStockId) && displayAccounts.length > 0) {
+          selectedStockId = displayAccounts[displayAccounts.length - 1].id;
+        }
+
+        stockSelect.innerHTML = displayAccounts.map(s => {
+          const bal = balances[s.id] ? balances[s.id].remainingUsd : s.initialUsd;
+          return `<option value="${s.id}" ${s.id === selectedStockId ? 'selected' : ''}>${s.id} (เหลือ $${formatNumber(bal)} • เรท ${s.rate})</option>`;
+        }).join('');
       }
 
       updateCashierExtraBadges();
@@ -13251,6 +13232,7 @@
       const pkgs = appData.packages || INITIAL_SEED.packages;
       const pkg = pkgs.find(p => p.robux === selectedRobux) || pkgs[0];
 
+      // Calculate total USD with extra packs
       let totalUsd = pkg.usd;
       let extraParts = [];
       Object.entries(cashierExtraPacks).forEach(([k, count]) => {
@@ -13261,26 +13243,18 @@
       });
       totalUsd = Number(totalUsd.toFixed(2));
 
-      const bestStock = getBestStock(totalUsd);
+      // Get user-selected stock account
+      const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts;
+      let stock = accounts.find(s => s.id === selectedStockId);
+      if (!stock) stock = accounts.find(s => s.status === 'พร้อมใช้') || accounts[0];
+
       const balances = calculateStockBalances();
+      const bal = balances[stock.id] ? balances[stock.id].remainingUsd : stock.initialUsd;
+      const remainAfter = bal - totalUsd;
 
-      if (!bestStock) {
-        box.className = 'p-4 rounded-2xl border border-[#FCD5DC] bg-[#FFF5F7] text-xs text-[#E11D48] space-y-1';
-        box.innerHTML = `
-          <div class="font-bold flex items-center gap-1.5">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-            <span>เครดิต USD ในสต็อกเมลไม่เพียงพอสำหรับยอดนี้ ($${totalUsd})</span>
-          </div>
-          <p class="text-[11px]">กรุณาไปที่แท็บ "สต็อกเมล" เพื่อเพิ่มหรือเติมเครดิตบัญชีเมลก่อนครับ</p>
-        `;
-        return;
-      }
-
-      const costThb = Number((totalUsd * bestStock.rate).toFixed(2));
+      const costThb = Number((totalUsd * stock.rate).toFixed(2));
       const profitThb = Number((pkg.price - costThb).toFixed(2));
       const marginPct = pkg.price > 0 ? ((profitThb / pkg.price) * 100).toFixed(1) : '0.0';
-      const bal = balances[bestStock.id] ? balances[bestStock.id].remainingUsd : bestStock.initialUsd;
-      const remainAfter = bal - totalUsd;
 
       let guideText = pkg.pressGuide;
       if (extraParts.length > 0) {
@@ -13307,9 +13281,9 @@
 
         <div class="grid grid-cols-3 gap-2.5 text-center text-xs">
           <div class="bg-white p-2.5 rounded-xl border border-[#D1FAE5]">
-            <div class="text-[10px] text-[#857B9B] mb-0.5">เมลที่แนะนำ (เรทดีสุด)</div>
-            <div class="font-mono font-bold text-[#8054F7] text-xs sm:text-sm">${bestStock.id}</div>
-            <div class="text-[10px] text-[#857B9B] mt-0.5">เรท ${bestStock.rate} ฿/$ • เหลือ $${formatNumber(remainAfter)}</div>
+            <div class="text-[10px] text-[#857B9B] mb-0.5">เมลที่ใช้ตัด</div>
+            <div class="font-mono font-bold text-[#8054F7] text-xs sm:text-sm">${stock.id}</div>
+            <div class="text-[10px] text-[#857B9B] mt-0.5">เรท ${stock.rate} ฿/$ • เหลือ $${formatNumber(remainAfter)}</div>
           </div>
 
           <div class="bg-white p-2.5 rounded-xl border border-[#D1FAE5]">
@@ -13352,12 +13326,9 @@
       });
       totalUsd = Number(totalUsd.toFixed(2));
 
-      const bestStock = getBestStock(totalUsd);
-
-      if (!bestStock) {
-        showToast('ไม่สามารถทำรายการได้: สต็อก USD ไม่พอ', 'error');
-        return;
-      }
+      const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts;
+      let stock = accounts.find(s => s.id === selectedStockId);
+      if (!stock) stock = accounts.find(s => s.status === 'พร้อมใช้') || accounts[0];
 
       const logs = appData.salesLogs || [];
       let maxNum = 0;
@@ -13371,7 +13342,7 @@
       const nextId = 'ORD-' + String(maxNum + 1).padStart(4, '0');
       const nowStr = new Date().toISOString().slice(0, 16).replace('T', ' ');
 
-      const costThb = Number((totalUsd * bestStock.rate).toFixed(2));
+      const costThb = Number((totalUsd * stock.rate).toFixed(2));
       const profitThb = Number((pkg.price - costThb).toFixed(2));
 
       let note = '';
@@ -13385,10 +13356,10 @@
         date: nowStr,
         username,
         robux: pkg.robux,
-        stockAccount: bestStock.id,
+        stockAccount: stock.id,
         priceThb: pkg.price,
         pressGuide: pkg.pressGuide,
-        rate: bestStock.rate,
+        rate: stock.rate,
         usd: totalUsd,
         costThb,
         profitThb,
@@ -13402,7 +13373,7 @@
       if (usernameInput) usernameInput.value = '';
       resetCashierOverpress();
       renderApp();
-      showToast(`เติมสำเร็จ! ${username} (${pkg.robux}R) • ซิงค์คลาวด์แล้ว`, 'success');
+      showToast(`เติมสำเร็จ! ${username} (${pkg.robux}R) ตัดเมล ${stock.id}`, 'success');
     }
 
     function handleSearchSales(query) {
@@ -13537,6 +13508,214 @@
       }
     }
 
+    // ========================================================
+    // TAB 2: STOCKS (1-CLICK TOGGLE OPEN/CLOSE)
+    // ========================================================
+    function toggleStockStatus(idx) {
+      const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts;
+      const acc = accounts[idx];
+      if (!acc) return;
+
+      const newStatus = (acc.status === 'พร้อมใช้') ? 'ปิดใช้งาน' : 'พร้อมใช้';
+      acc.status = newStatus;
+      saveData();
+      renderApp();
+      showToast(`เปลี่ยนสถานะ ${acc.id} เป็น "${newStatus}" แล้ว (คนอื่นจะเห็นตรงกันทันที)`, 'success');
+    }
+
+    function renderStocks() {
+      const grid = document.getElementById('stocks-cards-grid');
+      if (!grid) return;
+
+      const balances = calculateStockBalances();
+      const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts;
+
+      let cards = accounts.map((acc, idx) => {
+        const bal = balances[acc.id] || { remainingUsd: acc.initialUsd, usedUsd: 0, totalSalesThb: 0, totalProfitThb: 0 };
+        const remainThb = bal.remainingUsd * (acc.rate || 0);
+        const percentRemain = acc.initialUsd > 0 ? Math.max(0, Math.min(100, (bal.remainingUsd / acc.initialUsd) * 100)) : 0;
+        const isOpen = (acc.status === 'พร้อมใช้');
+
+        let barColor = isOpen ? 'bg-[#8054F7]' : 'bg-slate-300';
+        if (isOpen && percentRemain < 15) barColor = 'bg-[#E11D48]';
+        else if (isOpen && percentRemain < 35) barColor = 'bg-[#D97706]';
+
+        return `
+          <div class="cozy-card p-4 space-y-3 ${isOpen ? 'border-[#E8DDFF]' : 'opacity-70 bg-[#FAFAFA] border-dashed'}">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="font-mono font-bold text-sm ${isOpen ? 'text-[#8054F7] bg-[#F5EFFF]' : 'text-slate-500 bg-slate-100'} px-2.5 py-1 rounded-xl border ${isOpen ? 'border-[#E8DDFF]' : 'border-slate-200'}">${acc.id}</span>
+                <span class="text-xs font-semibold text-[#2E2544] truncate max-w-[130px]">${acc.email || '(ไม่มีอีเมล)'}</span>
+              </div>
+              
+              <!-- 1-CLICK TOGGLE BUTTON -->
+              <div class="flex items-center gap-1.5">
+                <button type="button" onclick="toggleStockStatus(${idx})" class="px-3 py-1 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${isOpen ? 'bg-[#F0FDF4] text-[#059669] border border-[#D1FAE5] hover:bg-[#DCFCE7]' : 'bg-[#FAF8FF] text-slate-500 border border-slate-200 hover:bg-[#F3ECFF] hover:text-[#8054F7]'}">
+                  <span class="w-2 h-2 rounded-full ${isOpen ? 'bg-[#059669]' : 'bg-slate-400'}"></span>
+                  <span>${isOpen ? 'พร้อมใช้' : 'ปิดใช้งาน (หมด)'}</span>
+                </button>
+                <button onclick="openEditStockModal(${idx})" class="text-[#857B9B] hover:text-[#8054F7] hover:bg-[#F5EFFF] p-1.5 rounded-xl transition text-xs font-medium cursor-pointer" title="แก้ไข">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 text-xs pt-1">
+              <div>
+                <div class="text-[10px] text-[#857B9B]">คงเหลือ USD</div>
+                <div class="font-mono font-bold text-base ${isOpen ? 'text-[#D97706]' : 'text-slate-500'}">$${formatNumber(bal.remainingUsd)}</div>
+                <div class="text-[10px] text-[#857B9B]">จากที่เติม $${formatNumber(acc.initialUsd)}</div>
+              </div>
+              <div class="text-right">
+                <div class="text-[10px] text-[#857B9B]">มูลค่าคงเหลือ (฿)</div>
+                <div class="font-mono font-bold text-base text-[#2E2544]">฿${formatNumber(remainThb)}</div>
+                <div class="text-[10px] text-[#8054F7] font-semibold">เรท ${acc.rate} ฿/$</div>
+              </div>
+            </div>
+
+            <div class="space-y-1 pt-1">
+              <div class="w-full h-2 bg-[#F3EDFB] rounded-full overflow-hidden">
+                <div class="h-full ${barColor} rounded-full transition-all duration-300" style="width: ${percentRemain}%"></div>
+              </div>
+              <div class="flex items-center justify-between text-[10px] text-[#857B9B]">
+                <span>ใช้ไปแล้ว $${formatNumber(bal.usedUsd)}</span>
+                <span>กำไรที่ทำได้ ฿${formatNumber(bal.totalProfitThb)}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      grid.innerHTML = cards;
+    }
+
+    let curStockEditIdx = null;
+
+    function openAddStockModal() {
+      curStockEditIdx = null;
+      const modal = document.getElementById('stock-modal');
+      if (!modal) return;
+
+      let maxNum = 0;
+      const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts;
+      accounts.forEach(a => {
+        const m = (a.id || '').match(/PC-(d+)/);
+        if (m) {
+          const n = parseInt(m[1]);
+          if (n > maxNum) maxNum = n;
+        }
+      });
+      const nextId = 'PC-' + String(maxNum + 1).padStart(3, '0');
+
+      document.getElementById('stock-modal-title').textContent = 'เพิ่มสต็อกเมลใหม่';
+      document.getElementById('form-stock-id').value = nextId;
+      document.getElementById('form-stock-email').value = '';
+      document.getElementById('form-stock-buydate').value = new Date().toISOString().slice(0, 10);
+      document.getElementById('form-stock-usd').value = '';
+      document.getElementById('form-stock-rate').value = '25.50';
+      document.getElementById('form-stock-status').value = 'พร้อมใช้';
+      document.getElementById('form-stock-note').value = '';
+
+      const deleteBox = document.getElementById('stock-modal-delete-btn-box');
+      if (deleteBox) deleteBox.innerHTML = '';
+
+      calcStockFormThb();
+      modal.classList.remove('hidden');
+    }
+
+    function openEditStockModal(idx) {
+      const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts;
+      const acc = accounts[idx];
+      if (!acc) return;
+      curStockEditIdx = idx;
+      const modal = document.getElementById('stock-modal');
+      if (!modal) return;
+
+      document.getElementById('stock-modal-title').textContent = 'แก้ไขสต็อก ' + acc.id;
+      document.getElementById('form-stock-id').value = acc.id;
+      document.getElementById('form-stock-email').value = acc.email || '';
+      document.getElementById('form-stock-buydate').value = acc.buyDate || '';
+      document.getElementById('form-stock-usd').value = acc.initialUsd;
+      document.getElementById('form-stock-rate').value = acc.rate;
+      document.getElementById('form-stock-status').value = acc.status || 'พร้อมใช้';
+      document.getElementById('form-stock-note').value = acc.note || '';
+
+      const deleteBox = document.getElementById('stock-modal-delete-btn-box');
+      if (deleteBox) {
+        deleteBox.innerHTML = `
+          <button type="button" onclick="deleteStockAccount(${idx})" class="text-[#E11D48] hover:bg-[#FFF5F7] px-3 py-1.5 rounded-xl transition font-medium cursor-pointer">
+            ลบสต็อกนี้
+          </button>
+        `;
+      }
+
+      calcStockFormThb();
+      modal.classList.remove('hidden');
+    }
+
+    function deleteStockAccount(idx) {
+      const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts;
+      const acc = accounts[idx];
+      if (!acc) return;
+      if (confirm(`ลบสต็อก ${acc.id} (${acc.email || 'ไม่มีเมล'}) ใช่หรือไม่?`)) {
+        accounts.splice(idx, 1);
+        saveData();
+        closeStockModal();
+        renderApp();
+        showToast(`ลบสต็อก ${acc.id} แล้ว`, 'info');
+      }
+    }
+
+    function closeStockModal() {
+      const modal = document.getElementById('stock-modal');
+      if (modal) modal.classList.add('hidden');
+      curStockEditIdx = null;
+    }
+
+    function handleModalBackdropClick(e, modalId) {
+      if (e.target && e.target.id === modalId) {
+        if (modalId === 'stock-modal') closeStockModal();
+        if (modalId === 'order-edit-modal') closeOrderEditModal();
+        if (modalId === 'db-settings-modal') closeDatabaseSettingsModal();
+      }
+    }
+
+    function calcStockFormThb() {
+      const usd = parseFloat(document.getElementById('form-stock-usd').value) || 0;
+      const rate = parseFloat(document.getElementById('form-stock-rate').value) || 0;
+      const thb = usd * rate;
+      const el = document.getElementById('form-stock-thb-preview');
+      if (el) el.textContent = `฿${formatNumber(thb)}`;
+    }
+
+    function handleSubmitStockAccount(e) {
+      e.preventDefault();
+      const id = document.getElementById('form-stock-id').value.trim();
+      const email = document.getElementById('form-stock-email').value.trim();
+      const buyDate = document.getElementById('form-stock-buydate').value;
+      const initialUsd = parseFloat(document.getElementById('form-stock-usd').value) || 0;
+      const rate = parseFloat(document.getElementById('form-stock-rate').value) || 25.50;
+      const investmentThb = Number((initialUsd * rate).toFixed(2));
+      const status = document.getElementById('form-stock-status').value;
+      const note = document.getElementById('form-stock-note').value.trim();
+
+      const obj = { id, email, buyDate, initialUsd, rate, investmentThb, status, note };
+
+      if (!appData.stockAccounts) appData.stockAccounts = [];
+
+      if (curStockEditIdx !== null) {
+        appData.stockAccounts[curStockEditIdx] = obj;
+        showToast(`อัปเดตสต็อก ${id} สำเร็จ`, 'success');
+      } else {
+        appData.stockAccounts.push(obj);
+        showToast(`เพิ่มสต็อก ${id} สำเร็จ`, 'success');
+      }
+
+      saveData();
+      closeStockModal();
+      renderApp();
+    }
+
     // ORDER EDIT MODAL
     let editingOrderId = null;
     let modalEditExtraPacks = { '80': 0, '500': 0, '1000': 0, '2000': 0 };
@@ -13667,209 +13846,6 @@
       showToast(`อัปเดตออเดอร์ ${log.id} สำเร็จ • ซิงค์คลาวด์แล้ว`, 'success');
     }
 
-    // Stocks
-    function renderStocks() {
-      const grid = document.getElementById('stocks-cards-grid');
-      if (!grid) return;
-
-      const balances = calculateStockBalances();
-      const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts;
-
-      let cards = accounts.map((acc, idx) => {
-        const active = isStockActive(acc);
-        const bal = balances[acc.id] || { remainingUsd: acc.initialUsd, usedUsd: 0, totalSalesThb: 0, totalProfitThb: 0 };
-        const remainThb = bal.remainingUsd * (acc.rate || 0);
-        const percentRemain = acc.initialUsd > 0 ? Math.max(0, Math.min(100, (bal.remainingUsd / acc.initialUsd) * 100)) : 0;
-
-        let barColor = 'bg-[#8054F7]';
-        if (percentRemain < 15) barColor = 'bg-[#E11D48]';
-        else if (percentRemain < 35) barColor = 'bg-[#D97706]';
-
-        return `
-          <div class="cozy-card p-4 space-y-3 ${active ? '' : 'opacity-65 bg-[#F8F7FA]'}">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <span class="font-mono font-bold text-sm text-[#8054F7] bg-[#F5EFFF] px-2.5 py-1 rounded-xl border border-[#E8DDFF]">${acc.id}</span>
-                <span class="text-xs font-semibold text-[#2E2544] truncate max-w-[150px]">${acc.email || '(ไม่มีอีเมล)'}</span>
-              </div>
-              <div class="flex items-center gap-1">
-                <span class="px-2 py-1 rounded-lg text-[10px] font-semibold ${active ? 'text-[#059669] bg-[#F0FDF4]' : 'text-[#857B9B] bg-[#F1EFF5]'}">${active ? '● เปิดอยู่' : '○ ปิดแล้ว'}</span>
-                <button onclick="toggleStockAccountStatus('${acc.id}')" class="px-2 py-1 rounded-lg text-[10px] font-semibold ${active ? 'text-[#D97706] bg-[#FFFBEB] hover:bg-[#FEF3C7]' : 'text-[#059669] bg-[#F0FDF4] hover:bg-[#DCFCE7]'} transition cursor-pointer" title="${active ? 'ปิดและซ่อนจากหน้าจิ้มสต๊อก' : 'เปิดให้เลือกอีกครั้ง'}">${active ? 'กดปิด' : 'กดเปิด'}</button>
-                <button onclick="openEditStockModal(${idx})" class="text-[#8054F7] hover:bg-[#F5EFFF] p-1.5 rounded-xl transition text-xs font-medium cursor-pointer" title="แก้ไข">
-                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                </button>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2 text-xs pt-1">
-              <div>
-                <div class="text-[10px] text-[#857B9B]">คงเหลือ USD</div>
-                <div class="font-mono font-bold text-base text-[#D97706]">$${formatNumber(bal.remainingUsd)}</div>
-                <div class="text-[10px] text-[#857B9B]">จากที่เติม $${formatNumber(acc.initialUsd)}</div>
-              </div>
-              <div class="text-right">
-                <div class="text-[10px] text-[#857B9B]">มูลค่าคงเหลือ (฿)</div>
-                <div class="font-mono font-bold text-base text-[#2E2544]">฿${formatNumber(remainThb)}</div>
-                <div class="text-[10px] text-[#8054F7] font-semibold">เรท ${acc.rate} ฿/$</div>
-              </div>
-            </div>
-
-            <div class="space-y-1 pt-1">
-              <div class="w-full h-2 bg-[#F3EDFB] rounded-full overflow-hidden">
-                <div class="h-full ${barColor} rounded-full transition-all duration-300" style="width: ${percentRemain}%"></div>
-              </div>
-              <div class="flex items-center justify-between text-[10px] text-[#857B9B]">
-                <span>ใช้ไปแล้ว $${formatNumber(bal.usedUsd)}</span>
-                <span>กำไรที่ทำได้ ฿${formatNumber(bal.totalProfitThb)}</span>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      grid.innerHTML = cards;
-    }
-
-    let curStockEditIdx = null;
-
-    function openAddStockModal() {
-      curStockEditIdx = null;
-      const modal = document.getElementById('stock-modal');
-      if (!modal) return;
-
-      let maxNum = 0;
-      const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts;
-      accounts.forEach(a => {
-        const m = (a.id || '').match(/PC-(d+)/);
-        if (m) {
-          const n = parseInt(m[1]);
-          if (n > maxNum) maxNum = n;
-        }
-      });
-      const nextId = 'PC-' + String(maxNum + 1).padStart(3, '0');
-
-      document.getElementById('stock-modal-title').textContent = 'เพิ่มสต็อกเมลใหม่';
-      document.getElementById('form-stock-id').value = nextId;
-      document.getElementById('form-stock-email').value = '';
-      document.getElementById('form-stock-buydate').value = new Date().toISOString().slice(0, 10);
-      document.getElementById('form-stock-usd').value = '';
-      document.getElementById('form-stock-rate').value = '25.50';
-      document.getElementById('form-stock-note').value = '';
-      document.getElementById('form-stock-status').value = 'พร้อมใช้';
-
-      const deleteBox = document.getElementById('stock-modal-delete-btn-box');
-      if (deleteBox) deleteBox.innerHTML = '';
-
-      calcStockFormThb();
-      modal.classList.remove('hidden');
-    }
-
-    function openEditStockModal(idx) {
-      const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts;
-      const acc = accounts[idx];
-      if (!acc) return;
-      curStockEditIdx = idx;
-      const modal = document.getElementById('stock-modal');
-      if (!modal) return;
-
-      document.getElementById('stock-modal-title').textContent = 'แก้ไขสต็อก ' + acc.id;
-      document.getElementById('form-stock-id').value = acc.id;
-      document.getElementById('form-stock-email').value = acc.email || '';
-      document.getElementById('form-stock-buydate').value = acc.buyDate || '';
-      document.getElementById('form-stock-usd').value = acc.initialUsd;
-      document.getElementById('form-stock-rate').value = acc.rate;
-      document.getElementById('form-stock-note').value = acc.note || '';
-      document.getElementById('form-stock-status').value = isStockActive(acc) ? 'พร้อมใช้' : 'ปิดใช้งาน';
-
-      const deleteBox = document.getElementById('stock-modal-delete-btn-box');
-      if (deleteBox) {
-        deleteBox.innerHTML = `
-          <button type="button" onclick="deleteStockAccount(${idx})" class="text-[#E11D48] hover:bg-[#FFF5F7] px-3 py-1.5 rounded-xl transition font-medium cursor-pointer">
-            ลบสต็อกนี้
-          </button>
-        `;
-      }
-
-      calcStockFormThb();
-      modal.classList.remove('hidden');
-    }
-
-    function deleteStockAccount(idx) {
-      const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts;
-      const acc = accounts[idx];
-      if (!acc) return;
-      if (confirm(`ลบสต็อก ${acc.id} (${acc.email || 'ไม่มีเมล'}) ใช่หรือไม่?`)) {
-        accounts.splice(idx, 1);
-        saveData();
-        closeStockModal();
-        renderApp();
-        showToast(`ลบสต็อก ${acc.id} แล้ว`, 'info');
-      }
-    }
-
-    function closeStockModal() {
-      const modal = document.getElementById('stock-modal');
-      if (modal) modal.classList.add('hidden');
-      curStockEditIdx = null;
-    }
-
-    function handleModalBackdropClick(e, modalId) {
-      if (e.target && e.target.id === modalId) {
-        if (modalId === 'stock-modal') closeStockModal();
-        if (modalId === 'order-edit-modal') closeOrderEditModal();
-        if (modalId === 'db-settings-modal') closeDatabaseSettingsModal();
-      }
-    }
-
-    function calcStockFormThb() {
-      const usd = parseFloat(document.getElementById('form-stock-usd').value) || 0;
-      const rate = parseFloat(document.getElementById('form-stock-rate').value) || 0;
-      const thb = usd * rate;
-      const el = document.getElementById('form-stock-thb-preview');
-      if (el) el.textContent = `฿${formatNumber(thb)}`;
-    }
-
-    function handleSubmitStockAccount(e) {
-      e.preventDefault();
-      const id = document.getElementById('form-stock-id').value.trim();
-      const email = document.getElementById('form-stock-email').value.trim();
-      const buyDate = document.getElementById('form-stock-buydate').value;
-      const initialUsd = parseFloat(document.getElementById('form-stock-usd').value) || 0;
-      const rate = parseFloat(document.getElementById('form-stock-rate').value) || 25.50;
-      const investmentThb = Number((initialUsd * rate).toFixed(2));
-      const note = document.getElementById('form-stock-note').value.trim();
-      const status = document.getElementById('form-stock-status').value === 'ปิดใช้งาน' ? 'ปิดใช้งาน' : 'พร้อมใช้';
-
-      const obj = { id, email, buyDate, initialUsd, rate, investmentThb, status, isActive: status === 'พร้อมใช้', note };
-
-      if (!appData.stockAccounts) appData.stockAccounts = [];
-
-      if (curStockEditIdx !== null) {
-        appData.stockAccounts[curStockEditIdx] = obj;
-        showToast(`อัปเดตสต็อก ${id} สำเร็จ`, 'success');
-      } else {
-        appData.stockAccounts.push(obj);
-        showToast(`เพิ่มสต็อก ${id} สำเร็จ`, 'success');
-      }
-
-      saveData();
-      closeStockModal();
-      renderApp();
-    }
-
-    function toggleStockAccountStatus(stockId) {
-      const accounts = appData.stockAccounts || [];
-      const account = accounts.find(stock => stock.id === stockId);
-      if (!account) return;
-      account.status = isStockActive(account) ? 'ปิดใช้งาน' : 'พร้อมใช้';
-      account.isActive = account.status === 'พร้อมใช้';
-      saveData();
-      renderApp();
-      showToast(isStockActive(account)
-        ? `เปิดใช้งาน ${account.id} แล้ว`
-        : `ปิด ${account.id} และซ่อนจากหน้าบันทึกแล้ว`, 'success');
-    }
-
     // Pricing
     function renderPricing() {
       const container = document.getElementById('pricing-table-container');
@@ -13950,6 +13926,7 @@
 
       const kpiGrid = document.getElementById('summary-kpi-grid');
       if (kpiGrid) {
+        const activeCount = (appData.stockAccounts || []).filter(s => s.status === 'พร้อมใช้').length;
         kpiGrid.innerHTML = `
           <div class="cozy-card p-4">
             <div class="text-[10px] text-[#857B9B] mb-0.5">ออเดอร์วันนี้</div>
@@ -13967,9 +13944,9 @@
             <div class="text-[10px] text-[#059669]/80 mt-0.5">กำไรสะสม ฿${formatNumber(allProfit)}</div>
           </div>
           <div class="cozy-card p-4">
-            <div class="text-[10px] text-[#857B9B] mb-0.5">จำนวนสต็อกเมล</div>
-            <div class="font-mono font-bold text-lg text-[#8054F7]">${(appData.stockAccounts || []).length} บัญชี</div>
-            <div class="text-[10px] text-[#857B9B] mt-0.5">พร้อมใช้งานทั้งหมด</div>
+            <div class="text-[10px] text-[#857B9B] mb-0.5">สต็อกเมลพร้อมใช้</div>
+            <div class="font-mono font-bold text-lg text-[#8054F7]">${activeCount} บัญชี</div>
+            <div class="text-[10px] text-[#857B9B] mt-0.5">จากทั้งหมด ${(appData.stockAccounts || []).length} บัญชี</div>
           </div>
         `;
       }
@@ -14111,7 +14088,6 @@
       }
     });
 
-    // Run immediately & on DOMContentLoaded
     initData();
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', initData);
