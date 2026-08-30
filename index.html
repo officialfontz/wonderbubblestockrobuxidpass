@@ -12830,16 +12830,33 @@
     }
 
     async function initData() {
+      // 1. SMART DATA RESCUE: Search all localStorage keys to find the largest dataset (including today's 772 orders)
       try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          appData = {
-            settings: (parsed.settings && parsed.settings.employees) ? parsed.settings : INITIAL_SEED.settings,
-            packages: (parsed.packages && parsed.packages.length > 0) ? parsed.packages : INITIAL_SEED.packages,
-            stockAccounts: (parsed.stockAccounts && parsed.stockAccounts.length > 0) ? parsed.stockAccounts : INITIAL_SEED.stockAccounts,
-            salesLogs: (parsed.salesLogs && Array.isArray(parsed.salesLogs)) ? parsed.salesLogs : INITIAL_SEED.salesLogs
-          };
+        let bestLocalLogs = [];
+        let bestAppData = null;
+
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('COZY_ROBUX_STUDIO')) {
+            try {
+              const val = JSON.parse(localStorage.getItem(key));
+              if (val && val.salesLogs && val.salesLogs.length > bestLocalLogs.length) {
+                bestLocalLogs = val.salesLogs;
+                bestAppData = val;
+              }
+            } catch (err) {}
+          }
+        }
+
+        if (bestAppData && bestLocalLogs.length > (INITIAL_SEED.salesLogs || []).length) {
+          appData = bestAppData;
+          console.log('✨ Data Rescue: Restored ' + bestLocalLogs.length + ' orders from local storage cache!');
+        } else {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (parsed && parsed.salesLogs) appData = parsed;
+          }
         }
       } catch (e) {
         console.error("Local Init Error:", e);
@@ -12855,11 +12872,40 @@
 
       renderApp();
 
-      // Start 3-Layer Synchronization immediately!
+      // 2. Fetch Server Data and Merge
       await fetchServerData();
       startServerSentEvents();
       connectWebSocket();
       startFastBackgroundPolling();
+    }
+
+    async function fetchServerData() {
+      try {
+        if (window.location.protocol.startsWith('http')) {
+          const res = await fetch('/api/data?t=' + Date.now());
+          if (res.ok) {
+            const json = await res.json();
+            if (json && json.data) {
+              const serverOrders = (json.data.salesLogs && Array.isArray(json.data.salesLogs)) ? json.data.salesLogs : [];
+              const localOrders = (appData.salesLogs && Array.isArray(appData.salesLogs)) ? appData.salesLogs : [];
+
+              // If client has MORE orders in cache (e.g. 772 vs 709), push client's orders to server!
+              if (localOrders.length > serverOrders.length) {
+                console.log('🚀 Client has ' + localOrders.length + ' orders > server ' + serverOrders.length + '. Syncing back to server!');
+                syncDataToServer();
+              } else if (serverOrders.length >= localOrders.length) {
+                appData = json.data;
+                localLastUpdated = json.lastUpdated || Date.now();
+                saveDataLocal();
+                renderApp();
+                setDbStatusUI(true);
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Server fetch error:', err);
+      }
     }
 
     async function fetchServerData() {
