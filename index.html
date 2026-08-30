@@ -540,6 +540,14 @@
           <input type="text" id="form-stock-note" placeholder="เช่น สต็อกล็อตพิเศษ" class="w-full px-3 py-2 bg-white border border-[#EFE9F9] rounded-xl text-[#2E2544]">
         </div>
 
+        <div>
+          <label class="block font-semibold text-[#665B7D] mb-1">การแสดงในหน้าจิ้มสต๊อก</label>
+          <select id="form-stock-status" class="w-full px-3 py-2 bg-white border border-[#EFE9F9] rounded-xl text-[#2E2544] cursor-pointer">
+            <option value="พร้อมใช้">เปิดใช้งาน — แสดงให้เลือก</option>
+            <option value="ปิดใช้งาน">ปิดใช้งาน — ซ่อนจากหน้าจิ้มสต๊อก</option>
+          </select>
+        </div>
+
         <div class="pt-2 border-t border-[#F5EFFF] flex items-center justify-between gap-2">
           <div id="stock-modal-delete-btn-box"></div>
           <div class="flex items-center gap-2 ml-auto">
@@ -13063,12 +13071,18 @@
       return balances;
     }
 
+    function isStockActive(stock) {
+      if (!stock || stock.isActive === false) return false;
+      const status = String(stock.status || '').trim().toLowerCase();
+      return !['ปิดใช้งาน', 'ปิด', 'inactive', 'disabled'].includes(status);
+    }
+
     function getBestStock(usdRequired) {
       if (!usdRequired || usdRequired <= 0) return null;
       const balances = calculateStockBalances();
       const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts;
       const candidates = accounts
-        .filter(acc => acc.status === 'พร้อมใช้')
+        .filter(isStockActive)
         .map(acc => ({
           ...acc,
           remainingUsd: balances[acc.id] ? balances[acc.id].remainingUsd : acc.initialUsd
@@ -13113,7 +13127,7 @@
 
     function renderApp() {
       const bStocks = document.getElementById('nav-count-stocks');
-      if (bStocks) bStocks.textContent = (appData.stockAccounts || []).length;
+      if (bStocks) bStocks.textContent = (appData.stockAccounts || []).filter(isStockActive).length;
 
       const today = new Date().toISOString().slice(0, 10);
       const logs = appData.salesLogs || [];
@@ -13662,6 +13676,7 @@
       const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts;
 
       let cards = accounts.map((acc, idx) => {
+        const active = isStockActive(acc);
         const bal = balances[acc.id] || { remainingUsd: acc.initialUsd, usedUsd: 0, totalSalesThb: 0, totalProfitThb: 0 };
         const remainThb = bal.remainingUsd * (acc.rate || 0);
         const percentRemain = acc.initialUsd > 0 ? Math.max(0, Math.min(100, (bal.remainingUsd / acc.initialUsd) * 100)) : 0;
@@ -13671,15 +13686,19 @@
         else if (percentRemain < 35) barColor = 'bg-[#D97706]';
 
         return `
-          <div class="cozy-card p-4 space-y-3">
+          <div class="cozy-card p-4 space-y-3 ${active ? '' : 'opacity-65 bg-[#F8F7FA]'}">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <span class="font-mono font-bold text-sm text-[#8054F7] bg-[#F5EFFF] px-2.5 py-1 rounded-xl border border-[#E8DDFF]">${acc.id}</span>
                 <span class="text-xs font-semibold text-[#2E2544] truncate max-w-[150px]">${acc.email || '(ไม่มีอีเมล)'}</span>
               </div>
-              <button onclick="openEditStockModal(${idx})" class="text-[#8054F7] hover:bg-[#F5EFFF] p-1.5 rounded-xl transition text-xs font-medium cursor-pointer" title="แก้ไข">
-                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-              </button>
+              <div class="flex items-center gap-1">
+                <span class="px-2 py-1 rounded-lg text-[10px] font-semibold ${active ? 'text-[#059669] bg-[#F0FDF4]' : 'text-[#857B9B] bg-[#F1EFF5]'}">${active ? '● เปิดอยู่' : '○ ปิดแล้ว'}</span>
+                <button onclick="toggleStockAccountStatus('${acc.id}')" class="px-2 py-1 rounded-lg text-[10px] font-semibold ${active ? 'text-[#D97706] bg-[#FFFBEB] hover:bg-[#FEF3C7]' : 'text-[#059669] bg-[#F0FDF4] hover:bg-[#DCFCE7]'} transition cursor-pointer" title="${active ? 'ปิดและซ่อนจากหน้าจิ้มสต๊อก' : 'เปิดให้เลือกอีกครั้ง'}">${active ? 'กดปิด' : 'กดเปิด'}</button>
+                <button onclick="openEditStockModal(${idx})" class="text-[#8054F7] hover:bg-[#F5EFFF] p-1.5 rounded-xl transition text-xs font-medium cursor-pointer" title="แก้ไข">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                </button>
+              </div>
             </div>
 
             <div class="grid grid-cols-2 gap-2 text-xs pt-1">
@@ -13736,6 +13755,7 @@
       document.getElementById('form-stock-usd').value = '';
       document.getElementById('form-stock-rate').value = '25.50';
       document.getElementById('form-stock-note').value = '';
+      document.getElementById('form-stock-status').value = 'พร้อมใช้';
 
       const deleteBox = document.getElementById('stock-modal-delete-btn-box');
       if (deleteBox) deleteBox.innerHTML = '';
@@ -13759,6 +13779,7 @@
       document.getElementById('form-stock-usd').value = acc.initialUsd;
       document.getElementById('form-stock-rate').value = acc.rate;
       document.getElementById('form-stock-note').value = acc.note || '';
+      document.getElementById('form-stock-status').value = isStockActive(acc) ? 'พร้อมใช้' : 'ปิดใช้งาน';
 
       const deleteBox = document.getElementById('stock-modal-delete-btn-box');
       if (deleteBox) {
@@ -13817,8 +13838,9 @@
       const rate = parseFloat(document.getElementById('form-stock-rate').value) || 25.50;
       const investmentThb = Number((initialUsd * rate).toFixed(2));
       const note = document.getElementById('form-stock-note').value.trim();
+      const status = document.getElementById('form-stock-status').value === 'ปิดใช้งาน' ? 'ปิดใช้งาน' : 'พร้อมใช้';
 
-      const obj = { id, email, buyDate, initialUsd, rate, investmentThb, status: 'พร้อมใช้', note };
+      const obj = { id, email, buyDate, initialUsd, rate, investmentThb, status, isActive: status === 'พร้อมใช้', note };
 
       if (!appData.stockAccounts) appData.stockAccounts = [];
 
@@ -13833,6 +13855,19 @@
       saveData();
       closeStockModal();
       renderApp();
+    }
+
+    function toggleStockAccountStatus(stockId) {
+      const accounts = appData.stockAccounts || [];
+      const account = accounts.find(stock => stock.id === stockId);
+      if (!account) return;
+      account.status = isStockActive(account) ? 'ปิดใช้งาน' : 'พร้อมใช้';
+      account.isActive = account.status === 'พร้อมใช้';
+      saveData();
+      renderApp();
+      showToast(isStockActive(account)
+        ? `เปิดใช้งาน ${account.id} แล้ว`
+        : `ปิด ${account.id} และซ่อนจากหน้าบันทึกแล้ว`, 'success');
     }
 
     // Pricing
