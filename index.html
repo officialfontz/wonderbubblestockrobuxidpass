@@ -10,95 +10,184 @@
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   <style>
     :root {
-      --bg-page: #FAF8FF;
+      --bg-page: #FAF9FF;
       --card-bg: #FFFFFF;
-      --border-subtle: #EFE9F9;
+      --border-subtle: rgba(139, 92, 246, 0.11);
       --purple-vivid: #8B5CF6;
+      --purple-deep: #7242F5;
       --purple-soft: #F5F0FF;
       --purple-border: #E8DDFF;
       --text-main: #2E2544;
       --text-muted: #857B9B;
+
+      --ring: 0 0 0 3px rgba(139, 92, 246, 0.26);
+      --lift: cubic-bezier(0.34, 1.56, 0.64, 1);
+      --ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+      --shadow-card:
+        0 1px 2px rgba(46, 37, 68, 0.04),
+        0 10px 28px -14px rgba(109, 74, 199, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      --shadow-card-hover:
+        0 2px 4px rgba(46, 37, 68, 0.05),
+        0 18px 40px -16px rgba(109, 74, 199, 0.32),
+        inset 0 1px 0 rgba(255, 255, 255, 0.95);
     }
+
+    /* The base colour lives on <html> so it reaches the canvas, leaving <body>
+       transparent - otherwise body's own background paints over the aurora
+       layer below, which sits at a negative z-index. */
+    html { background-color: var(--bg-page); }
+
     body {
       font-family: 'Prompt', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: var(--bg-page);
+      background: transparent;
       color: var(--text-main);
+      -webkit-tap-highlight-color: transparent;
     }
+
+    /* Soft aurora wash behind everything. A fixed layer rather than a fixed
+       background image, which janks while scrolling on iOS. */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background:
+        radial-gradient(55rem 34rem at 6% -14%, rgba(150, 116, 250, 0.30), transparent 64%),
+        radial-gradient(40rem 26rem at 110% -2%, rgba(251, 176, 64, 0.20), transparent 62%),
+        radial-gradient(46rem 32rem at 50% 118%, rgba(45, 212, 191, 0.18), transparent 62%);
+    }
+
+    h1, h2, h3 { letter-spacing: -0.015em; }
+
     .baht {
       font-family: 'Prompt', sans-serif;
       font-weight: inherit;
       margin-right: 0.1em;
     }
+
     .font-mono {
       /* Prompt sits in the stack so Thai glyphs and ฿ fall back to a face that
          has them - the bare monospace fallback collided with the digits. */
       font-family: 'JetBrains Mono', 'Prompt', monospace;
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum";
     }
+
     .cozy-card {
-      background-color: #FFFFFF;
+      background: linear-gradient(180deg, #FFFFFF 0%, #FDFCFF 100%);
       border: 1px solid var(--border-subtle);
       border-radius: 1.5rem;
-      box-shadow: 0 8px 30px -4px rgba(139, 92, 246, 0.05), 0 2px 8px -2px rgba(0, 0, 0, 0.02);
+      box-shadow: var(--shadow-card);
     }
+
     .cozy-hover-card {
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: transform 0.22s var(--ease), box-shadow 0.22s var(--ease), border-color 0.22s var(--ease);
     }
     .cozy-hover-card:hover {
-      border-color: #D8C7FF;
-      box-shadow: 0 10px 32px -4px rgba(139, 92, 246, 0.1);
-      transform: translateY(-1.5px);
+      border-color: rgba(139, 92, 246, 0.28);
+      box-shadow: var(--shadow-card-hover);
+      transform: translateY(-2px);
     }
+
     .pkg-pill {
-      background-color: #FAF8FF;
-      border: 1.5px solid #EDE5FC;
+      background: linear-gradient(180deg, #FFFFFF 0%, #FAF8FF 100%);
+      border: 1.5px solid #ECE4FC;
       color: #3C2E59;
       border-radius: 1.25rem;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: transform 0.2s var(--lift), box-shadow 0.2s var(--ease),
+                  border-color 0.2s var(--ease), background 0.2s var(--ease);
       cursor: pointer;
     }
     .pkg-pill:hover {
       border-color: #CBB4FC;
-      background-color: #F5EFFF;
-      transform: translateY(-1px);
+      background: linear-gradient(180deg, #FFFFFF 0%, #F4EEFF 100%);
+      box-shadow: 0 8px 20px -12px rgba(109, 74, 199, 0.5);
+      transform: translateY(-2px);
     }
     .pkg-pill.active {
-      background: linear-gradient(135deg, #9F75FF 0%, #8054F7 100%) !important;
+      background: linear-gradient(140deg, #A681FF 0%, #8054F7 55%, #7242F5 100%) !important;
       color: #FFFFFF !important;
-      border-color: #8054F7 !important;
-      box-shadow: 0 6px 16px -2px rgba(128, 84, 247, 0.35);
-      transform: scale(1.02);
+      border-color: #7242F5 !important;
+      box-shadow:
+        0 10px 26px -8px rgba(114, 66, 245, 0.55),
+        0 0 0 4px rgba(139, 92, 246, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.35);
+      transform: translateY(-2px) scale(1.015);
     }
+
     .btn-cute-primary {
-      background: linear-gradient(135deg, #9F75FF 0%, #8054F7 100%);
-      box-shadow: 0 6px 20px -3px rgba(128, 84, 247, 0.35);
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(140deg, #A681FF 0%, #8054F7 55%, #7242F5 100%);
+      box-shadow:
+        0 10px 24px -8px rgba(114, 66, 245, 0.55),
+        inset 0 1px 0 rgba(255, 255, 255, 0.28);
+      transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease), filter 0.2s var(--ease);
       cursor: pointer;
     }
+    /* A slow sheen so the primary action reads as the liveliest thing on screen. */
+    .btn-cute-primary::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.32) 50%, transparent 65%);
+      transform: translateX(-120%);
+      transition: transform 0.7s var(--ease);
+    }
+    .btn-cute-primary:hover::after { transform: translateX(120%); }
     .btn-cute-primary:hover {
-      background: linear-gradient(135deg, #9062FF 0%, #7242F5 100%);
-      box-shadow: 0 8px 24px -3px rgba(128, 84, 247, 0.45);
-      transform: translateY(-1px);
+      filter: saturate(1.06);
+      box-shadow:
+        0 14px 30px -8px rgba(114, 66, 245, 0.62),
+        inset 0 1px 0 rgba(255, 255, 255, 0.35);
+      transform: translateY(-1.5px);
     }
-    .btn-cute-primary:active {
-      transform: scale(0.98);
+    .btn-cute-primary:active { transform: translateY(0) scale(0.985); }
+
+    /* One consistent, visible focus ring across every control. */
+    :where(button, a, input, select, textarea):focus-visible {
+      outline: none;
+      box-shadow: var(--ring);
     }
-    ::-webkit-scrollbar {
-      width: 4px;
-      height: 4px;
+
+    input, select, textarea {
+      transition: border-color 0.18s var(--ease), box-shadow 0.18s var(--ease), background-color 0.18s var(--ease);
     }
-    ::-webkit-scrollbar-track {
-      background: transparent;
+    input:hover, select:hover, textarea:hover { border-color: #CBB4FC; }
+
+    .nav-tab-btn { transition: background-color 0.2s var(--ease), color 0.2s var(--ease), box-shadow 0.2s var(--ease); }
+    .nav-tab-btn:active { transform: scale(0.97); }
+
+    /* Content settles in when a tab is opened. */
+    .tab-content:not(.hidden) { animation: rise 0.3s var(--ease) both; }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(7px); }
+      to { opacity: 1; transform: none; }
     }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb {
-      background: #E4D8FA;
+      background: #DFD1F8;
       border-radius: 999px;
     }
-    .pulse-dot {
-      animation: pulse-animation 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    }
+    ::-webkit-scrollbar-thumb:hover { background: #C9B4F3; }
+
+    .pulse-dot { animation: pulse-animation 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
     @keyframes pulse-animation {
       0%, 100% { opacity: 1; transform: scale(1); }
       50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
     }
   </style>
 </head>
@@ -1548,9 +1637,23 @@
       const log = appData.salesLogs[idx];
       if (confirm(`ลบรายการของ ${log.username} (${log.robux}R)?\n(ระบบจะคืนเครดิต $${log.usd} ให้เมล ${log.stockAccount} ทันที)`)) {
         appData.salesLogs.splice(idx, 1);
-        saveData();
+        saveDataLocal();
         renderApp();
-        showToast('ลบรายการและคืนสต็อกแล้ว', 'info');
+
+        // A plain sync would merge the row straight back, so deletions get
+        // their own endpoint; the server records a tombstone for it.
+        localLastUpdated = Date.now();
+        fetch('/api/delete-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: log.id, date: log.date, username: log.username })
+        })
+          .then(res => res.json())
+          .then(res => {
+            if (res && res.lastUpdated) localLastUpdated = res.lastUpdated;
+            showToast('ลบรายการและคืนสต็อกแล้ว', 'info');
+          })
+          .catch(() => showToast('ลบในเครื่องแล้ว แต่ยังไม่ได้ซิงก์ขึ้นเซิร์ฟเวอร์', 'info'));
       }
     }
 
@@ -2046,11 +2149,11 @@
 
             <div class="min-w-0 flex-1">
               <div class="font-semibold text-[#2E2544] truncate">${st.name}</div>
-              <div class="text-[10px] text-[#857B9B] font-mono">${formatInt(st.count)} ออเดอร์ · ขาย <span class="baht">฿</span>${formatNumber(st.sales)}</div>
+              <div class="text-[10px] text-[#857B9B] font-mono truncate">${formatInt(st.count)} ออเดอร์</div>
             </div>
 
             <div class="text-right shrink-0 font-mono">
-              <div class="text-[10px] text-[#857B9B] leading-none">กำไร</div>
+              <div class="text-[10px] text-[#857B9B] leading-none">ขาย <span class="baht">฿</span>${formatInt(Math.round(st.sales))}</div>
               <strong class="text-[#059669] text-[13px]">+<span class="baht">฿</span>${formatNumber(st.profit)}</strong>
             </div>
 

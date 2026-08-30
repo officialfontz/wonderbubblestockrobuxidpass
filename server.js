@@ -158,8 +158,25 @@ function persist() {
 }
 
 /* ------------------------------------------------------------------ *
- * MERGE - orders are only ever added or updated, never dropped.
+ * MERGE - orders are only ever added or updated, never dropped, so that a
+ * client syncing a stale copy can never erase somebody else's work.
+ *
+ * That also meant deletes did not stick: the row was removed on the client,
+ * the next sync merged it straight back, and the trash button looked broken.
+ * Deletions therefore go through /api/delete-order and leave a tombstone,
+ * which the merge honours so a stale client cannot resurrect the row.
  * ------------------------------------------------------------------ */
+const MAX_TOMBSTONES = 500;
+
+function logSig(l) {
+  return [l && l.id, l && l.date, l && l.username].join('|');
+}
+
+function isDeleted(l) {
+  const tombs = (shopData && shopData.deletedOrders) || [];
+  return tombs.indexOf(logSig(l)) !== -1;
+}
+
 function mergeShopData(incomingData) {
   if (!incomingData || typeof incomingData !== 'object') return shopData;
   if (!shopData) {
@@ -200,7 +217,7 @@ function mergeShopData(incomingData) {
     shopData.packages = incomingData.packages;
   }
 
-  shopData.salesLogs = Array.from(map.values());
+  shopData.salesLogs = Array.from(map.values()).filter(l => !isDeleted(l));
   persist();
   return shopData;
 }
@@ -243,6 +260,30 @@ app.post('/api/sync', (req, res) => {
   } else {
     res.status(400).json({ error: 'Invalid data' });
   }
+});
+
+// Delete exactly one order. Matched on id + date + username because older data
+// contains repeated ids (a client bug assigned ORD-0001 to many orders), and
+// deleting by id alone would take all of them.
+app.post('/api/delete-order', (req, res) => {
+  const { id, date, username } = req.body || {};
+  if (!id) return res.status(400).json({ success: false, error: 'id required' });
+  if (!shopData || !Array.isArray(shopData.salesLogs)) {
+    return res.status(409).json({ success: false, error: 'no data loaded' });
+  }
+
+  const sig = [id, date, username].join('|');
+  const i = shopData.salesLogs.findIndex(l => logSig(l) === sig);
+  if (i === -1) {
+    return res.json({ success: true, removed: 0, count: orderCount(), lastUpdated });
+  }
+
+  shopData.salesLogs.splice(i, 1);
+  shopData.deletedOrders = (shopData.deletedOrders || []).concat(sig).slice(-MAX_TOMBSTONES);
+  lastUpdated = Date.now();
+  persist();
+  notifyAllClients({ type: 'DATA_SYNC', data: shopData, lastUpdated });
+  res.json({ success: true, removed: 1, count: orderCount(), lastUpdated });
 });
 
 // Download the whole shop as a backup file.
