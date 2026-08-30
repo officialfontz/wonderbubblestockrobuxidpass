@@ -443,7 +443,16 @@
 
     <!-- TAB 4: SUMMARY -->
     <section id="tab-summary" class="tab-content hidden space-y-5">
+      <div id="summary-range-bar" class="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-0.5"></div>
+
       <div id="summary-kpi-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
+
+      <div id="summary-trend-box"></div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div id="summary-packages-box"></div>
+        <div id="summary-stocks-box"></div>
+      </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div id="summary-staff-box"></div>
@@ -881,6 +890,7 @@
     let eventSource = null;
     let isPollingActive = false;
 
+    let summaryRange = 'today';
     let emojiPickerFor = null;
     const STAFF_EMOJIS = ['🐰', '🐱', '🐶', '🦊', '🐼', '🐨', '🐯', '🦁',
                           '🐸', '🐧', '🐥', '🐹', '🦄', '🦈', '🐙', '🌸',
@@ -2106,20 +2116,75 @@
     }
 
     // Summary
+    // ---------------------------------------------------------------
+    // SUMMARY DASHBOARD
+    // Every figure below follows the selected period, so the shop can look
+    // back at any day instead of only "today".
+    // ---------------------------------------------------------------
+    const SUMMARY_RANGES = [
+      { key: 'today', label: 'วันนี้' },
+      { key: 'yesterday', label: 'เมื่อวาน' },
+      { key: '7d', label: '7 วัน' },
+      { key: '30d', label: '30 วัน' },
+      { key: 'month', label: 'เดือนนี้' },
+      { key: 'all', label: 'ทั้งหมด' },
+    ];
+
+    function setSummaryRange(key) {
+      summaryRange = key;
+      renderSummary();
+    }
+
+    // Days covered by the period, oldest first. null means "no limit".
+    function summaryRangeDays(key) {
+      const shift = n => { const d = new Date(); d.setDate(d.getDate() - n); return d; };
+      if (key === 'today') return [localDate()];
+      if (key === 'yesterday') return [localDate(shift(1))];
+      if (key === '7d') return Array.from({ length: 7 }, (_, i) => localDate(shift(6 - i)));
+      if (key === '30d') return Array.from({ length: 30 }, (_, i) => localDate(shift(29 - i)));
+      if (key === 'month') {
+        const now = new Date();
+        return Array.from({ length: now.getDate() },
+          (_, i) => localDate(new Date(now.getFullYear(), now.getMonth(), i + 1)));
+      }
+      return null;
+    }
+
     function renderSummary() {
-      const today = localDate();
-      const logs = appData.salesLogs || [];
-      const todaySales = logs.filter(s => (s.date || '').slice(0, 10) === today);
-      const todayTotal = todaySales.reduce((sum, s) => sum + (Number(s.priceThb) || 0), 0);
-      const todayProfit = todaySales.reduce((sum, s) => sum + (Number(s.profitThb) || 0), 0);
+      const allLogs = (appData.salesLogs || []).filter(l => l && l.status !== 'ปรับยอด');
+      const days = summaryRangeDays(summaryRange);
+      const daySet = days ? new Set(days) : null;
+      const logs = daySet
+        ? allLogs.filter(l => daySet.has(String(l.date || '').slice(0, 10)))
+        : allLogs;
 
-      const allTotal = logs.reduce((sum, s) => sum + (Number(s.priceThb) || 0), 0);
-      const allProfit = logs.reduce((sum, s) => sum + (Number(s.profitThb) || 0), 0);
+      const sum = (arr, f) => arr.reduce((s, x) => s + (Number(f(x)) || 0), 0);
+      const sales = sum(logs, l => l.priceThb);
+      const profit = sum(logs, l => l.profitThb);
+      const cost = sum(logs, l => l.costThb);
+      const robux = sum(logs, l => l.robux);
+      const margin = sales > 0 ? (profit / sales) * 100 : 0;
+      const avg = logs.length ? sales / logs.length : 0;
 
+      const allSales = sum(allLogs, l => l.priceThb);
+      const allProfit = sum(allLogs, l => l.profitThb);
+      const rangeLabel = (SUMMARY_RANGES.find(r => r.key === summaryRange) || {}).label || '';
+
+      // ---- period picker ----
+      const bar = document.getElementById('summary-range-bar');
+      if (bar) {
+        bar.innerHTML = SUMMARY_RANGES.map(r => {
+          const on = r.key === summaryRange;
+          return `<button onclick="setSummaryRange('${r.key}')" class="shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+            on ? 'bg-[#8054F7] text-white shadow-[0_6px_16px_-6px_rgba(114,66,245,0.7)]'
+               : 'bg-white text-[#857B9B] border border-[#EDE5FC] hover:text-[#2E2544] hover:border-[#D8C7FF]'
+          }">${r.label}</button>`;
+        }).join('');
+      }
+
+      // ---- headline numbers ----
       const kpiGrid = document.getElementById('summary-kpi-grid');
       if (kpiGrid) {
-        const activeCount = (appData.stockAccounts || []).filter(s => s.status === 'พร้อมใช้').length;
-        // label / hero number / footnote, with a tinted icon chip per metric
         const kpiCard = (o) => `
           <div class="cozy-card p-3.5 sm:p-4 flex flex-col justify-between min-h-[104px] ${o.card || ''}">
             <div class="flex items-start justify-between gap-2">
@@ -2131,52 +2196,199 @@
               <div class="text-[10px] ${o.foot || 'text-[#857B9B]'} mt-1.5 truncate">${o.small}</div>
             </div>
           </div>`;
-
         const kpiIcon = (p) => `<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 
         kpiGrid.innerHTML =
           kpiCard({
-            title: 'ออเดอร์วันนี้',
-            big: formatInt(todaySales.length),
-            small: `รวมทั้งหมด ${formatInt(logs.length)}`,
+            title: 'ออเดอร์ · ' + rangeLabel,
+            big: formatInt(logs.length),
+            small: `ทั้งหมด ${formatInt(allLogs.length)} ออเดอร์`,
             size: 'text-2xl', value: 'text-[#2E2544]',
             chip: 'bg-[#F3ECFF] text-[#8054F7]',
             icon: kpiIcon('<path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>')
           }) +
           kpiCard({
-            title: 'ยอดขายวันนี้',
-            big: `<span class="baht">฿</span>${formatNumber(todayTotal)}`,
-            small: `ยอดรวม <span class="baht">฿</span>${formatNumber(allTotal)}`,
+            title: 'ยอดขาย · ' + rangeLabel,
+            big: `<span class="baht">฿</span>${formatNumber(sales)}`,
+            small: `ทั้งหมด <span class="baht">฿</span>${formatNumber(allSales)}`,
             value: 'text-[#2E2544]',
             chip: 'bg-[#FFF7ED] text-[#D97706]',
             icon: kpiIcon('<line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>')
           }) +
           kpiCard({
-            title: 'กำไรวันนี้',
-            big: `<span class="baht">฿</span>${formatNumber(todayProfit)}`,
-            small: `กำไรสะสม <span class="baht">฿</span>${formatNumber(allProfit)}`,
+            title: 'กำไร · ' + rangeLabel,
+            big: `<span class="baht">฿</span>${formatNumber(profit)}`,
+            small: `มาร์จิ้น ${margin.toFixed(1)}% · สะสม <span class="baht">฿</span>${formatNumber(allProfit)}`,
             card: 'bg-[#F0FDF4] border-[#D1FAE5]',
             label: 'text-[#059669]', foot: 'text-[#059669]/80', value: 'text-[#059669]',
             chip: 'bg-white/70 text-[#059669]',
             icon: kpiIcon('<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline>')
           }) +
           kpiCard({
-            title: 'สต็อกเมลพร้อมใช้',
-            big: `${activeCount} บัญชี`,
-            small: `จากทั้งหมด ${(appData.stockAccounts || []).length} บัญชี`,
+            title: 'เฉลี่ยต่อออเดอร์',
+            big: `<span class="baht">฿</span>${formatNumber(avg)}`,
+            small: `ขาย Robux รวม ${formatInt(robux)}`,
             value: 'text-[#8054F7]',
             chip: 'bg-[#F3ECFF] text-[#8054F7]',
-            icon: kpiIcon('<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline>')
+            icon: kpiIcon('<line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line>')
           });
       }
 
+      // ---- daily trend ----
+      const trend = document.getElementById('summary-trend-box');
+      if (trend) {
+        let chartDays = days;
+        if (!chartDays) {
+          chartDays = [...new Set(allLogs.map(l => String(l.date || '').slice(0, 10)))].sort().slice(-30);
+        } else if (chartDays.length === 1) {
+          // A single day is not a trend - show the surrounding fortnight instead.
+          const anchor = new Date(chartDays[0] + 'T00:00:00');
+          chartDays = Array.from({ length: 14 }, (_, i) => {
+            const d = new Date(anchor);
+            d.setDate(d.getDate() - (13 - i));
+            return localDate(d);
+          });
+        }
+
+        const byDay = {};
+        chartDays.forEach(d => { byDay[d] = { count: 0, sales: 0, profit: 0 }; });
+        allLogs.forEach(l => {
+          const d = String(l.date || '').slice(0, 10);
+          if (byDay[d]) {
+            byDay[d].count += 1;
+            byDay[d].sales += Number(l.priceThb) || 0;
+            byDay[d].profit += Number(l.profitThb) || 0;
+          }
+        });
+
+        const maxSale = Math.max(1, ...chartDays.map(d => byDay[d].sales));
+        const best = chartDays.reduce((a, d) => (byDay[d].sales > byDay[a].sales ? d : a), chartDays[0]);
+
+        const bars = chartDays.map(d => {
+          const s = byDay[d];
+          const h = s.sales > 0 ? Math.max(4, Math.round((s.sales / maxSale) * 100)) : 2;
+          const profitShare = s.sales > 0 ? Math.max(0, Math.min(100, Math.round((s.profit / s.sales) * 100))) : 0;
+          const isBest = d === best && s.sales > 0;
+          return `
+            <div class="flex-1 min-w-0 h-full flex flex-col justify-end group cursor-default"
+                 title="${d} · ${s.count} ออเดอร์ · ขาย ฿${formatNumber(s.sales)} · กำไร ฿${formatNumber(s.profit)}">
+              <div class="w-full rounded-t-md overflow-hidden flex flex-col justify-end transition-all
+                          ${isBest ? 'bg-[#C9AEFB]' : 'bg-[#E7DBFB]'} group-hover:bg-[#B893F9]"
+                   style="height:${h}%">
+                <div class="w-full bg-[#34D399]" style="height:${profitShare}%"></div>
+              </div>
+            </div>`;
+        }).join('');
+
+        const dayLabel = d => d.slice(8, 10) + '/' + d.slice(5, 7);
+        trend.innerHTML = `
+          <div class="cozy-card p-4 sm:p-5 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h3 class="text-sm font-bold text-[#2E2544]">ยอดขายรายวัน</h3>
+              <div class="flex items-center gap-3 text-[10px] text-[#857B9B]">
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-[#34D399]"></span>กำไร</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-[#E7DBFB]"></span>ต้นทุน</span>
+              </div>
+            </div>
+
+            <div class="flex items-end gap-[3px] h-28 sm:h-36">${bars}</div>
+
+            <div class="flex items-center justify-between text-[10px] text-[#857B9B] font-mono">
+              <span>${dayLabel(chartDays[0])}</span>
+              <span class="text-[#8054F7] font-semibold">
+                วันที่ขายดีสุด ${dayLabel(best)} · <span class="baht">฿</span>${formatNumber(byDay[best].sales)}
+              </span>
+              <span>${dayLabel(chartDays[chartDays.length - 1])}</span>
+            </div>
+          </div>`;
+      }
+
+      // ---- best selling packages ----
+      const pkgBox = document.getElementById('summary-packages-box');
+      if (pkgBox) {
+        const byPkg = {};
+        logs.forEach(l => {
+          const k = Number(l.robux) || 0;
+          if (!byPkg[k]) byPkg[k] = { robux: k, count: 0, sales: 0, profit: 0 };
+          byPkg[k].count += 1;
+          byPkg[k].sales += Number(l.priceThb) || 0;
+          byPkg[k].profit += Number(l.profitThb) || 0;
+        });
+        const top = Object.values(byPkg).sort((a, b) => b.count - a.count).slice(0, 6);
+        const maxCount = Math.max(1, ...top.map(p => p.count));
+
+        pkgBox.innerHTML = `
+          <div class="cozy-card p-4 sm:p-5 space-y-3 h-full">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-bold text-[#2E2544]">แพ็กเกจขายดี</h3>
+              <span class="text-[10px] text-[#857B9B]">${rangeLabel}</span>
+            </div>
+            ${top.length ? top.map(p => `
+              <div class="space-y-1">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="font-mono font-bold text-[#2E2544]">${formatInt(p.robux)} R</span>
+                  <span class="text-[10px] text-[#857B9B] font-mono">
+                    ${formatInt(p.count)} ครั้ง · <span class="baht">฿</span>${formatInt(Math.round(p.sales))}
+                    · <span class="text-[#059669]">+<span class="baht">฿</span>${formatInt(Math.round(p.profit))}</span>
+                  </span>
+                </div>
+                <div class="h-1.5 rounded-full bg-[#F3ECFF] overflow-hidden">
+                  <div class="h-full rounded-full bg-gradient-to-r from-[#A681FF] to-[#8054F7]"
+                       style="width:${Math.round((p.count / maxCount) * 100)}%"></div>
+                </div>
+              </div>`).join('')
+            : '<p class="text-xs text-[#857B9B] py-4 text-center">ยังไม่มีออเดอร์ในช่วงนี้</p>'}
+          </div>`;
+      }
+
+      // ---- stock mail health ----
+      const stockBox = document.getElementById('summary-stocks-box');
+      if (stockBox) {
+        const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts || [];
+        const balances = calculateStockBalances();
+        const rows = accounts.map(a => {
+          const b = balances[a.id] || {};
+          const initial = Number(a.initialUsd) || 0;
+          const remain = Number(b.remainingUsd !== undefined ? b.remainingUsd : initial) || 0;
+          const usedPct = initial > 0 ? Math.max(0, Math.min(100, ((initial - remain) / initial) * 100)) : 0;
+          const low = remain <= 20;
+          return { a, remain, initial, usedPct, low };
+        }).sort((x, y) => y.remain - x.remain);
+
+        const totalRemain = rows.reduce((s, r) => s + r.remain, 0);
+
+        stockBox.innerHTML = `
+          <div class="cozy-card p-4 sm:p-5 space-y-3 h-full">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-bold text-[#2E2544]">เครดิตคงเหลือแต่ละเมล</h3>
+              <span class="text-[10px] font-mono text-[#8054F7] font-semibold">รวม $${formatNumber(totalRemain)}</span>
+            </div>
+            <div class="space-y-2.5 max-h-64 overflow-y-auto pr-1">
+              ${rows.map(r => `
+                <div class="space-y-1">
+                  <div class="flex items-center justify-between text-xs gap-2">
+                    <span class="font-mono font-bold ${r.low ? 'text-[#E11D48]' : 'text-[#2E2544]'} truncate">
+                      ${r.a.id}${r.a.status !== 'พร้อมใช้' ? ' <span class="text-[9px] font-normal text-[#AAA0C0]">ปิด</span>' : ''}
+                    </span>
+                    <span class="font-mono text-[10px] shrink-0 ${r.low ? 'text-[#E11D48] font-bold' : 'text-[#857B9B]'}">
+                      $${formatNumber(r.remain)} / $${formatInt(r.initial)}
+                    </span>
+                  </div>
+                  <div class="h-1.5 rounded-full bg-[#F3ECFF] overflow-hidden">
+                    <div class="h-full rounded-full ${r.low ? 'bg-gradient-to-r from-[#FB7185] to-[#E11D48]' : 'bg-gradient-to-r from-[#34D399] to-[#059669]'}"
+                         style="width:${100 - r.usedPct}%"></div>
+                  </div>
+                </div>`).join('')}
+            </div>
+          </div>`;
+      }
+
+      // ---- staff leaderboard (follows the period too) ----
       const staffBox = document.getElementById('summary-staff-box');
       if (staffBox) {
         const staffStats = {};
         const employees = (appData.settings && appData.settings.employees) ? appData.settings.employees : INITIAL_SEED.settings.employees;
-        employees.forEach(n => {
-          staffStats[n] = { name: n, count: 0, sales: 0, profit: 0 };
-        });
+        employees.forEach(n => { staffStats[n] = { name: n, count: 0, sales: 0, profit: 0 }; });
         logs.forEach(s => {
           const name = s.staff || 'ไม่ระบุ';
           if (!staffStats[name]) staffStats[name] = { name, count: 0, sales: 0, profit: 0 };
@@ -2228,21 +2440,20 @@
         }).join('');
 
         staffBox.innerHTML = `
-          <div class="cozy-card p-5 space-y-3">
+          <div class="cozy-card p-4 sm:p-5 space-y-3 h-full">
             <div class="flex items-center justify-between">
-              <h3 class="text-sm font-bold text-[#2E2544]">ผลงานแยกตามพนักงาน</h3>
-              <span class="text-xs text-[#857B9B]">${employees.length} คน</span>
+              <h3 class="text-sm font-bold text-[#2E2544]">ผลงานพนักงาน</h3>
+              <span class="text-[10px] text-[#857B9B]">${rangeLabel} · ${employees.length} คน</span>
             </div>
             <div class="space-y-2">${rows}</div>
-            
+
             <form onsubmit="handleAddEmployee(event)" class="flex gap-2 pt-2 border-t border-[#F7F3FD]">
               <input type="text" id="input-new-staff-name" placeholder="ชื่อพนักงานใหม่..." class="flex-1 px-3 py-1.5 bg-[#FAF8FF] border border-[#EFE9F9] rounded-xl text-xs text-[#2E2544] focus:outline-none focus:border-[#8054F7]">
               <button type="submit" class="btn-cute-primary px-3.5 py-1.5 text-white rounded-xl text-xs font-semibold cursor-pointer">
                 + เพิ่ม
               </button>
             </form>
-          </div>
-        `;
+          </div>`;
       }
     }
 
