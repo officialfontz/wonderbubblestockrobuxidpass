@@ -880,6 +880,11 @@
     let eventSource = null;
     let isPollingActive = false;
 
+    let emojiPickerFor = null;
+    const STAFF_EMOJIS = ['🐰', '🐱', '🐶', '🦊', '🐼', '🐨', '🐯', '🦁',
+                          '🐸', '🐧', '🐥', '🐹', '🦄', '🦈', '🐙', '🌸',
+                          '🍓', '🍰', '🍭', '🌈', '⭐', '💜', '🔥', '👑'];
+
     let cashierExtraPacks = { '80': 0, '500': 0, '1000': 0, '2000': 0 };
     let currentLeaderboardPeriod = 'today';
 
@@ -1378,50 +1383,44 @@
         guideText += ` <span class="text-[#E11D48] text-base font-extrabold bg-[#FFF1F2] px-2 py-0.5 rounded-lg border border-[#FECDD3] ml-1">(เผลอกดเกิน ${extraParts.join(' + ')})</span>`;
       }
 
-      box.className = 'p-5 sm:p-6 rounded-3xl border-2 border-[#86EFAC] bg-gradient-to-br from-[#F0FDF4] via-[#F6FDF9] to-[#ECFDF5] space-y-4 shadow-sm';
+      box.className = 'p-3 sm:p-4 rounded-3xl border-2 border-[#86EFAC] bg-gradient-to-br from-[#F0FDF4] via-[#F6FDF9] to-[#ECFDF5] space-y-2.5 shadow-sm';
       box.innerHTML = `
-        <!-- BIG PROMINENT PRESS GUIDE BANNER -->
-        <div class="bg-white/95 p-4 sm:p-5 rounded-2xl border border-[#A7F3D0] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div class="flex items-start sm:items-center gap-3.5">
-            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#059669] to-[#10B981] text-white flex items-center justify-center text-xl shrink-0 shadow-md">
-              🎮
-            </div>
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="text-xs font-extrabold text-[#059669] uppercase tracking-wider bg-[#DCFCE7] px-2 py-0.5 rounded-md border border-[#BBF7D0]">
-                  วิธีกดในเกม (ทำรายการตามนี้)
-                </span>
-              </div>
-              <div class="text-lg sm:text-2xl font-black text-[#1E1B4B] font-mono tracking-tight mt-1.5 flex items-center gap-2">
-                👉 <span class="text-[#059669] bg-[#F0FDF4] px-2.5 py-1 rounded-xl border border-[#BBF7D0]">${guideText}</span>
-              </div>
+        <!-- What to press in game - the one line staff actually act on -->
+        <div class="bg-white/95 p-3 rounded-2xl border border-[#A7F3D0] flex flex-wrap items-center gap-x-3 gap-y-2">
+          <div class="w-9 h-9 shrink-0 rounded-xl bg-gradient-to-br from-[#059669] to-[#10B981] text-white flex items-center justify-center text-base shadow-sm">
+            🎮
+          </div>
+
+          <div class="min-w-0 flex-1">
+            <div class="text-[10px] font-extrabold text-[#059669] tracking-wider">วิธีกดในเกม (ทำรายการตามนี้)</div>
+            <div class="text-lg sm:text-xl font-black text-[#059669] font-mono tracking-tight leading-tight mt-0.5 flex items-center gap-1.5">
+              <span>👉</span><span>${guideText}</span>
             </div>
           </div>
 
-          <div class="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-[#F0FDF4] border border-[#A7F3D0] text-xs sm:text-sm font-mono font-bold text-[#059669] self-start sm:self-auto shrink-0 shadow-xs">
-            <img src="${ROBUX_ICON_URL}" class="w-4 h-4 object-contain" alt="Robux" onerror="this.style.display='none'">
+          <div class="w-full sm:w-auto order-last sm:order-none shrink-0 flex items-center justify-center sm:justify-start gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#F0FDF4] border border-[#A7F3D0] text-xs font-mono font-bold text-[#059669]">
+            <img src="${ROBUX_ICON_URL}" class="w-3.5 h-3.5 object-contain" alt="" onerror="this.style.display='none'">
             <span>ตัดเครดิต $${totalUsd.toFixed(2)} USD</span>
           </div>
         </div>
 
-        <!-- 3 SUMMARY BOXES -->
-        <div class="grid grid-cols-3 gap-2.5 text-center text-xs">
-          <div class="bg-white p-3 rounded-2xl border border-[#D1FAE5] shadow-xs">
-            <div class="text-[10px] font-semibold text-[#857B9B] mb-0.5">เมลที่ใช้ตัด</div>
-            <div class="font-mono font-bold text-[#8054F7] text-sm sm:text-base">${stock.id}</div>
-            <div class="text-[10px] text-[#857B9B] mt-0.5">เรท ${stock.rate} ฿/$ • เหลือ $${formatNumber(remainAfter)}</div>
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="bg-white p-2.5 rounded-2xl border border-[#D1FAE5]">
+            <div class="text-[10px] font-semibold text-[#857B9B] leading-none">เมลที่ตัด</div>
+            <div class="font-mono font-bold text-[#8054F7] text-sm mt-1 leading-none">${stock.id}</div>
+            <div class="text-[10px] text-[#857B9B] mt-1 leading-tight">เรท ${stock.rate} ฿/$ · เหลือ $${formatNumber(remainAfter)}</div>
           </div>
 
-          <div class="bg-white p-3 rounded-2xl border border-[#D1FAE5] shadow-xs">
-            <div class="text-[10px] font-semibold text-[#857B9B] mb-0.5">ราคาขาย / ต้นทุน</div>
-            <div class="font-mono font-bold text-[#2E2544] text-sm sm:text-base"><span class="baht">฿</span>${formatNumber(pkg.price)}</div>
-            <div class="text-[10px] text-[#857B9B] mt-0.5">ทุน <span class="baht">฿</span>${formatNumber(costThb)}</div>
+          <div class="bg-white p-2.5 rounded-2xl border border-[#D1FAE5]">
+            <div class="text-[10px] font-semibold text-[#857B9B] leading-none">ราคา / ทุน</div>
+            <div class="font-mono font-bold text-[#2E2544] text-sm mt-1 leading-none"><span class="baht">฿</span>${formatNumber(pkg.price)}</div>
+            <div class="text-[10px] text-[#857B9B] mt-1 leading-tight">ทุน <span class="baht">฿</span>${formatNumber(costThb)}</div>
           </div>
 
-          <div class="bg-[#059669] p-3 rounded-2xl text-white shadow-xs">
-            <div class="text-[10px] font-semibold text-white/85 mb-0.5">กำไรสุทธิที่จะได้</div>
-            <div class="font-mono font-black text-sm sm:text-base">${profitThb >= 0 ? '+<span class="baht">฿</span>' + formatNumber(profitThb) : '-<span class="baht">฿</span>' + formatNumber(Math.abs(profitThb))}</div>
-            <div class="text-[10px] text-white/90 mt-0.5">มาร์จิ้น ${marginPct}%</div>
+          <div class="bg-[#059669] p-2.5 rounded-2xl text-white">
+            <div class="text-[10px] font-semibold text-white/85 leading-none">กำไรสุทธิ</div>
+            <div class="font-mono font-black text-sm mt-1 leading-none">${profitThb >= 0 ? '+<span class="baht">฿</span>' + formatNumber(profitThb) : '-<span class="baht">฿</span>' + formatNumber(Math.abs(profitThb))}</div>
+            <div class="text-[10px] text-white/90 mt-1 leading-tight">มาร์จิ้น ${marginPct}%</div>
           </div>
         </div>
       `;
@@ -2141,25 +2140,44 @@
         const ranked = Object.values(staffStats).sort((a, b) => b.profit - a.profit);
         const medal = ['🥇', '🥈', '🥉'];
 
-        let rows = ranked.map((st, i) => `
-          <div class="flex items-center gap-2.5 p-2.5 bg-[#FAF8FF] rounded-2xl border border-[#EDE5FC] text-xs">
-            <div class="w-7 h-7 shrink-0 rounded-full bg-[#F3ECFF] text-[#8054F7] flex items-center justify-center font-bold text-[11px]">
-              ${medal[i] || st.name.slice(0, 1)}
-            </div>
+        let rows = ranked.map((st, i) => {
+          const arg = String(st.name).replace(/'/g, "\\'");
+          const emoji = getStaffEmoji(st.name);
 
-            <div class="min-w-0 flex-1">
-              <div class="font-semibold text-[#2E2544] truncate">${st.name}</div>
-              <div class="text-[10px] text-[#857B9B] font-mono truncate">${formatInt(st.count)} ออเดอร์</div>
-            </div>
+          const picker = emojiPickerFor === st.name ? `
+            <div class="mt-2 p-2 rounded-2xl bg-white border border-[#E8DDFF]">
+              <div class="text-[10px] text-[#857B9B] mb-1.5 px-0.5">เลือกอีโมจิประจำตัว ${st.name}</div>
+              <div class="flex flex-wrap gap-1">
+                ${STAFF_EMOJIS.map(e => `<button onclick="setStaffEmoji('${arg}', '${e}')" class="w-8 h-8 rounded-xl hover:bg-[#F5EFFF] text-lg leading-none transition cursor-pointer">${e}</button>`).join('')}
+              </div>
+            </div>` : '';
 
-            <div class="text-right shrink-0 font-mono">
-              <div class="text-[10px] text-[#857B9B] leading-none">ขาย <span class="baht">฿</span>${formatInt(Math.round(st.sales))}</div>
-              <strong class="text-[#059669] text-[13px]">+<span class="baht">฿</span>${formatNumber(st.profit)}</strong>
-            </div>
+          return `
+          <div class="p-2.5 bg-[#FAF8FF] rounded-2xl border border-[#EDE5FC] text-xs">
+            <div class="flex items-center gap-2.5">
+              <button onclick="toggleEmojiPicker('${arg}')" class="relative w-8 h-8 shrink-0 rounded-full bg-[#F3ECFF] hover:bg-[#EADCFF] text-[#8054F7] flex items-center justify-center font-bold text-base transition cursor-pointer" title="เปลี่ยนอีโมจิ">
+                <span>${emoji || st.name.slice(0, 1)}</span>
+                ${i < 3 ? `<span class="absolute -bottom-1 -right-1 text-[10px] leading-none">${medal[i]}</span>` : ''}
+              </button>
 
-            <button onclick="removeEmployee('${st.name}')" class="w-6 h-6 shrink-0 rounded-lg text-[#C9C0DE] hover:text-[#E11D48] hover:bg-[#FFF5F7] transition text-[11px] cursor-pointer" title="ลบพนักงาน">✕</button>
-          </div>
-        `).join('');
+              <div class="min-w-0 flex-1">
+                <div class="font-semibold text-[#2E2544] truncate">${st.name}</div>
+                <div class="text-[10px] text-[#857B9B] font-mono truncate">${formatInt(st.count)} ออเดอร์</div>
+              </div>
+
+              <div class="text-right shrink-0 font-mono">
+                <div class="text-[10px] text-[#857B9B] leading-none">ขาย <span class="baht">฿</span>${formatInt(Math.round(st.sales))}</div>
+                <strong class="text-[#059669] text-[13px]">+<span class="baht">฿</span>${formatNumber(st.profit)}</strong>
+              </div>
+
+              <div class="flex items-center gap-0.5 shrink-0">
+                <button onclick="renameEmployee('${arg}')" class="w-6 h-6 rounded-lg hover:bg-[#F5EFFF] transition text-[11px] cursor-pointer" title="เปลี่ยนชื่อ">✏️</button>
+                <button onclick="removeEmployee('${arg}')" class="w-6 h-6 rounded-lg text-[#C9C0DE] hover:text-[#E11D48] hover:bg-[#FFF5F7] transition text-[11px] cursor-pointer" title="ลบพนักงาน">✕</button>
+              </div>
+            </div>
+            ${picker}
+          </div>`;
+        }).join('');
 
         staffBox.innerHTML = `
           <div class="cozy-card p-5 space-y-3">
@@ -2205,6 +2223,59 @@
         renderApp();
         showToast(`ลบพนักงาน "${name}" แล้ว`, 'info');
       }
+    }
+
+    function getStaffEmoji(name) {
+      const map = (appData.settings && appData.settings.employeeEmojis) || {};
+      return map[name] || '';
+    }
+
+    function toggleEmojiPicker(name) {
+      emojiPickerFor = (emojiPickerFor === name) ? null : name;
+      renderSummary();
+    }
+
+    function setStaffEmoji(name, emoji) {
+      if (!appData.settings) appData.settings = {};
+      if (!appData.settings.employeeEmojis) appData.settings.employeeEmojis = {};
+      appData.settings.employeeEmojis[name] = emoji;
+      emojiPickerFor = null;
+      saveData();
+      renderApp();
+      showToast(`ตั้งอีโมจิของ "${name}" เป็น ${emoji} แล้ว`, 'success');
+    }
+
+    function renameEmployee(oldName) {
+      const answer = prompt(`เปลี่ยนชื่อพนักงาน "${oldName}" เป็น:`, oldName);
+      if (answer === null) return;
+      const newName = answer.trim();
+      if (!newName || newName === oldName) return;
+
+      if (!appData.settings) appData.settings = {};
+      const employees = appData.settings.employees || [];
+      if (employees.includes(newName)) {
+        showToast('มีชื่อนี้อยู่แล้ว', 'error');
+        return;
+      }
+
+      appData.settings.employees = employees.map(e => (e === oldName ? newName : e));
+
+      const emojis = appData.settings.employeeEmojis;
+      if (emojis && emojis[oldName]) {
+        emojis[newName] = emojis[oldName];
+        delete emojis[oldName];
+      }
+
+      // Past orders store the staff name as text, so carry every one of them
+      // across - otherwise the rename would zero out this person's history.
+      let moved = 0;
+      (appData.salesLogs || []).forEach(l => {
+        if (l.staff === oldName) { l.staff = newName; moved++; }
+      });
+
+      saveData();
+      renderApp();
+      showToast(`เปลี่ยนเป็น "${newName}" แล้ว (ย้าย ${formatInt(moved)} ออเดอร์)`, 'success');
     }
 
     function exportOrdersCsv() {
