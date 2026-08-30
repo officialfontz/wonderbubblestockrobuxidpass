@@ -176,8 +176,8 @@
             <h2 class="text-base sm:text-lg font-bold text-[#2E2544]">บันทึกการเติมเงิน</h2>
             <p class="text-xs text-[#857B9B]">เลือกแพ็กเกจ ➔ ระบบบอกวิธีกด ตัดสต็อก และบันทึกกำไรทันที</p>
           </div>
-          <div class="text-xs font-mono font-semibold text-[#8054F7] bg-[#F5EFFF] px-3 py-1 rounded-xl border border-[#E8DDFF]">
-            พร้อมเติม ✨
+          <div id="sync-status" class="text-xs font-mono font-semibold text-[#8054F7] bg-[#F5EFFF] px-3 py-1 rounded-xl border border-[#E8DDFF]">
+            กำลังซิงก์…
           </div>
         </div>
 
@@ -223,12 +223,31 @@
             </div>
           </div>
 
-          <!-- Step 4: Fulfillment & Profit Preview -->
+          <!-- Step 4: Order Note & Issue Handling -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-[#2E2544] mb-1.5">4. หมายเหตุออเดอร์</label>
+              <input type="text" id="cashier-order-note" placeholder="เช่น ลูกค้ารอเข้าเกม / เติมรอบสอง" class="w-full px-4 py-2.5 bg-white border border-[#E2D5F8] rounded-2xl text-xs text-[#2E2544] placeholder-[#AAA0C0] focus:outline-none focus:ring-2 focus:ring-[#DDD0FA] focus:border-[#8054F7]">
+            </div>
+            <div class="rounded-2xl border border-[#FDE68A] bg-[#FFFBEB] px-4 py-2.5">
+              <label class="flex items-center gap-2 text-xs font-semibold text-[#92400E] cursor-pointer">
+                <input type="checkbox" id="cashier-issue-mode" onchange="toggleCashierIssueMode()" class="w-4 h-4 accent-[#D97706]">
+                <span>เกมบัค / กดเกิน / ออเดอร์มีปัญหา</span>
+              </label>
+              <div id="cashier-actual-usd-box" class="hidden mt-2 pt-2 border-t border-[#FDE68A]">
+                <label class="block text-[10px] text-[#92400E] mb-1">เครดิตที่ใช้จริงทั้งหมด (USD)</label>
+                <input type="number" min="0" step="0.01" id="cashier-actual-usd" oninput="renderCashierStockOptions(); renderSmartFulfillmentPreview()" class="w-full px-3 py-2 bg-white border border-[#FDE68A] rounded-xl font-mono text-xs text-[#2E2544] focus:outline-none focus:border-[#D97706]">
+                <p class="text-[10px] text-[#A16207] mt-1">ระบบหักเครดิตตามจริง และจะไม่นับกำไรออเดอร์นี้</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 5: Fulfillment & Profit Preview -->
           <div id="cashier-smart-preview" class="p-4 sm:p-5 rounded-2xl border transition-all">
             <!-- Rendered via JS -->
           </div>
 
-          <!-- Step 5: Submit Button -->
+          <!-- Step 6: Submit Button -->
           <div class="pt-2 flex items-center justify-between gap-3">
             <div class="text-xs text-[#857B9B] flex items-center gap-1.5">
               <svg class="w-4 h-4 text-[#059669]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -354,7 +373,7 @@
             </svg>
             <span>ส่งออก & สำรองข้อมูล</span>
           </h3>
-          <p class="text-xs text-[#857B9B]">ข้อมูลทั้งหมดบันทึกในเครื่อง สามารถโหลดไฟล์ Excel หรือ Backup ได้ตลอดเวลา</p>
+          <p class="text-xs text-[#857B9B]">ข้อมูลซิงก์ร่วมกันทุกเครื่อง และยังดาวน์โหลด Excel หรือ Backup เก็บไว้ได้ตลอดเวลา</p>
           <div class="space-y-2 pt-2">
             <button onclick="exportOrdersCsv()" class="w-full py-2.5 bg-[#FAF8FF] hover:bg-[#F3ECFF] text-[#8054F7] border border-[#E4D7FC] rounded-2xl text-xs font-semibold transition flex items-center justify-center gap-2 cursor-pointer">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
@@ -432,6 +451,14 @@
           <input type="text" id="form-stock-note" placeholder="เช่น สต็อกล็อตพิเศษ" class="w-full px-3 py-2 bg-white border border-[#EFE9F9] rounded-xl text-[#2E2544]">
         </div>
 
+        <div>
+          <label class="block font-semibold text-[#665B7D] mb-1">การแสดงในหน้าจิ้มสต๊อก</label>
+          <select id="form-stock-status" class="w-full px-3 py-2 bg-white border border-[#EFE9F9] rounded-xl text-[#2E2544] cursor-pointer">
+            <option value="พร้อมใช้">เปิดใช้งาน — แสดงให้เลือก</option>
+            <option value="ปิดใช้งาน">ปิดใช้งาน — ซ่อนจากหน้าจิ้มสต๊อก</option>
+          </select>
+        </div>
+
         <div class="pt-2 border-t border-[#F5EFFF] flex items-center justify-between gap-2">
           <div id="stock-modal-delete-btn-box"></div>
           <div class="flex items-center gap-2 ml-auto">
@@ -444,6 +471,40 @@
           </div>
         </div>
 
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: EDIT ORDER NOTE / ACTUAL CREDIT -->
+  <!-- ======================================================== -->
+  <div id="order-modal" onclick="handleOrderModalBackdropClick(event)" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-[2px] hidden">
+    <div class="bg-white border border-[#EFE9F9] rounded-3xl w-full max-w-md shadow-2xl overflow-hidden">
+      <div class="px-6 py-4 border-b border-[#F5EFFF] flex items-center justify-between bg-[#FAF8FF]">
+        <div>
+          <h3 id="order-modal-title" class="text-sm font-bold text-[#2E2544]">แก้ไขออเดอร์</h3>
+          <p class="text-[11px] text-[#857B9B]">แก้หมายเหตุและเครดิตที่ใช้จริงเมื่อเกมบัคหรือกดเกิน</p>
+        </div>
+        <button onclick="closeOrderModal()" class="w-7 h-7 rounded-full text-[#857B9B] hover:bg-[#F5EFFF] flex items-center justify-center cursor-pointer">✕</button>
+      </div>
+      <form onsubmit="handleSubmitOrderEdit(event)" class="p-6 space-y-4 text-xs">
+        <div>
+          <label class="block font-semibold text-[#665B7D] mb-1">หมายเหตุออเดอร์</label>
+          <input type="text" id="form-order-note" class="w-full px-3 py-2 bg-white border border-[#EFE9F9] rounded-xl text-[#2E2544]" placeholder="รายละเอียดเพิ่มเติม">
+        </div>
+        <label class="flex items-center gap-2 rounded-2xl border border-[#FDE68A] bg-[#FFFBEB] px-3 py-2.5 text-[#92400E] font-semibold cursor-pointer">
+          <input type="checkbox" id="form-order-issue" onchange="toggleOrderEditIssueMode()" class="w-4 h-4 accent-[#D97706]">
+          <span>เกมบัค / กดเกิน / ไม่นับกำไรออเดอร์นี้</span>
+        </label>
+        <div>
+          <label class="block font-semibold text-[#665B7D] mb-1">เครดิตที่ใช้จริงทั้งหมด (USD)</label>
+          <input type="number" min="0" step="0.01" id="form-order-actual-usd" required oninput="renderOrderEditCostPreview()" class="w-full px-3 py-2 bg-white border border-[#EFE9F9] rounded-xl font-mono text-[#2E2544]">
+          <p id="form-order-cost-preview" class="text-[10px] text-[#857B9B] mt-1"></p>
+        </div>
+        <div class="pt-2 border-t border-[#F5EFFF] flex justify-end gap-2">
+          <button type="button" onclick="closeOrderModal()" class="px-4 py-2 text-[#857B9B] hover:bg-[#FAF8FF] rounded-xl cursor-pointer">ยกเลิก</button>
+          <button type="submit" class="btn-cute-primary px-5 py-2 text-white font-semibold rounded-xl">บันทึกการแก้ไข</button>
+        </div>
       </form>
     </div>
   </div>
@@ -11204,42 +11265,119 @@
     let currentPricingRate = 25.50;
     let salesSearchQuery = '';
     let salesDisplayLimit = 30;
+    let appInitialized = false;
+    let syncRequestInFlight = false;
+    let lastServerRevision = 0;
+    let syncPollTimer = null;
 
-    function initData() {
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          appData = {
-            settings: {
-              defaultEvalRate: 25.50,
-              employees: (parsed.settings && parsed.settings.employees && parsed.settings.employees.length > 0) ? parsed.settings.employees : INITIAL_SEED.settings.employees
-            },
-            packages: (parsed.packages && parsed.packages.length > 0) ? parsed.packages : INITIAL_SEED.packages,
-            stockAccounts: (parsed.stockAccounts && parsed.stockAccounts.length > 0) ? parsed.stockAccounts : INITIAL_SEED.stockAccounts,
-            salesLogs: (parsed.salesLogs && Array.isArray(parsed.salesLogs)) ? parsed.salesLogs : INITIAL_SEED.salesLogs
-          };
-        } else {
-          appData = JSON.parse(JSON.stringify(INITIAL_SEED));
-          saveData();
-        }
-      } catch (e) {
-        console.error("Init Error:", e);
-        appData = JSON.parse(JSON.stringify(INITIAL_SEED));
-        saveData();
-      }
-
-      currentPricingRate = (appData.settings && appData.settings.defaultEvalRate) || 25.50;
-      selectedRobux = 1000;
-      renderApp();
-    }
-
-    function saveData() {
+    function persistLocalState() {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
       } catch (e) {
-        console.error("Save Error:", e);
+        console.error('Local backup error:', e);
       }
+    }
+
+    function setSyncStatus(text, state = 'ready') {
+      const el = document.getElementById('sync-status');
+      if (!el) return;
+      el.textContent = text;
+      el.className = state === 'error'
+        ? 'text-xs font-mono font-semibold text-[#E11D48] bg-[#FFF5F7] px-3 py-1 rounded-xl border border-[#FCD5DC]'
+        : state === 'syncing'
+          ? 'text-xs font-mono font-semibold text-[#D97706] bg-[#FFFBEB] px-3 py-1 rounded-xl border border-[#FDE68A]'
+          : 'text-xs font-mono font-semibold text-[#059669] bg-[#F0FDF4] px-3 py-1 rounded-xl border border-[#D1FAE5]';
+    }
+
+    async function requestSharedState(action, payload = {}) {
+      const response = await fetch('/api/state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, payload })
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'ซิงก์ข้อมูลไม่สำเร็จ');
+      return result;
+    }
+
+    function applySharedResult(result, shouldRender = true) {
+      if (!result || !result.state) return;
+      appData = result.state;
+      lastServerRevision = Number(result.revision) || lastServerRevision;
+      persistLocalState();
+      currentPricingRate = (appData.settings && appData.settings.defaultEvalRate) || 25.50;
+      if (shouldRender) renderApp();
+    }
+
+    async function syncAction(action, payload = {}, successMessage = '') {
+      persistLocalState();
+      syncRequestInFlight = true;
+      setSyncStatus('กำลังซิงก์…', 'syncing');
+      try {
+        const result = await requestSharedState(action, payload);
+        applySharedResult(result, true);
+        setSyncStatus('ซิงก์แล้ว ✓');
+        if (successMessage) showToast(successMessage, 'success');
+        return true;
+      } catch (error) {
+        console.error('Sync error:', error);
+        setSyncStatus('รอซิงก์', 'error');
+        showToast('บันทึกในเครื่องชั่วคราว แต่ยังซิงก์ไม่สำเร็จ', 'error');
+        return false;
+      } finally {
+        syncRequestInFlight = false;
+      }
+    }
+
+    async function refreshServerState(silent = true) {
+      if (syncRequestInFlight) return;
+      try {
+        const response = await fetch('/api/state', { cache: 'no-store' });
+        if (!response.ok) throw new Error('โหลดข้อมูลกลางไม่สำเร็จ');
+        const result = await response.json();
+        if (result.state && Number(result.revision) > lastServerRevision) {
+          applySharedResult(result, true);
+          if (!silent) showToast('โหลดข้อมูลล่าสุดจากอีกเครื่องแล้ว', 'info');
+        }
+        setSyncStatus('ซิงก์แล้ว ✓');
+      } catch (error) {
+        console.error('Refresh error:', error);
+        setSyncStatus('ออฟไลน์', 'error');
+      }
+    }
+
+    async function initData() {
+      if (appInitialized) return;
+      appInitialized = true;
+      setSyncStatus('กำลังซิงก์…', 'syncing');
+
+      let localState = JSON.parse(JSON.stringify(INITIAL_SEED));
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) localState = JSON.parse(saved);
+      } catch (error) {
+        console.error('Local restore error:', error);
+      }
+
+      appData = localState;
+      currentPricingRate = (appData.settings && appData.settings.defaultEvalRate) || 25.50;
+      selectedRobux = 1000;
+      renderApp();
+
+      syncRequestInFlight = true;
+      try {
+        const result = await requestSharedState('merge_state', { state: localState });
+        applySharedResult(result, true);
+        setSyncStatus('ซิงก์แล้ว ✓');
+      } catch (error) {
+        console.error('Initial sync error:', error);
+        setSyncStatus('ออฟไลน์', 'error');
+        showToast('ใช้ข้อมูลสำรองในเครื่องก่อน ระบบจะลองซิงก์ให้อีกครั้ง', 'info');
+      } finally {
+        syncRequestInFlight = false;
+      }
+
+      if (!syncPollTimer) syncPollTimer = setInterval(() => refreshServerState(true), 8000);
     }
 
     function formatNumber(val) {
@@ -11342,7 +11480,7 @@
 
     function renderApp() {
       const bStocks = document.getElementById('nav-count-stocks');
-      if (bStocks) bStocks.textContent = (appData.stockAccounts || []).length;
+      if (bStocks) bStocks.textContent = (appData.stockAccounts || []).filter(stock => stock.status !== 'ปิดใช้งาน').length;
 
       const today = new Date().toISOString().slice(0, 10);
       const logs = appData.salesLogs || [];
@@ -11407,7 +11545,35 @@
 
     function selectCashierPackage(robuxVal) {
       selectedRobux = robuxVal;
+      const pkgs = appData.packages || INITIAL_SEED.packages;
+      const pkg = pkgs.find(p => p.robux === selectedRobux) || pkgs[0];
+      const actualInput = document.getElementById('cashier-actual-usd');
+      if (actualInput) actualInput.value = Number(pkg.usd).toFixed(2);
       renderCashier();
+    }
+
+    function isCashierIssueMode() {
+      const checkbox = document.getElementById('cashier-issue-mode');
+      return Boolean(checkbox && checkbox.checked);
+    }
+
+    function getCashierActualUsd(pkg) {
+      if (!isCashierIssueMode()) return Number(pkg.usd) || 0;
+      const input = document.getElementById('cashier-actual-usd');
+      const entered = input ? Number(input.value) : Number(pkg.usd);
+      return Math.max(Number(pkg.usd) || 0, entered || 0);
+    }
+
+    function toggleCashierIssueMode() {
+      const box = document.getElementById('cashier-actual-usd-box');
+      const input = document.getElementById('cashier-actual-usd');
+      const pkgs = appData.packages || INITIAL_SEED.packages;
+      const pkg = pkgs.find(p => p.robux === selectedRobux) || pkgs[0];
+      const enabled = isCashierIssueMode();
+      if (box) box.classList.toggle('hidden', !enabled);
+      if (input && (!input.value || !enabled)) input.value = Number(pkg.usd).toFixed(2);
+      renderCashierStockOptions();
+      renderSmartFulfillmentPreview();
     }
 
     function renderCashierStockOptions() {
@@ -11416,7 +11582,8 @@
 
       const pkgs = appData.packages || INITIAL_SEED.packages;
       const pkg = pkgs.find(p => p.robux === selectedRobux) || pkgs[0];
-      const selectedStock = getSelectedCashierStock(pkg.usd);
+      const actualUsd = getCashierActualUsd(pkg);
+      const selectedStock = getSelectedCashierStock(actualUsd);
       const options = getCashierStockOptions();
 
       if (options.length === 0) {
@@ -11426,7 +11593,7 @@
 
       container.innerHTML = options.map(stock => {
         const isSelected = selectedStock && stock.id === selectedStock.id;
-        const canUse = (stock.remainingUsd + 0.001) >= pkg.usd && stock.rate > 0;
+        const canUse = (stock.remainingUsd + 0.001) >= actualUsd && stock.rate > 0;
         return `
           <button
             type="button"
@@ -11456,7 +11623,9 @@
 
       const pkgs = appData.packages || INITIAL_SEED.packages;
       const pkg = pkgs.find(p => p.robux === selectedRobux) || pkgs[0];
-      const selectedStock = getSelectedCashierStock(pkg.usd);
+      const issueMode = isCashierIssueMode();
+      const actualUsd = getCashierActualUsd(pkg);
+      const selectedStock = getSelectedCashierStock(actualUsd);
       const balances = calculateStockBalances();
 
       if (!selectedStock) {
@@ -11464,18 +11633,19 @@
         box.innerHTML = `
           <div class="font-bold flex items-center gap-1.5">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-            <span>เครดิต USD ในสต็อกเมลไม่เพียงพอสำหรับแพ็กเกจนี้ ($${pkg.usd})</span>
+            <span>เครดิต USD ในสต็อกเมลไม่เพียงพอสำหรับรายการนี้ ($${actualUsd.toFixed(2)})</span>
           </div>
           <p class="text-[11px]">กรุณาไปที่แท็บ "สต็อกเมล" เพื่อเพิ่มหรือเติมเครดิตบัญชีเมลก่อนครับ</p>
         `;
         return;
       }
 
-      const costThb = Number((pkg.usd * selectedStock.rate).toFixed(2));
+      const actualCostThb = Number((actualUsd * selectedStock.rate).toFixed(2));
+      const costThb = issueMode ? Math.max(actualCostThb, Number(pkg.price) || 0) : actualCostThb;
       const profitThb = Number((pkg.price - costThb).toFixed(2));
       const marginPct = pkg.price > 0 ? ((profitThb / pkg.price) * 100).toFixed(1) : '0.0';
       const bal = balances[selectedStock.id] ? balances[selectedStock.id].remainingUsd : selectedStock.initialUsd;
-      const remainAfter = bal - pkg.usd;
+      const remainAfter = bal - actualUsd;
 
       box.className = 'p-4 sm:p-5 rounded-2xl border border-[#D1FAE5] bg-[#F0FDF4] space-y-3';
       box.innerHTML = `
@@ -11491,7 +11661,7 @@
           </div>
           <div class="text-[11px] text-[#059669] font-mono bg-white/90 px-2.5 py-1 rounded-xl border border-[#D1FAE5] self-start sm:self-auto flex items-center gap-1.5">
             <img src="${ROBUX_ICON_URL}" class="w-3.5 h-3.5 object-contain" alt="Robux" onerror="this.style.display='none'">
-            <span>ใช้เครดิต $${Number(pkg.usd).toFixed(2)} USD</span>
+            <span>${issueMode ? 'ใช้จริง' : 'ใช้เครดิต'} $${actualUsd.toFixed(2)} USD</span>
           </div>
         </div>
 
@@ -11508,10 +11678,10 @@
             <div class="text-[10px] text-[#857B9B] mt-0.5">ทุน ฿${formatNumber(costThb)}</div>
           </div>
 
-          <div class="bg-[#059669] p-2.5 rounded-xl text-white shadow-xs">
-            <div class="text-[10px] text-white/80 mb-0.5">กำไรสุทธิที่จะได้</div>
-            <div class="font-mono font-black text-xs sm:text-sm">+฿${formatNumber(profitThb)}</div>
-            <div class="text-[10px] text-white/90 mt-0.5">มาร์จิ้น ${marginPct}%</div>
+          <div class="${profitThb > 0 ? 'bg-[#059669]' : profitThb < 0 ? 'bg-[#E11D48]' : 'bg-[#D97706]'} p-2.5 rounded-xl text-white shadow-xs">
+            <div class="text-[10px] text-white/80 mb-0.5">${issueMode ? 'ผลของออเดอร์มีปัญหา' : 'กำไรสุทธิที่จะได้'}</div>
+            <div class="font-mono font-black text-xs sm:text-sm">${profitThb > 0 ? '+' : ''}฿${formatNumber(profitThb)}</div>
+            <div class="text-[10px] text-white/90 mt-0.5">${issueMode ? 'ไม่นับกำไร • หักเครดิตตามจริง' : `มาร์จิ้น ${marginPct}%`}</div>
           </div>
         </div>
       `;
@@ -11531,7 +11701,9 @@
 
       const pkgs = appData.packages || INITIAL_SEED.packages;
       const pkg = pkgs.find(p => p.robux === selectedRobux) || pkgs[0];
-      const selectedStock = getSelectedCashierStock(pkg.usd);
+      const issueMode = isCashierIssueMode();
+      const actualUsd = getCashierActualUsd(pkg);
+      const selectedStock = getSelectedCashierStock(actualUsd);
 
       if (!selectedStock) {
         showToast('ไม่สามารถทำรายการได้: สต็อก USD ไม่พอ', 'error');
@@ -11541,7 +11713,7 @@
       const logs = appData.salesLogs || [];
       let maxNum = 0;
       logs.forEach(s => {
-        const m = (s.id || '').match(/ORD-(d+)/);
+        const m = (s.id || '').match(/ORD-(\d+)/);
         if (m) {
           const n = parseInt(m[1]);
           if (n > maxNum) maxNum = n;
@@ -11550,11 +11722,14 @@
       const nextId = 'ORD-' + String(maxNum + 1).padStart(4, '0');
       const nowStr = new Date().toISOString().slice(0, 16).replace('T', ' ');
 
-      const costThb = Number((pkg.usd * selectedStock.rate).toFixed(2));
+      const actualCostThb = Number((actualUsd * selectedStock.rate).toFixed(2));
+      const costThb = issueMode ? Math.max(actualCostThb, Number(pkg.price) || 0) : actualCostThb;
       const profitThb = Number((pkg.price - costThb).toFixed(2));
+      const noteInput = document.getElementById('cashier-order-note');
+      const note = noteInput ? noteInput.value.trim() : '';
 
       if (!appData.salesLogs) appData.salesLogs = [];
-      appData.salesLogs.unshift({
+      const newOrder = {
         id: nextId,
         date: nowStr,
         username,
@@ -11563,17 +11738,26 @@
         priceThb: pkg.price,
         pressGuide: pkg.pressGuide,
         rate: selectedStock.rate,
-        usd: pkg.usd,
+        plannedUsd: pkg.usd,
+        usd: actualUsd,
+        actualUsd,
         costThb,
         profitThb,
         staff,
-        status: 'สำเร็จ'
-      });
+        status: issueMode ? 'มีปัญหา' : 'สำเร็จ',
+        isIssue: issueMode,
+        note
+      };
+      appData.salesLogs.unshift(newOrder);
 
-      saveData();
+      syncAction('add_order', { order: newOrder });
       if (usernameInput) usernameInput.value = '';
+      if (noteInput) noteInput.value = '';
+      const issueCheckbox = document.getElementById('cashier-issue-mode');
+      if (issueCheckbox) issueCheckbox.checked = false;
+      toggleCashierIssueMode();
       renderApp();
-      showToast(`เติมสำเร็จ! ${username} (${pkg.robux}R) • กำไร +฿${formatNumber(profitThb)}`, 'success');
+      showToast(`${issueMode ? 'บันทึกออเดอร์มีปัญหา' : 'เติมสำเร็จ'}! ${username} (${pkg.robux}R)`, issueMode ? 'info' : 'success');
     }
 
     function handleSearchSales(query) {
@@ -11601,7 +11785,9 @@
         const id = (log.id || '').toLowerCase();
         const stock = (log.stockAccount || '').toLowerCase();
         const staff = (log.staff || '').toLowerCase();
-        return u.includes(salesSearchQuery) || id.includes(salesSearchQuery) || stock.includes(salesSearchQuery) || staff.includes(salesSearchQuery);
+        const note = (log.note || '').toLowerCase();
+        const status = (log.status || '').toLowerCase();
+        return u.includes(salesSearchQuery) || id.includes(salesSearchQuery) || stock.includes(salesSearchQuery) || staff.includes(salesSearchQuery) || note.includes(salesSearchQuery) || status.includes(salesSearchQuery);
       });
 
       if (countBadge) {
@@ -11625,11 +11811,13 @@
       const visibleLogs = filtered.slice(0, salesDisplayLimit);
 
       let items = visibleLogs.map((log) => {
+        const hasIssue = Boolean(log.isIssue) || log.status === 'มีปัญหา';
+        const profit = Number(log.profitThb) || 0;
         return `
           <div class="cozy-card cozy-hover-card p-3.5 sm:p-4 flex items-center justify-between gap-3 text-xs">
             <div class="flex items-center gap-3 min-w-0">
-              <div class="w-8 h-8 rounded-xl bg-[#F0FDF4] text-[#059669] border border-[#D1FAE5] flex items-center justify-center font-bold text-xs shrink-0">
-                ✓
+              <div class="w-8 h-8 rounded-xl ${hasIssue ? 'bg-[#FFF1F2] text-[#E11D48] border-[#FECDD3]' : 'bg-[#F0FDF4] text-[#059669] border-[#D1FAE5]'} border flex items-center justify-center font-bold text-xs shrink-0">
+                ${hasIssue ? '!' : '✓'}
               </div>
               <div class="min-w-0">
                 <div class="flex items-center gap-2">
@@ -11647,14 +11835,19 @@
                   <span>•</span>
                   <span>โดย ${log.staff}</span>
                 </div>
+                ${log.note ? `<div class="text-[11px] text-[#665B7D] mt-1 truncate">📝 ${log.note}</div>` : ''}
+                ${hasIssue ? `<div class="text-[10px] text-[#E11D48] mt-1 font-semibold">ออเดอร์มีปัญหา • ใช้จริง $${formatNumber(log.actualUsd || log.usd)} • ไม่นับกำไร</div>` : ''}
               </div>
             </div>
 
             <div class="flex items-center gap-3 shrink-0">
               <div class="text-right">
                 <div class="font-mono font-bold text-[#2E2544]">฿${formatNumber(log.priceThb)}</div>
-                <div class="font-mono font-bold text-[11px] text-[#059669]">+฿${formatNumber(log.profitThb)}</div>
+                <div class="font-mono font-bold text-[11px] ${profit > 0 ? 'text-[#059669]' : profit < 0 ? 'text-[#E11D48]' : 'text-[#D97706]'}">${profit > 0 ? '+' : ''}฿${formatNumber(profit)}</div>
               </div>
+              <button onclick="openEditOrderModal('${log.id}')" class="p-1.5 text-[#8054F7] hover:bg-[#F5EFFF] rounded-xl transition cursor-pointer" title="แก้หมายเหตุ / เครดิตที่ใช้จริง">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+              </button>
               <button onclick="removeSalesLogById('${log.id}')" class="p-1.5 text-[#AAA0C0] hover:text-[#E11D48] hover:bg-[#FFF5F7] rounded-xl transition cursor-pointer" title="ลบรายการ (คืนสต็อก)">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -11689,10 +11882,84 @@
       const log = appData.salesLogs[idx];
       if (confirm(`ลบรายการของ ${log.username} (${log.robux}R)?\n(ระบบจะคืนเครดิต $${log.usd} ให้เมล ${log.stockAccount} ทันที)`)) {
         appData.salesLogs.splice(idx, 1);
-        saveData();
+        syncAction('remove_order', { id: orderId });
         renderApp();
         showToast('ลบรายการและคืนสต็อกแล้ว', 'info');
       }
+    }
+
+    let currentOrderEditId = null;
+
+    function openEditOrderModal(orderId) {
+      const log = (appData.salesLogs || []).find(order => order.id === orderId);
+      if (!log) return;
+      currentOrderEditId = orderId;
+      document.getElementById('order-modal-title').textContent = `แก้ไข ${orderId} • ${log.username}`;
+      document.getElementById('form-order-note').value = log.note || '';
+      document.getElementById('form-order-issue').checked = Boolean(log.isIssue) || log.status === 'มีปัญหา';
+      document.getElementById('form-order-actual-usd').value = Number(log.actualUsd || log.usd || 0).toFixed(2);
+      renderOrderEditCostPreview();
+      document.getElementById('order-modal').classList.remove('hidden');
+    }
+
+    function closeOrderModal() {
+      const modal = document.getElementById('order-modal');
+      if (modal) modal.classList.add('hidden');
+      currentOrderEditId = null;
+    }
+
+    function handleOrderModalBackdropClick(event) {
+      if (event.target && event.target.id === 'order-modal') closeOrderModal();
+    }
+
+    function toggleOrderEditIssueMode() {
+      renderOrderEditCostPreview();
+    }
+
+    function renderOrderEditCostPreview() {
+      const log = (appData.salesLogs || []).find(order => order.id === currentOrderEditId);
+      const preview = document.getElementById('form-order-cost-preview');
+      if (!log || !preview) return;
+      const actualUsd = Math.max(0, Number(document.getElementById('form-order-actual-usd').value) || 0);
+      const issueMode = document.getElementById('form-order-issue').checked;
+      const actualCost = Number((actualUsd * (Number(log.rate) || 0)).toFixed(2));
+      const accountingCost = issueMode ? Math.max(actualCost, Number(log.priceThb) || 0) : actualCost;
+      const profit = Number(((Number(log.priceThb) || 0) - accountingCost).toFixed(2));
+      preview.textContent = `หักเครดิต $${actualUsd.toFixed(2)} • ต้นทุน ฿${formatNumber(accountingCost)} • กำไร/ขาดทุน ฿${formatNumber(profit)}`;
+      preview.className = `text-[10px] mt-1 ${profit < 0 ? 'text-[#E11D48]' : profit === 0 ? 'text-[#D97706]' : 'text-[#059669]'}`;
+    }
+
+    function handleSubmitOrderEdit(event) {
+      event.preventDefault();
+      const idx = (appData.salesLogs || []).findIndex(order => order.id === currentOrderEditId);
+      if (idx < 0) return;
+      const log = appData.salesLogs[idx];
+      const issueMode = document.getElementById('form-order-issue').checked;
+      const actualUsd = Math.max(0, Number(document.getElementById('form-order-actual-usd').value) || 0);
+      const balances = calculateStockBalances();
+      const availableUsd = (balances[log.stockAccount] ? Number(balances[log.stockAccount].remainingUsd) : 0) + (Number(log.usd) || 0);
+      if (actualUsd > availableUsd + 0.001) {
+        showToast(`เครดิต ${log.stockAccount} ไม่พอ (แก้ได้สูงสุด $${formatNumber(availableUsd)})`, 'error');
+        return;
+      }
+      const actualCost = Number((actualUsd * (Number(log.rate) || 0)).toFixed(2));
+      const costThb = issueMode ? Math.max(actualCost, Number(log.priceThb) || 0) : actualCost;
+      const profitThb = Number(((Number(log.priceThb) || 0) - costThb).toFixed(2));
+      const updatedOrder = {
+        ...log,
+        plannedUsd: log.plannedUsd || (appData.packages || []).find(pkg => pkg.robux === log.robux)?.usd || log.usd,
+        usd: actualUsd,
+        actualUsd,
+        costThb,
+        profitThb,
+        isIssue: issueMode,
+        status: issueMode ? 'มีปัญหา' : 'สำเร็จ',
+        note: document.getElementById('form-order-note').value.trim()
+      };
+      appData.salesLogs[idx] = updatedOrder;
+      closeOrderModal();
+      renderApp();
+      syncAction('update_order', { order: updatedOrder }, 'อัปเดตออเดอร์และยอดเครดิตแล้ว');
     }
 
     // ========================================================
@@ -11715,15 +11982,20 @@
         else if (percentRemain < 35) barColor = 'bg-[#D97706]';
 
         return `
-          <div class="cozy-card p-4 space-y-3">
+          <div class="cozy-card p-4 space-y-3 ${acc.status === 'ปิดใช้งาน' ? 'opacity-65 bg-[#F8F7FA]' : ''}">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <span class="font-mono font-bold text-sm text-[#8054F7] bg-[#F5EFFF] px-2.5 py-1 rounded-xl border border-[#E8DDFF]">${acc.id}</span>
                 <span class="text-xs font-semibold text-[#2E2544] truncate max-w-[150px]">${acc.email || '(ไม่มีอีเมล)'}</span>
               </div>
-              <button onclick="openEditStockModal(${idx})" class="text-[#8054F7] hover:bg-[#F5EFFF] p-1.5 rounded-xl transition text-xs font-medium cursor-pointer" title="แก้ไข">
-                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-              </button>
+              <div class="flex items-center gap-1">
+                <button onclick="toggleStockAccountStatus('${acc.id}')" class="px-2 py-1 rounded-lg text-[10px] font-semibold ${acc.status === 'ปิดใช้งาน' ? 'text-[#059669] bg-[#F0FDF4] hover:bg-[#DCFCE7]' : 'text-[#D97706] bg-[#FFFBEB] hover:bg-[#FEF3C7]'} transition cursor-pointer" title="${acc.status === 'ปิดใช้งาน' ? 'เปิดให้เลือกอีกครั้ง' : 'ซ่อนจากหน้าจิ้มสต๊อก'}">
+                  ${acc.status === 'ปิดใช้งาน' ? 'เปิดใช้' : 'ปิดเมล'}
+                </button>
+                <button onclick="openEditStockModal(${idx})" class="text-[#8054F7] hover:bg-[#F5EFFF] p-1.5 rounded-xl transition text-xs font-medium cursor-pointer" title="แก้ไข">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                </button>
+              </div>
             </div>
 
             <div class="grid grid-cols-2 gap-2 text-xs pt-1">
@@ -11765,7 +12037,7 @@
       let maxNum = 0;
       const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts;
       accounts.forEach(a => {
-        const m = (a.id || '').match(/PC-(d+)/);
+        const m = (a.id || '').match(/PC-(\d+)/);
         if (m) {
           const n = parseInt(m[1]);
           if (n > maxNum) maxNum = n;
@@ -11780,6 +12052,7 @@
       document.getElementById('form-stock-usd').value = '';
       document.getElementById('form-stock-rate').value = '25.50';
       document.getElementById('form-stock-note').value = '';
+      document.getElementById('form-stock-status').value = 'พร้อมใช้';
 
       const deleteBox = document.getElementById('stock-modal-delete-btn-box');
       if (deleteBox) deleteBox.innerHTML = '';
@@ -11803,6 +12076,7 @@
       document.getElementById('form-stock-usd').value = acc.initialUsd;
       document.getElementById('form-stock-rate').value = acc.rate;
       document.getElementById('form-stock-note').value = acc.note || '';
+      document.getElementById('form-stock-status').value = acc.status === 'ปิดใช้งาน' ? 'ปิดใช้งาน' : 'พร้อมใช้';
 
       const deleteBox = document.getElementById('stock-modal-delete-btn-box');
       if (deleteBox) {
@@ -11823,7 +12097,7 @@
       if (!acc) return;
       if (confirm(`ลบสต็อก ${acc.id} (${acc.email || 'ไม่มีเมล'}) ใช่หรือไม่?`)) {
         accounts.splice(idx, 1);
-        saveData();
+        syncAction('delete_stock', { id: acc.id });
         closeStockModal();
         renderApp();
         showToast(`ลบสต็อก ${acc.id} แล้ว`, 'info');
@@ -11859,8 +12133,9 @@
       const rate = parseFloat(document.getElementById('form-stock-rate').value) || 25.50;
       const investmentThb = Number((initialUsd * rate).toFixed(2));
       const note = document.getElementById('form-stock-note').value.trim();
+      const status = document.getElementById('form-stock-status').value === 'ปิดใช้งาน' ? 'ปิดใช้งาน' : 'พร้อมใช้';
 
-      const obj = { id, email, buyDate, initialUsd, rate, investmentThb, status: 'พร้อมใช้', note };
+      const obj = { id, email, buyDate, initialUsd, rate, investmentThb, status, note };
 
       if (!appData.stockAccounts) appData.stockAccounts = [];
 
@@ -11872,9 +12147,19 @@
         showToast(`เพิ่มสต็อก ${id} สำเร็จ`, 'success');
       }
 
-      saveData();
+      syncAction('upsert_stock', { stock: obj });
       closeStockModal();
       renderApp();
+    }
+
+    function toggleStockAccountStatus(stockId) {
+      const accounts = appData.stockAccounts || [];
+      const account = accounts.find(stock => stock.id === stockId);
+      if (!account) return;
+      account.status = account.status === 'ปิดใช้งาน' ? 'พร้อมใช้' : 'ปิดใช้งาน';
+      if (account.status === 'ปิดใช้งาน' && selectedStockId === account.id) selectedStockId = null;
+      renderApp();
+      syncAction('upsert_stock', { stock: account }, account.status === 'ปิดใช้งาน' ? `ซ่อน ${account.id} จากหน้าจิ้มสต๊อกแล้ว` : `เปิดใช้งาน ${account.id} แล้ว`);
     }
 
     // ========================================================
@@ -11980,7 +12265,7 @@
           <div class="cozy-card p-4">
             <div class="text-[10px] text-[#857B9B] mb-0.5">จำนวนสต็อกเมล</div>
             <div class="font-mono font-bold text-lg text-[#8054F7]">${(appData.stockAccounts || []).length} บัญชี</div>
-            <div class="text-[10px] text-[#857B9B] mt-0.5">พร้อมใช้งานทั้งหมด</div>
+            <div class="text-[10px] text-[#857B9B] mt-0.5">เปิดใช้งาน ${(appData.stockAccounts || []).filter(stock => stock.status !== 'ปิดใช้งาน').length} บัญชี</div>
           </div>
         `;
       }
@@ -12050,7 +12335,7 @@
         return;
       }
       appData.settings.employees.push(name);
-      saveData();
+      syncAction('update_settings', { settings: appData.settings });
       renderApp();
       showToast(`เพิ่มพนักงาน "${name}" แล้ว`, 'success');
     }
@@ -12058,14 +12343,14 @@
     function removeEmployee(name) {
       if (confirm(`ต้องการลบพนักงาน "${name}" ใช่หรือไม่?`)) {
         appData.settings.employees = appData.settings.employees.filter(e => e !== name);
-        saveData();
+        syncAction('update_settings', { settings: appData.settings });
         renderApp();
         showToast(`ลบพนักงาน "${name}" แล้ว`, 'info');
       }
     }
 
     function exportOrdersCsv() {
-      const headers = ['Order ID', 'วันที่', 'Username', 'จำนวน Robux', 'สต็อกเมล', 'ราคาขาย (฿)', 'ต้นทุน USD ($)', 'เรท (฿/$)', 'ต้นทุน (฿)', 'กำไร (฿)', 'ผู้ทำรายการ'];
+      const headers = ['Order ID', 'วันที่', 'Username', 'จำนวน Robux', 'สต็อกเมล', 'ราคาขาย (฿)', 'เครดิตมาตรฐาน ($)', 'เครดิตใช้จริง ($)', 'เรท (฿/$)', 'ต้นทุน (฿)', 'กำไร/ขาดทุน (฿)', 'ผู้ทำรายการ', 'สถานะ', 'หมายเหตุ'];
       const logs = appData.salesLogs || [];
       const rows = logs.map(o => [
         `"${o.id}"`,
@@ -12074,11 +12359,14 @@
         o.robux,
         `"${o.stockAccount}"`,
         o.priceThb,
+        o.plannedUsd || o.usd,
         o.usd,
         o.rate,
         o.costThb,
         o.profitThb,
-        `"${(o.staff || '').replace(/"/g, '""')}"`
+        `"${(o.staff || '').replace(/"/g, '""')}"`,
+        `"${(o.status || '').replace(/"/g, '""')}"`,
+        `"${(o.note || '').replace(/"/g, '""')}"`
       ]);
       const csv = '\uFEFF' + headers.join(',') + '\n' + rows.map(r => r.join(',')).join('\n');
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -12106,7 +12394,7 @@
     function resetToInitialData() {
       if (confirm('คุณแน่ใจหรือไม่ว่าต้องการรีเซ็ตข้อมูลทั้งหมดกลับเป็นค่าเริ่มต้น?')) {
         appData = JSON.parse(JSON.stringify(INITIAL_SEED));
-        saveData();
+        syncAction('reset', { state: appData });
         renderApp();
         showToast('รีเซ็ตข้อมูลสำเร็จ', 'info');
       }
@@ -12116,13 +12404,19 @@
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         closeStockModal();
+        closeOrderModal();
       }
     });
 
-    // Run immediately & on DOMContentLoaded
-    initData();
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') refreshServerState(false);
+    });
+
+    // Start once after the document is ready.
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', initData);
+    } else {
+      initData();
     }
   </script>
 </body>
