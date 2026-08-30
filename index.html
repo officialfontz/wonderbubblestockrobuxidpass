@@ -113,10 +113,10 @@
               <span class="font-bold text-base text-[#2E2544] tracking-tight">Cozy Robux Studio</span>
               <div id="db-status-pill" class="flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-0.5 rounded-full border bg-[#F0FDF4] text-[#059669] border-[#D1FAE5]">
                 <span class="w-1.5 h-1.5 rounded-full bg-[#059669] pulse-dot"></span>
-                <span id="db-status-text">Real-time Synced 🟢</span>
+                <span id="db-status-text">Real-time Live 🟢</span>
               </div>
             </div>
-            <p class="text-[11px] text-[#857B9B]">ระบบเติมเกม & สต็อกเมล • อัปเดตสดพร้อมกันทุกอุปกรณ์</p>
+            <p class="text-[11px] text-[#857B9B]">ระบบเติมเกม & สต็อกเมล • อัปเดตสดอัตโนมัติ 100% ไม่ต้องรีโหลด</p>
           </div>
         </div>
 
@@ -267,7 +267,7 @@
               <svg class="w-4 h-4 text-[#059669]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <polyline points="20 6 9 17 4 12"></polyline>
               </svg>
-              <span>ระบบจะหักยอด USD จากเมลที่เลือกทันที (Sync ทุกอุปกรณ์)</span>
+              <span>ระบบจะหักยอด USD จากเมลที่เลือกทันที (Sync อัตโนมัติทุกจอ)</span>
             </div>
 
             <button type="submit" id="btn-submit-order" class="btn-cute-primary px-6 py-3 text-white rounded-2xl text-sm font-semibold flex items-center gap-2">
@@ -560,9 +560,9 @@
   <!-- Toast Container -->
   <div id="toast-box" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
-  <!-- APPLICATION SCRIPT (SERVER SYNC + WEBSOCKET + LOCALSTORAGE) -->
+  <!-- APPLICATION SCRIPT (3-LAYER REALTIME SYNC: SSE + WEBSOCKET + 2S FAST-POLL) -->
   <script>
-    const STORAGE_KEY = 'COZY_ROBUX_STUDIO_V12_RAILWAY';
+    const STORAGE_KEY = 'COZY_ROBUX_STUDIO_V13_BULLETPROOF';
     const ROBUX_ICON_URL = 'https://img.bubbleshoproblox.store/img/2026-08/3a9b1e8f-f363-4469-8081-e6e708faa92b.webp';
 
     const PACK_USD_RATES = {
@@ -12813,12 +12813,14 @@
     let currentPricingRate = 25.50;
     let salesSearchQuery = '';
     let salesDisplayLimit = 30;
+    let localLastUpdated = 0;
     let ws = null;
+    let eventSource = null;
+    let isPollingActive = false;
 
     let cashierExtraPacks = { '80': 0, '500': 0, '1000': 0, '2000': 0 };
 
     async function initData() {
-      // 1. First load from LocalStorage for instant UI rendering
       try {
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved) {
@@ -12844,19 +12846,22 @@
 
       renderApp();
 
-      // 2. Fetch latest Central Database from Server & connect WebSocket
+      // Start 3-Layer Synchronization immediately!
       await fetchServerData();
+      startServerSentEvents();
       connectWebSocket();
+      startFastBackgroundPolling();
     }
 
     async function fetchServerData() {
       try {
         if (window.location.protocol.startsWith('http')) {
-          const res = await fetch('/api/data');
+          const res = await fetch('/api/data?t=' + Date.now());
           if (res.ok) {
             const json = await res.json();
             if (json && json.data) {
               appData = json.data;
+              localLastUpdated = json.lastUpdated || Date.now();
               saveDataLocal();
               renderApp();
               setDbStatusUI(true);
@@ -12864,10 +12869,44 @@
           }
         }
       } catch (err) {
-        console.warn('Server fetch error (running in local/offline mode):', err);
+        console.warn('Server fetch error:', err);
       }
     }
 
+    // LAYER 1: Server-Sent Events (SSE) - Works 100% on iOS, Safari, Chrome & Proxies
+    function startServerSentEvents() {
+      if (!window.location.protocol.startsWith('http') || typeof EventSource === 'undefined') return;
+      try {
+        if (eventSource) eventSource.close();
+        eventSource = new EventSource('/api/stream');
+
+        eventSource.onmessage = (event) => {
+          try {
+            const msg = JSON.parse(event.data);
+            if (msg.data && msg.lastUpdated && msg.lastUpdated > localLastUpdated) {
+              appData = msg.data;
+              localLastUpdated = msg.lastUpdated;
+              saveDataLocal();
+              renderApp();
+              setDbStatusUI(true);
+              if (msg.type === 'DATA_SYNC') {
+                showToast('อัปเดตข้อมูลอัตโนมัติแล้ว ✨', 'info');
+              }
+            }
+          } catch (e) {
+            // Heartbeat or parse pass
+          }
+        };
+
+        eventSource.onerror = () => {
+          // SSE reconnects automatically by browser
+        };
+      } catch (e) {
+        console.warn('SSE start error:', e);
+      }
+    }
+
+    // LAYER 2: WebSocket with Auto-Reconnect
     function connectWebSocket() {
       if (!window.location.protocol.startsWith('http')) return;
       try {
@@ -12882,13 +12921,14 @@
         ws.onmessage = (event) => {
           try {
             const msg = JSON.parse(event.data);
-            if ((msg.type === 'INIT_DATA' || msg.type === 'DATA_SYNC') && msg.data) {
+            if (msg.data && msg.lastUpdated && msg.lastUpdated > localLastUpdated) {
               appData = msg.data;
+              localLastUpdated = msg.lastUpdated;
               saveDataLocal();
               renderApp();
               setDbStatusUI(true);
               if (msg.type === 'DATA_SYNC') {
-                showToast('อัปเดตข้อมูล Real-time จากเครื่องอื่นแล้ว ✨', 'info');
+                showToast('อัปเดตข้อมูลอัตโนมัติแล้ว ✨', 'info');
               }
             }
           } catch (e) {
@@ -12897,15 +12937,45 @@
         };
 
         ws.onclose = () => {
-          setDbStatusUI(false);
           setTimeout(connectWebSocket, 3000);
-        };
-
-        ws.onerror = () => {
-          setDbStatusUI(false);
         };
       } catch (e) {
         console.warn('WS connection failed:', e);
+      }
+    }
+
+    // LAYER 3: 2-Second Fast Background Polling (Indestructible Fallback)
+    function startFastBackgroundPolling() {
+      if (!window.location.protocol.startsWith('http') || isPollingActive) return;
+      isPollingActive = true;
+
+      async function checkVersion() {
+        try {
+          const res = await fetch('/api/version?t=' + Date.now());
+          if (res.ok) {
+            const json = await res.json();
+            if (json && json.lastUpdated && json.lastUpdated > localLastUpdated) {
+              // Server has newer data! Pull full data and update screen without reload!
+              await fetchServerData();
+            }
+          }
+        } catch (e) {
+          // offline or sleeping
+        }
+      }
+
+      // Check every 2 seconds
+      setInterval(checkVersion, 2000);
+
+      // Also check instantly when user focuses or touches the screen
+      if (typeof window !== 'undefined' && window.addEventListener) {
+        window.addEventListener('focus', checkVersion);
+      }
+      if (typeof document !== 'undefined' && document.addEventListener) {
+        document.addEventListener('visibilitychange', () => {
+          if (!document.hidden) checkVersion();
+        });
+        document.addEventListener('touchstart', checkVersion, { passive: true });
       }
     }
 
@@ -12916,7 +12986,7 @@
 
       if (isOnline) {
         pill.className = 'flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-0.5 rounded-full border bg-[#F0FDF4] text-[#059669] border-[#D1FAE5]';
-        text.textContent = 'Real-time Synced 🟢';
+        text.textContent = 'Real-time Live 🟢';
       } else {
         pill.className = 'flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-0.5 rounded-full border bg-[#FAF8FF] text-[#8054F7] border-[#E8DDFF]';
         text.textContent = 'โหมดในเครื่อง (Local)';
@@ -12924,6 +12994,7 @@
     }
 
     function saveData() {
+      localLastUpdated = Date.now();
       saveDataLocal();
       syncDataToServer();
     }
@@ -12937,19 +13008,23 @@
     }
 
     function syncDataToServer() {
+      // 1. Send via WebSocket if open
       if (ws && ws.readyState === WebSocket.OPEN) {
         try {
-          ws.send(JSON.stringify({ type: 'UPDATE_DATA', data: appData }));
+          ws.send(JSON.stringify({ type: 'UPDATE_DATA', data: appData, lastUpdated: localLastUpdated }));
         } catch (e) {
           console.error("WS Send error:", e);
         }
       }
 
+      // 2. Send via HTTP POST
       if (window.location.protocol.startsWith('http')) {
         fetch('/api/sync', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(appData)
+        }).then(res => res.json()).then(res => {
+          if (res && res.lastUpdated) localLastUpdated = res.lastUpdated;
         }).catch(err => console.warn('POST sync error:', err));
       }
     }
@@ -13044,7 +13119,7 @@
           <span class="text-[#DDD0FA]">•</span>
           <span>ยอดขาย <strong class="text-[#2E2544]">฿${formatNumber(todayTotal)}</strong></span>
           <span class="text-[#DDD0FA]">•</span>
-          <span>กำไร <strong class="text-[#059669]">฿${formatNumber(todayProfit)}</strong></span>
+          <span>กำไร <strong class="${todayProfit >= 0 ? 'text-[#059669]' : 'text-[#E11D48]'}">฿${formatNumber(todayProfit)}</strong></span>
         `;
       }
 
@@ -13243,7 +13318,7 @@
 
           <div class="bg-[#059669] p-3 rounded-2xl text-white shadow-xs">
             <div class="text-[10px] font-semibold text-white/85 mb-0.5">กำไรสุทธิที่จะได้</div>
-            <div class="font-mono font-black text-sm sm:text-base">${profitThb >= 0 ? '+฿' + formatNumber(profitThb) : '-฿' + formatNumber(Math.abs(log.profitThb))}</div>
+            <div class="font-mono font-black text-sm sm:text-base">${profitThb >= 0 ? '+฿' + formatNumber(profitThb) : '-฿' + formatNumber(Math.abs(profitThb))}</div>
             <div class="text-[10px] text-white/90 mt-0.5">มาร์จิ้น ${marginPct}%</div>
           </div>
         </div>
@@ -13745,7 +13820,7 @@
         <div class="flex items-center justify-between text-xs pt-1">
           <span class="text-[#857B9B]">ต้นทุน: <strong>฿${formatNumber(costThb)}</strong></span>
           <span class="font-mono font-bold ${profitThb >= 0 ? 'text-[#059669]' : 'text-[#E11D48]'}">
-            กำไรสุทธิ: ${profitThb >= 0 ? '+฿' + formatNumber(profitThb) : '-฿' + formatNumber(Math.abs(log.profitThb))}
+            กำไรสุทธิ: ${profitThb >= 0 ? '+฿' + formatNumber(profitThb) : '-฿' + formatNumber(Math.abs(profitThb))}
           </span>
         </div>
       `;

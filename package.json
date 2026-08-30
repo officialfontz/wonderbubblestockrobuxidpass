@@ -1,7 +1,7 @@
 {
   "name": "wonderbubblestockrobuxidpass",
-  "version": "2.0.0",
-  "description": "Cozy Robux Studio - Realtime Multi-User Shop Management",
+  "version": "3.0.0",
+  "description": "Cozy Robux Studio - Ultra Fast Realtime Shop Management",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
