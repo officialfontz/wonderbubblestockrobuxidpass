@@ -12918,33 +12918,31 @@
       startFastBackgroundPolling();
     }
 
-    async function fetchServerData() {
-      try {
-        if (window.location.protocol.startsWith('http')) {
-          const res = await fetch('/api/data?t=' + Date.now());
-          if (res.ok) {
-            const json = await res.json();
-            if (json && json.data) {
-              const serverOrders = (json.data.salesLogs && Array.isArray(json.data.salesLogs)) ? json.data.salesLogs : [];
-              const localOrders = (appData.salesLogs && Array.isArray(appData.salesLogs)) ? appData.salesLogs : [];
+    // Single guarded entry point for every piece of data arriving from the server
+    // (fetch, SSE and WebSocket all go through here).
+    // Rule: server data may NEVER replace a local cache that holds more orders.
+    // If the client is ahead, push the client's copy up instead of overwriting it.
+    function applyServerData(serverData, serverLastUpdated, source) {
+      if (!serverData) return false;
 
-              // If client has MORE orders in cache (e.g. 772 vs 709), push client's orders to server!
-              if (localOrders.length > serverOrders.length) {
-                console.log('🚀 Client has ' + localOrders.length + ' orders > server ' + serverOrders.length + '. Syncing back to server!');
-                syncDataToServer();
-              } else if (serverOrders.length >= localOrders.length) {
-                appData = json.data;
-                localLastUpdated = json.lastUpdated || Date.now();
-                saveDataLocal();
-                renderApp();
-                setDbStatusUI(true);
-              }
-            }
-          }
-        }
-      } catch (err) {
-        console.warn('Server fetch error:', err);
+      const serverOrders = Array.isArray(serverData.salesLogs) ? serverData.salesLogs : [];
+      const localOrders = (appData && Array.isArray(appData.salesLogs)) ? appData.salesLogs : [];
+
+      if (localOrders.length > serverOrders.length) {
+        console.warn('🛡️ [' + source + '] blocked overwrite: local has ' + localOrders.length +
+          ' orders vs server ' + serverOrders.length + '. Pushing local copy up instead.');
+        localLastUpdated = Date.now();
+        syncDataToServer();
+        setDbStatusUI(true);
+        return false;
       }
+
+      appData = serverData;
+      localLastUpdated = serverLastUpdated || Date.now();
+      saveDataLocal();
+      renderApp();
+      setDbStatusUI(true);
+      return true;
     }
 
     async function fetchServerData() {
@@ -12954,11 +12952,7 @@
           if (res.ok) {
             const json = await res.json();
             if (json && json.data) {
-              appData = json.data;
-              localLastUpdated = json.lastUpdated || Date.now();
-              saveDataLocal();
-              renderApp();
-              setDbStatusUI(true);
+              applyServerData(json.data, json.lastUpdated, 'fetch');
             }
           }
         }
@@ -12978,12 +12972,7 @@
           try {
             const msg = JSON.parse(event.data);
             if (msg.data && msg.lastUpdated && msg.lastUpdated > localLastUpdated) {
-              appData = msg.data;
-              localLastUpdated = msg.lastUpdated;
-              saveDataLocal();
-              renderApp();
-              setDbStatusUI(true);
-              if (msg.type === 'DATA_SYNC') {
+              if (applyServerData(msg.data, msg.lastUpdated, 'SSE') && msg.type === 'DATA_SYNC') {
                 showToast('อัปเดตข้อมูลอัตโนมัติแล้ว ✨', 'info');
               }
             }
@@ -13016,12 +13005,7 @@
           try {
             const msg = JSON.parse(event.data);
             if (msg.data && msg.lastUpdated && msg.lastUpdated > localLastUpdated) {
-              appData = msg.data;
-              localLastUpdated = msg.lastUpdated;
-              saveDataLocal();
-              renderApp();
-              setDbStatusUI(true);
-              if (msg.type === 'DATA_SYNC') {
+              if (applyServerData(msg.data, msg.lastUpdated, 'WS') && msg.type === 'DATA_SYNC') {
                 showToast('อัปเดตข้อมูลอัตโนมัติแล้ว ✨', 'info');
               }
             }

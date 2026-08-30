@@ -20,34 +20,151 @@ let shopData = null;
 let lastUpdated = Date.now();
 let sseClients = [];
 
-function loadShopData() {
-  try {
-    if (fs.existsSync(DATA_FILE)) {
-      shopData = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-    }
-  } catch (e) {
-    console.error('Failed to load shop_data.json:', e);
-  }
-}
-loadShopData();
+/* ------------------------------------------------------------------ *
+ * STORAGE
+ *
+ * Railway wipes the container filesystem on every deploy, so writing
+ * data/shop_data.json is NOT persistence - it silently reverted the shop
+ * to whatever snapshot was committed to git (this is how a full day of
+ * orders was lost on 2026-08-30).
+ *
+ * When DATABASE_URL is present we keep the shop state in Postgres and
+ * treat data/shop_data.json as a one-time bootstrap seed only.
+ * Without DATABASE_URL we fall back to the file so local dev still works.
+ * ------------------------------------------------------------------ */
+let pool = null;
 
-function saveShopDataToFile() {
+if (process.env.DATABASE_URL) {
   try {
-    if (!fs.existsSync(path.join(__dirname, 'data'))) {
-      fs.mkdirSync(path.join(__dirname, 'data'), { recursive: true });
-    }
+    const { Pool } = require('pg');
+    const url = process.env.DATABASE_URL;
+    pool = new Pool({
+      connectionString: url,
+      ssl: /railway\.internal|localhost|127\.0\.0\.1/.test(url) ? false : { rejectUnauthorized: false },
+    });
+    pool.on('error', (e) => console.error('PG pool error:', e.message));
+    console.log('💾 Storage: Postgres');
+  } catch (e) {
+    console.error('!! DATABASE_URL is set but the "pg" package failed to load:', e.message);
+    console.error('!! Falling back to file storage - data will NOT survive a redeploy.');
+    pool = null;
+  }
+} else {
+  console.warn('⚠️  DATABASE_URL is not set - using file storage.');
+  console.warn('⚠️  Data will be LOST on the next deploy. Add a Postgres database in Railway.');
+}
+
+function readSeedFile() {
+  try {
+    if (fs.existsSync(DATA_FILE)) return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+  } catch (e) {
+    console.error('Failed to read seed file:', e.message);
+  }
+  return null;
+}
+
+function writeSeedFile() {
+  try {
+    fs.mkdirSync(path.join(__dirname, 'data'), { recursive: true });
     fs.writeFileSync(DATA_FILE, JSON.stringify(shopData, null, 2), 'utf8');
   } catch (e) {
-    console.error('Failed to save shop_data.json:', e);
+    console.error('Failed to write shop_data.json:', e.message);
   }
 }
 
-// SMART MERGE FUNCTION
+async function initStorage() {
+  if (!pool) {
+    shopData = readSeedFile();
+    console.log('Loaded ' + orderCount() + ' orders from file.');
+    return;
+  }
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS shop_state (
+      id          INT PRIMARY KEY,
+      data        JSONB  NOT NULL,
+      updated_at  BIGINT NOT NULL
+    )`);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS shop_snapshots (
+      id          BIGSERIAL PRIMARY KEY,
+      data        JSONB  NOT NULL,
+      order_count INT    NOT NULL,
+      created_at  BIGINT NOT NULL
+    )`);
+
+  const { rows } = await pool.query('SELECT data, updated_at FROM shop_state WHERE id = 1');
+  if (rows.length && rows[0].data) {
+    shopData = rows[0].data;
+    lastUpdated = Number(rows[0].updated_at) || Date.now();
+    console.log('Loaded ' + orderCount() + ' orders from Postgres.');
+    return;
+  }
+
+  // First boot against an empty database: seed it from the committed file.
+  shopData = readSeedFile();
+  console.log('Postgres empty - seeding with ' + orderCount() + ' orders from file.');
+  if (shopData) await writeState();
+}
+
+function orderCount() {
+  return (shopData && Array.isArray(shopData.salesLogs)) ? shopData.salesLogs.length : 0;
+}
+
+async function writeState() {
+  if (!pool) { writeSeedFile(); return; }
+  await pool.query(
+    `INSERT INTO shop_state (id, data, updated_at) VALUES (1, $1, $2)
+     ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data, updated_at = EXCLUDED.updated_at`,
+    [JSON.stringify(shopData), lastUpdated]
+  );
+}
+
+// Keep a rolling history so a bad write is always recoverable.
+let lastSnapshotCount = -1;
+async function writeSnapshot() {
+  if (!pool) return;
+  const count = orderCount();
+  if (count === lastSnapshotCount) return;
+  lastSnapshotCount = count;
+  await pool.query(
+    'INSERT INTO shop_snapshots (data, order_count, created_at) VALUES ($1, $2, $3)',
+    [JSON.stringify(shopData), count, Date.now()]
+  );
+  await pool.query(
+    `DELETE FROM shop_snapshots WHERE id NOT IN
+       (SELECT id FROM shop_snapshots ORDER BY id DESC LIMIT 200)`
+  );
+}
+
+// Syncs arrive every couple of seconds, so coalesce the writes.
+let persistTimer = null;
+let persistPending = false;
+function persist() {
+  persistPending = true;
+  if (persistTimer) return;
+  persistTimer = setTimeout(async () => {
+    persistTimer = null;
+    if (!persistPending) return;
+    persistPending = false;
+    try {
+      await writeState();
+      await writeSnapshot();
+    } catch (e) {
+      console.error('Persist failed:', e.message);
+      writeSeedFile(); // last-resort local copy
+    }
+  }, 2000);
+}
+
+/* ------------------------------------------------------------------ *
+ * MERGE - orders are only ever added or updated, never dropped.
+ * ------------------------------------------------------------------ */
 function mergeShopData(incomingData) {
   if (!incomingData || typeof incomingData !== 'object') return shopData;
   if (!shopData) {
     shopData = incomingData;
-    saveShopDataToFile();
+    persist();
     return shopData;
   }
 
@@ -84,7 +201,7 @@ function mergeShopData(incomingData) {
   }
 
   shopData.salesLogs = Array.from(map.values());
-  saveShopDataToFile();
+  persist();
   return shopData;
 }
 
@@ -100,11 +217,15 @@ function notifyAllClients(payload) {
   });
 }
 
+/* ------------------------------------------------------------------ *
+ * API
+ * ------------------------------------------------------------------ */
 app.get('/api/version', (req, res) => {
   res.json({
     success: true,
     lastUpdated,
-    orderCount: (shopData && shopData.salesLogs) ? shopData.salesLogs.length : 0
+    orderCount: orderCount(),
+    storage: pool ? 'postgres' : 'file'
   });
 });
 
@@ -118,9 +239,41 @@ app.post('/api/sync', (req, res) => {
     mergeShopData(newData);
     lastUpdated = Date.now();
     notifyAllClients({ type: 'DATA_SYNC', data: shopData, lastUpdated });
-    res.json({ success: true, lastUpdated, count: shopData.salesLogs.length });
+    res.json({ success: true, lastUpdated, count: orderCount() });
   } else {
     res.status(400).json({ error: 'Invalid data' });
+  }
+});
+
+// Download the whole shop as a backup file.
+app.get('/api/backup', (req, res) => {
+  const name = 'cozy-robux-backup-' + new Date().toISOString().slice(0, 19).replace(/[:T]/g, '') + '.json';
+  res.setHeader('Content-Disposition', 'attachment; filename="' + name + '"');
+  res.setHeader('Content-Type', 'application/json');
+  res.send(JSON.stringify({ success: true, data: shopData, lastUpdated }, null, 2));
+});
+
+// History of previous states, newest first.
+app.get('/api/snapshots', async (req, res) => {
+  if (!pool) return res.json({ success: false, error: 'snapshots require Postgres', snapshots: [] });
+  try {
+    const { rows } = await pool.query(
+      'SELECT id, order_count, created_at FROM shop_snapshots ORDER BY id DESC LIMIT 200');
+    res.json({ success: true, snapshots: rows });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+app.get('/api/snapshots/:id', async (req, res) => {
+  if (!pool) return res.status(400).json({ success: false, error: 'snapshots require Postgres' });
+  try {
+    const { rows } = await pool.query('SELECT data, order_count, created_at FROM shop_snapshots WHERE id = $1',
+      [req.params.id]);
+    if (!rows.length) return res.status(404).json({ success: false, error: 'not found' });
+    res.json({ success: true, ...rows[0] });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
   }
 });
 
@@ -177,6 +330,15 @@ const wsInterval = setInterval(() => {
 
 server.on('close', () => clearInterval(wsInterval));
 
-server.listen(PORT, () => {
-  console.log(`🌸 Cozy Robux Studio Bulletproof Zero-Loss server running on port ${PORT}`);
-});
+initStorage()
+  .catch(e => {
+    console.error('Storage init failed, falling back to file:', e.message);
+    pool = null;
+    shopData = readSeedFile();
+  })
+  .finally(() => {
+    server.listen(PORT, () => {
+      console.log(`🌸 Cozy Robux Studio running on port ${PORT} - ` +
+        orderCount() + ' orders, storage: ' + (pool ? 'postgres' : 'file'));
+    });
+  });
