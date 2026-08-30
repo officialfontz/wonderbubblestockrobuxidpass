@@ -371,6 +371,11 @@
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
               <span>ดาวน์โหลด Backup ทั้งระบบ (JSON)</span>
             </button>
+            <label class="w-full py-2.5 bg-[#F0FDF4] hover:bg-[#DCFCE7] text-[#059669] border border-[#D1FAE5] rounded-2xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              <span>📥 กู้คืน / นำเข้าไฟล์สำรอง (Merge JSON)</span>
+              <input type="file" accept=".json" onchange="handleImportBackupJson(event)" class="hidden">
+            </label>
             <button onclick="resetToInitialData()" class="w-full py-2 text-[#E11D48] hover:bg-[#FFF5F7] rounded-2xl text-xs font-medium transition cursor-pointer">
               รีเซ็ตข้อมูลเริ่มต้น (Factory Reset)
             </button>
@@ -751,6 +756,40 @@
     }
   ],
   "salesLogs": [
+    {
+      "id": "ORD-0711",
+      "date": "2026-08-30 14:39",
+      "username": "waxx90hoxj01",
+      "robux": 240,
+      "stockAccount": "PC-009",
+      "priceThb": 99,
+      "pressGuide": "กด 80R × 3",
+      "rate": 27.1,
+      "usd": 2.97,
+      "costThb": 80.49,
+      "profitThb": 18.51,
+      "staff": "ฟ้อน",
+      "status": "สำเร็จ",
+      "note": "",
+      "extraPacks": {}
+    },
+    {
+      "id": "ORD-0710",
+      "date": "2026-08-30 14:24",
+      "username": "Robloxfghjl",
+      "robux": 500,
+      "stockAccount": "PC-009",
+      "priceThb": 169,
+      "pressGuide": "กด 500R × 1",
+      "rate": 27.1,
+      "usd": 4.99,
+      "costThb": 135.23,
+      "profitThb": 33.77,
+      "staff": "ฟ้อน",
+      "status": "สำเร็จ",
+      "note": "",
+      "extraPacks": {}
+    },
     {
       "id": "ORD-0705",
       "date": "2026-08-30 09:45",

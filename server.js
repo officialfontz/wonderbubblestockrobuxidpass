@@ -20,13 +20,16 @@ let shopData = null;
 let lastUpdated = Date.now();
 let sseClients = [];
 
-try {
-  if (fs.existsSync(DATA_FILE)) {
-    shopData = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+function loadShopData() {
+  try {
+    if (fs.existsSync(DATA_FILE)) {
+      shopData = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    }
+  } catch (e) {
+    console.error('Failed to load shop_data.json:', e);
   }
-} catch (e) {
-  console.error('Failed to load shop_data.json:', e);
 }
+loadShopData();
 
 function saveShopDataToFile() {
   try {
@@ -39,27 +42,64 @@ function saveShopDataToFile() {
   }
 }
 
+// SMART MERGE FUNCTION
+function mergeShopData(incomingData) {
+  if (!incomingData || typeof incomingData !== 'object') return shopData;
+  if (!shopData) {
+    shopData = incomingData;
+    saveShopDataToFile();
+    return shopData;
+  }
+
+  const existingLogs = shopData.salesLogs || [];
+  const incomingLogs = incomingData.salesLogs || [];
+
+  const map = new Map();
+  existingLogs.forEach(log => {
+    if (log && log.id) map.set(log.id, log);
+    else if (log && log.username && log.date) map.set(log.username + '_' + log.date, log);
+  });
+
+  incomingLogs.forEach(log => {
+    if (log && log.id) {
+      if (!map.has(log.id)) {
+        map.set(log.id, log);
+      } else {
+        map.set(log.id, { ...map.get(log.id), ...log });
+      }
+    } else if (log && log.username && log.date) {
+      const key = log.username + '_' + log.date;
+      if (!map.has(key)) map.set(key, log);
+    }
+  });
+
+  if (incomingData.stockAccounts && incomingData.stockAccounts.length > 0) {
+    shopData.stockAccounts = incomingData.stockAccounts;
+  }
+  if (incomingData.settings) {
+    shopData.settings = incomingData.settings;
+  }
+  if (incomingData.packages && incomingData.packages.length > 0) {
+    shopData.packages = incomingData.packages;
+  }
+
+  shopData.salesLogs = Array.from(map.values());
+  saveShopDataToFile();
+  return shopData;
+}
+
 function notifyAllClients(payload) {
   const msg = JSON.stringify(payload);
-  
-  // 1. Broadcast to all WebSocket clients
   wss.clients.forEach(client => {
     if (client.readyState === WebSocket.OPEN) {
       client.send(msg);
     }
   });
-
-  // 2. Broadcast to all SSE clients (mobile phones / safari)
   sseClients.forEach(client => {
-    try {
-      client.res.write(`data: ${msg}\n\n`);
-    } catch (err) {
-      // client dropped
-    }
+    try { client.res.write(`data: ${msg}\n\n`); } catch (err) {}
   });
 }
 
-// REST API: Fast version check (<1ms)
 app.get('/api/version', (req, res) => {
   res.json({
     success: true,
@@ -68,26 +108,22 @@ app.get('/api/version', (req, res) => {
   });
 });
 
-// REST API: Full data
 app.get('/api/data', (req, res) => {
   res.json({ success: true, data: shopData, lastUpdated });
 });
 
-// REST API: Sync update from any device
 app.post('/api/sync', (req, res) => {
   const newData = req.body;
   if (newData && typeof newData === 'object') {
-    shopData = newData;
+    mergeShopData(newData);
     lastUpdated = Date.now();
-    saveShopDataToFile();
     notifyAllClients({ type: 'DATA_SYNC', data: shopData, lastUpdated });
-    res.json({ success: true, lastUpdated });
+    res.json({ success: true, lastUpdated, count: shopData.salesLogs.length });
   } else {
     res.status(400).json({ error: 'Invalid data' });
   }
 });
 
-// SSE (Server-Sent Events) Stream Endpoint
 app.get('/api/stream', (req, res) => {
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
@@ -100,13 +136,8 @@ app.get('/api/stream', (req, res) => {
 
   res.write(`data: ${JSON.stringify({ type: 'INIT', data: shopData, lastUpdated })}\n\n`);
 
-  // Keep-alive heartbeat every 15s to prevent cloud proxies from dropping SSE
   const keepAliveInterval = setInterval(() => {
-    try {
-      res.write(': keepalive\n\n');
-    } catch (e) {
-      clearInterval(keepAliveInterval);
-    }
+    try { res.write(': keepalive\n\n'); } catch (e) { clearInterval(keepAliveInterval); }
   }, 15000);
 
   req.on('close', () => {
@@ -115,12 +146,10 @@ app.get('/api/stream', (req, res) => {
   });
 });
 
-// WebSocket Server with Ping/Pong Heartbeat
 wss.on('connection', (ws) => {
   if (shopData) {
     ws.send(JSON.stringify({ type: 'INIT_DATA', data: shopData, lastUpdated }));
   }
-
   ws.isAlive = true;
   ws.on('pong', () => { ws.isAlive = true; });
 
@@ -128,9 +157,8 @@ wss.on('connection', (ws) => {
     try {
       const parsed = JSON.parse(message);
       if (parsed.type === 'UPDATE_DATA' && parsed.data) {
-        shopData = parsed.data;
+        mergeShopData(parsed.data);
         lastUpdated = Date.now();
-        saveShopDataToFile();
         notifyAllClients({ type: 'DATA_SYNC', data: shopData, lastUpdated });
       }
     } catch (err) {
@@ -139,7 +167,6 @@ wss.on('connection', (ws) => {
   });
 });
 
-// WS Heartbeat ping every 20s
 const wsInterval = setInterval(() => {
   wss.clients.forEach(ws => {
     if (ws.isAlive === false) return ws.terminate();
@@ -151,5 +178,5 @@ const wsInterval = setInterval(() => {
 server.on('close', () => clearInterval(wsInterval));
 
 server.listen(PORT, () => {
-  console.log(`🌸 Cozy Robux Studio 3-Layer Realtime server running on port ${PORT}`);
+  console.log(`🌸 Cozy Robux Studio Bulletproof Zero-Loss server running on port ${PORT}`);
 });
