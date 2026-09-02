@@ -92,8 +92,19 @@ function hash32(str) {
   return h.toString(36);
 }
 
-function legacyUid(l) {
-  return 'L' + hash32([l.id, l.date, l.username, l.robux, l.stockAccount].join('|'));
+/**
+ * Identity derived from the sale itself, always over a repaired timestamp.
+ * Two rows with the same contentUid are the same sale by definition, whatever
+ * uid a client happens to be carrying for it.
+ */
+function contentUid(l) {
+  return 'L' + hash32([
+    l.id,
+    normalizeStamp(l.date) || l.date,
+    l.username,
+    l.robux,
+    l.stockAccount
+  ].join('|'));
 }
 
 /** Same repair the client does: 'YYYY-MM-DD' or ISO -> 'YYYY-MM-DD HH:MM'. */
@@ -104,18 +115,18 @@ function normalizeStamp(v) {
 }
 
 /**
- * The uid of a row, always derived from its NORMALISED date.
+ * The uid a row should be filed under.
  *
- * Getting this wrong duplicated 692 orders on 2026-09-02: rows written before
- * times were recorded hold a bare 'YYYY-MM-DD'. hydrate() repaired the date
- * before hashing while the merge hashed first, so the same sale produced two
- * different uids and every old client re-posting its cache added a second copy.
- * Normalise, then hash - never the other way round.
+ * A uid the new client minted (leading 'O') is random and cannot be derived,
+ * so it is authoritative. Anything else is derivable, so it is DERIVED rather
+ * than trusted - a browser cache may be carrying a uid this server computed
+ * back when it hashed unrepaired dates, and trusting that is what filed 692
+ * sales a second time on 2026-09-02.
  */
 function uidOf(l) {
   if (!l || typeof l !== 'object') return null;
-  if (l.uid) return String(l.uid);
-  return legacyUid(Object.assign({}, l, { date: normalizeStamp(l.date) || l.date }));
+  if (typeof l.uid === 'string' && l.uid.charAt(0) === 'O') return l.uid;
+  return contentUid(l);
 }
 
 /** Newest first, so even a client that does no sorting shows today at the top. */
@@ -272,16 +283,27 @@ function mergeShopData(incoming) {
   const tomb = new Set(shopData.deletedOrders || []);
   const byUid = new Map((shopData.salesLogs || []).map(l => [l.uid, l]));
 
+  // Second index, by the sale's own content. A client may carry a uid this
+  // server no longer agrees with; without this the same sale files twice.
+  const byContent = new Map();
+  (shopData.salesLogs || []).forEach(l => { byContent.set(contentUid(l), l.uid); });
+
   let added = 0, updated = 0;
   (Array.isArray(incoming.salesLogs) ? incoming.salesLogs : []).forEach(row => {
     if (!row || typeof row !== 'object') return;
-    const uid = uidOf(row);
-    if (!uid || tomb.has(uid)) return;           // never resurrect a deleted row
+    const content = contentUid(row);
+    let uid = uidOf(row);
+    if (!uid) return;
+    // Unknown uid but a row we already hold describes the same sale: update
+    // that one rather than adding a copy.
+    if (!byUid.has(uid) && byContent.has(content)) uid = byContent.get(content);
+    if (tomb.has(uid) || tomb.has(content)) return;   // never resurrect a deleted row
+
     const stamp = normalizeStamp(row.date);
     const clean = Object.assign({}, row, { uid });
     if (stamp) clean.date = stamp;
     if (byUid.has(uid)) { byUid.set(uid, Object.assign({}, byUid.get(uid), clean)); updated++; }
-    else { byUid.set(uid, clean); added++; }
+    else { byUid.set(uid, clean); byContent.set(content, uid); added++; }
   });
 
   shopData.salesLogs = Array.from(byUid.values());
@@ -345,7 +367,7 @@ app.post('/api/delete-order', (req, res) => {
   }
 
   const target = uid || (id
-    ? legacyUid({ id, date: normalizeStamp(date) || date, username, robux, stockAccount })
+    ? contentUid({ id, date, username, robux, stockAccount })
     : null);
   if (!target) return res.status(400).json({ success: false, error: 'uid or id required' });
 

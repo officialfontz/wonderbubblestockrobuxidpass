@@ -127,9 +127,23 @@ function hash32(str) {
   }
   return h.toString(36);
 }
-/** Stable identity for a row written before uids existed. */
-function legacyUid(l) {
+/**
+ * Identity derived from the sale itself. Must match contentUid() in server.js.
+ * `date` is expected to be normalised already.
+ */
+function contentUid(l) {
   return 'L' + hash32([l.id, l.date, l.username, l.robux, l.stockAccount].join('|'));
+}
+
+/**
+ * Only a minted uid (leading 'O') is authoritative - it is random and cannot be
+ * derived. Everything else is recomputed from content, so a cache carrying a
+ * uid from the build that hashed unrepaired dates heals itself on load instead
+ * of re-uploading a duplicate.
+ */
+function canonicalUid(row) {
+  if (typeof row.uid === 'string' && row.uid.charAt(0) === 'O') return row.uid;
+  return contentUid(row);
 }
 function newUid() {
   return 'O' + Date.now().toString(36) + '-' + Math.floor(Math.random() * 1679616).toString(36);
@@ -255,7 +269,7 @@ function normalize(raw) {
       note: String(l.note || ''),
       extraPacks: Object.assign(emptyExtras(), l.extraPacks || {})
     };
-    if (!row.uid) row.uid = legacyUid(row);
+    row.uid = canonicalUid(row);
     if (seen.has(row.uid)) return;
     seen.add(row.uid);
     out.salesLogs.push(row);
@@ -1222,6 +1236,19 @@ function submitOrder(e) {
   toast('บันทึกแล้ว · ' + username + ' ' + fmtInt(row.robux) + 'R · ตัด ' + row.stockAccount, 'success');
 }
 
+/** Tombstone a uid server-side so no client can file it again. */
+function retireUid(uid, onFail) {
+  if (!IS_HTTP) return;
+  fetch('/api/delete-order', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ uid })
+  })
+    .then(r => r.json())
+    .then(j => { serverStamp = num(j && j.lastUpdated) || serverStamp; })
+    .catch(() => { if (onFail) onFail(); });
+}
+
 function deleteOrder(uid) {
   const l = findLog(uid);
   if (!l) return;
@@ -1236,14 +1263,7 @@ function deleteOrder(uid) {
   saveLocal();
   render();
 
-  if (IS_HTTP) {
-    fetch('/api/delete-order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uid, id: l.id, date: l.date, username: l.username })
-    }).then(r => r.json()).then(j => { serverStamp = num(j && j.lastUpdated) || serverStamp; })
-      .catch(() => toast('ลบในเครื่องแล้ว แต่ยังไม่ได้ซิงก์', 'warn'));
-  }
+  retireUid(uid, () => toast('ลบในเครื่องแล้ว แต่ยังไม่ได้ซิงก์', 'warn'));
   toast('ลบรายการและคืนเครดิตแล้ว', 'info', true);
 }
 
@@ -1366,6 +1386,18 @@ function saveOrderEdit(e) {
   l.staff = byId('oe-staff').value || l.staff;
   l.note = note;
   l.extraPacks = Object.assign({}, state.editExtras);
+
+  // A legacy uid is derived from the very fields this dialog just changed, so
+  // once the content moves the row needs a minted identity and the old derived
+  // one has to be retired - otherwise the pre-edit copy lives on server-side
+  // under a uid nothing points at any more.
+  const oldUid = l.uid;
+  if (oldUid.charAt(0) !== 'O' && contentUid(l) !== oldUid) {
+    l.uid = newUid();
+    data.deletedOrders.push(oldUid);
+    pendingUids.delete(oldUid);
+    retireUid(oldUid);
+  }
 
   sortLogs(data.salesLogs);
   commit([l.uid]);
