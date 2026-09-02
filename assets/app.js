@@ -642,7 +642,41 @@ function healthReport() {
 /* =========================================================================
  * RENDER
  * ======================================================================= */
+/**
+ * Renders rebuild whole lists with innerHTML, which destroys the element the
+ * finger is currently on. A browser only fires `click` when mousedown and
+ * mouseup land on the SAME element, so a sync arriving mid-press silently
+ * swallowed the tap: the edit and delete buttons did nothing at all, with no
+ * error, and the busier the shop the more often it happened.
+ *
+ * So renders are held for as long as a pointer is down and replayed on
+ * release. The timeout is a safety net for a pointerup that never arrives -
+ * dragging out of the window, a cancelled touch - so the UI can never freeze.
+ */
+let pointerHeld = false;
+let renderQueued = false;
+let holdTimer = null;
+
+function beginPointerHold() {
+  pointerHeld = true;
+  clearTimeout(holdTimer);
+  holdTimer = setTimeout(endPointerHold, 1500);
+}
+
+function endPointerHold() {
+  clearTimeout(holdTimer);
+  if (!pointerHeld) return;
+  pointerHeld = false;
+  if (!renderQueued) return;
+  renderQueued = false;
+  // Deferred by a turn: `click` for this same press has NOT been dispatched
+  // yet, and rendering here would tear out its target - the exact failure this
+  // whole mechanism exists to prevent.
+  setTimeout(render, 0);
+}
+
 function render() {
+  if (pointerHeld) { renderQueued = true; return; }
   renderStatus();
   renderTopKpi();
   renderTabCounts();
@@ -1991,6 +2025,14 @@ function onClick(e) {
 }
 
 function bind() {
+  // Capture phase, so the hold is in place before anything else reacts.
+  document.addEventListener('pointerdown', beginPointerHold, true);
+  ['pointerup', 'pointercancel'].forEach(t =>
+    document.addEventListener(t, endPointerHold, true));
+  // Older iOS Safari does not fire pointer events on every element.
+  document.addEventListener('touchstart', beginPointerHold, { capture: true, passive: true });
+  document.addEventListener('touchend', endPointerHold, { capture: true, passive: true });
+
   document.addEventListener('click', onClick);
 
   document.querySelectorAll('.tab').forEach(b => {

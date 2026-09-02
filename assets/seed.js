@@ -99,7 +99,9 @@ window.SEED_DATA = {
       "rate": 27.5,
       "investmentThb": 11275,
       "status": "ปิดใช้งาน",
-      "note": "⚠️ ตรวจยอด USD/บาท จากสลิปให้ตรง"
+      "note": "⚠️ ตรวจยอด USD/บาท จากสลิปให้ตรง",
+      "removedAdjustments": [],
+      "adjustments": []
     },
     {
       "id": "PC-002",
@@ -109,7 +111,9 @@ window.SEED_DATA = {
       "rate": 25.9,
       "investmentThb": 11655,
       "status": "ปิดใช้งาน",
-      "note": ""
+      "note": "",
+      "removedAdjustments": [],
+      "adjustments": []
     },
     {
       "id": "PC-003",
@@ -119,7 +123,9 @@ window.SEED_DATA = {
       "rate": 25.5,
       "investmentThb": 12750,
       "status": "ปิดใช้งาน",
-      "note": ""
+      "note": "",
+      "removedAdjustments": [],
+      "adjustments": []
     },
     {
       "id": "PC-004",
@@ -129,7 +135,9 @@ window.SEED_DATA = {
       "rate": 26.1,
       "investmentThb": 7960.5,
       "status": "ปิดใช้งาน",
-      "note": ""
+      "note": "",
+      "removedAdjustments": [],
+      "adjustments": []
     },
     {
       "id": "PC-005",
@@ -139,7 +147,9 @@ window.SEED_DATA = {
       "rate": 25.9,
       "investmentThb": 7847.7,
       "status": "ปิดใช้งาน",
-      "note": ""
+      "note": "",
+      "removedAdjustments": [],
+      "adjustments": []
     },
     {
       "id": "PC-006",
@@ -149,7 +159,9 @@ window.SEED_DATA = {
       "rate": 26.1,
       "investmentThb": 7934.4,
       "status": "ปิดใช้งาน",
-      "note": ""
+      "note": "",
+      "removedAdjustments": [],
+      "adjustments": []
     },
     {
       "id": "PC-007",
@@ -159,7 +171,9 @@ window.SEED_DATA = {
       "rate": 25.7,
       "investmentThb": 11822,
       "status": "ปิดใช้งาน",
-      "note": ""
+      "note": "",
+      "removedAdjustments": [],
+      "adjustments": []
     },
     {
       "id": "PC-008",
@@ -169,7 +183,9 @@ window.SEED_DATA = {
       "rate": 26.2,
       "investmentThb": 13100,
       "status": "ปิดใช้งาน",
-      "note": ""
+      "note": "",
+      "removedAdjustments": [],
+      "adjustments": []
     },
     {
       "id": "PC-009",
@@ -179,7 +195,9 @@ window.SEED_DATA = {
       "rate": 27.1,
       "investmentThb": 10027,
       "status": "ปิดใช้งาน",
-      "note": ""
+      "note": "",
+      "removedAdjustments": [],
+      "adjustments": []
     },
     {
       "id": "PC-010",
@@ -189,7 +207,9 @@ window.SEED_DATA = {
       "rate": 27.2,
       "investmentThb": 7888,
       "status": "ปิดใช้งาน",
-      "note": "⚠️ ยอดจริงเหลือ $6 — ระบบจะแสดงมากกว่านี้จนกว่าออเดอร์ที่หายจะกู้ครบ"
+      "note": "⚠️ ยอดจริงเหลือ $6 — ระบบจะแสดงมากกว่านี้จนกว่าออเดอร์ที่หายจะกู้ครบ",
+      "removedAdjustments": [],
+      "adjustments": []
     },
     {
       "id": "PC-011",
@@ -199,7 +219,9 @@ window.SEED_DATA = {
       "rate": 27.3,
       "investmentThb": 13377,
       "status": "ปิดใช้งาน",
-      "note": ""
+      "note": "",
+      "removedAdjustments": [],
+      "adjustments": []
     },
     {
       "id": "PC-012",
@@ -209,7 +231,21 @@ window.SEED_DATA = {
       "rate": 27.7,
       "investmentThb": 12188,
       "status": "พร้อมใช้",
-      "note": ""
+      "note": "",
+      "removedAdjustments": [],
+      "adjustments": []
+    },
+    {
+      "id": "PC-013",
+      "email": "CUJt7UtGNuNR@qwbak.com",
+      "buyDate": "2026-09-02",
+      "initialUsd": 445,
+      "rate": 27.6,
+      "investmentThb": 12282,
+      "status": "พร้อมใช้",
+      "note": "",
+      "adjustments": [],
+      "removedAdjustments": []
     }
   ],
   "salesLogs": [],
