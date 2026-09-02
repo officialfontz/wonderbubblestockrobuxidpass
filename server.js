@@ -103,10 +103,19 @@ function normalizeStamp(v) {
   return m[1] + '-' + m[2] + '-' + m[3] + ' ' + (m[4] || '00') + ':' + (m[5] || '00');
 }
 
+/**
+ * The uid of a row, always derived from its NORMALISED date.
+ *
+ * Getting this wrong duplicated 692 orders on 2026-09-02: rows written before
+ * times were recorded hold a bare 'YYYY-MM-DD'. hydrate() repaired the date
+ * before hashing while the merge hashed first, so the same sale produced two
+ * different uids and every old client re-posting its cache added a second copy.
+ * Normalise, then hash - never the other way round.
+ */
 function uidOf(l) {
   if (!l || typeof l !== 'object') return null;
   if (l.uid) return String(l.uid);
-  return legacyUid(l);
+  return legacyUid(Object.assign({}, l, { date: normalizeStamp(l.date) || l.date }));
 }
 
 /** Newest first, so even a client that does no sorting shows today at the top. */
@@ -335,7 +344,9 @@ app.post('/api/delete-order', (req, res) => {
     return res.status(409).json({ success: false, error: 'no data loaded' });
   }
 
-  const target = uid || (id ? legacyUid({ id, date, username, robux, stockAccount }) : null);
+  const target = uid || (id
+    ? legacyUid({ id, date: normalizeStamp(date) || date, username, robux, stockAccount })
+    : null);
   if (!target) return res.status(400).json({ success: false, error: 'uid or id required' });
 
   const i = shopData.salesLogs.findIndex(l => l.uid === target);
