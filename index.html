@@ -1,2714 +1,421 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cozy Robux Studio — ร้านเติมเกม & สต็อกเมล</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
-  <style>
-    :root {
-      --bg-page: #FAF9FF;
-      --card-bg: #FFFFFF;
-      --border-subtle: rgba(139, 92, 246, 0.11);
-      --purple-vivid: #8B5CF6;
-      --purple-deep: #7242F5;
-      --purple-soft: #F5F0FF;
-      --purple-border: #E8DDFF;
-      --text-main: #2E2544;
-      --text-muted: #857B9B;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FAF8FF">
+<meta name="description" content="ระบบจัดการร้านเติมเกม Robux ID-PASS ตัดสต็อกเมล USD และคำนวณกำไรอัตโนมัติ">
+<title>Wonder Bubble Studio — ร้านเติมเกม & สต็อกเมล</title>
 
-      --ring: 0 0 0 3px rgba(139, 92, 246, 0.26);
-      --lift: cubic-bezier(0.34, 1.56, 0.64, 1);
-      --ease: cubic-bezier(0.4, 0, 0.2, 1);
-
-      --shadow-card:
-        0 1px 2px rgba(46, 37, 68, 0.04),
-        0 10px 28px -14px rgba(109, 74, 199, 0.22),
-        inset 0 1px 0 rgba(255, 255, 255, 0.9);
-      --shadow-card-hover:
-        0 2px 4px rgba(46, 37, 68, 0.05),
-        0 18px 40px -16px rgba(109, 74, 199, 0.32),
-        inset 0 1px 0 rgba(255, 255, 255, 0.95);
-    }
-
-    /* The base colour lives on <html> so it reaches the canvas, leaving <body>
-       transparent - otherwise body's own background paints over the aurora
-       layer below, which sits at a negative z-index. */
-    html { background-color: var(--bg-page); }
-
-    body {
-      font-family: 'Prompt', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: transparent;
-      color: var(--text-main);
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    /* Soft aurora wash behind everything. A fixed layer rather than a fixed
-       background image, which janks while scrolling on iOS. */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      z-index: -1;
-      pointer-events: none;
-      background:
-        radial-gradient(55rem 34rem at 6% -14%, rgba(150, 116, 250, 0.30), transparent 64%),
-        radial-gradient(40rem 26rem at 110% -2%, rgba(251, 176, 64, 0.20), transparent 62%),
-        radial-gradient(46rem 32rem at 50% 118%, rgba(45, 212, 191, 0.18), transparent 62%);
-    }
-
-    h1, h2, h3 { letter-spacing: -0.015em; }
-
-    .baht {
-      font-family: 'Prompt', sans-serif;
-      font-weight: inherit;
-      margin-right: 0.1em;
-    }
-
-    .font-mono {
-      /* Prompt sits in the stack so Thai glyphs and ฿ fall back to a face that
-         has them - the bare monospace fallback collided with the digits. */
-      font-family: 'JetBrains Mono', 'Prompt', monospace;
-      font-variant-numeric: tabular-nums;
-      font-feature-settings: "tnum";
-    }
-
-    .cozy-card {
-      background: linear-gradient(180deg, #FFFFFF 0%, #FDFCFF 100%);
-      border: 1px solid var(--border-subtle);
-      border-radius: 1.5rem;
-      box-shadow: var(--shadow-card);
-    }
-
-    .cozy-hover-card {
-      transition: transform 0.22s var(--ease), box-shadow 0.22s var(--ease), border-color 0.22s var(--ease);
-    }
-    .cozy-hover-card:hover {
-      border-color: rgba(139, 92, 246, 0.28);
-      box-shadow: var(--shadow-card-hover);
-      transform: translateY(-2px);
-    }
-
-    .pkg-pill {
-      background: linear-gradient(180deg, #FFFFFF 0%, #FAF8FF 100%);
-      border: 1.5px solid #ECE4FC;
-      color: #3C2E59;
-      border-radius: 1.25rem;
-      transition: transform 0.2s var(--lift), box-shadow 0.2s var(--ease),
-                  border-color 0.2s var(--ease), background 0.2s var(--ease);
-      cursor: pointer;
-    }
-    .pkg-pill:hover {
-      border-color: #CBB4FC;
-      background: linear-gradient(180deg, #FFFFFF 0%, #F4EEFF 100%);
-      box-shadow: 0 8px 20px -12px rgba(109, 74, 199, 0.5);
-      transform: translateY(-2px);
-    }
-    .pkg-pill.active {
-      background: linear-gradient(140deg, #A681FF 0%, #8054F7 55%, #7242F5 100%) !important;
-      color: #FFFFFF !important;
-      border-color: #7242F5 !important;
-      box-shadow:
-        0 10px 26px -8px rgba(114, 66, 245, 0.55),
-        0 0 0 4px rgba(139, 92, 246, 0.14),
-        inset 0 1px 0 rgba(255, 255, 255, 0.35);
-      transform: translateY(-2px) scale(1.015);
-    }
-
-    .btn-cute-primary {
-      position: relative;
-      overflow: hidden;
-      background: linear-gradient(140deg, #A681FF 0%, #8054F7 55%, #7242F5 100%);
-      box-shadow:
-        0 10px 24px -8px rgba(114, 66, 245, 0.55),
-        inset 0 1px 0 rgba(255, 255, 255, 0.28);
-      transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease), filter 0.2s var(--ease);
-      cursor: pointer;
-    }
-    /* A slow sheen so the primary action reads as the liveliest thing on screen. */
-    .btn-cute-primary::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.32) 50%, transparent 65%);
-      transform: translateX(-120%);
-      transition: transform 0.7s var(--ease);
-    }
-    .btn-cute-primary:hover::after { transform: translateX(120%); }
-    .btn-cute-primary:hover {
-      filter: saturate(1.06);
-      box-shadow:
-        0 14px 30px -8px rgba(114, 66, 245, 0.62),
-        inset 0 1px 0 rgba(255, 255, 255, 0.35);
-      transform: translateY(-1.5px);
-    }
-    .btn-cute-primary:active { transform: translateY(0) scale(0.985); }
-
-    /* One consistent, visible focus ring across every control. */
-    :where(button, a, input, select, textarea):focus-visible {
-      outline: none;
-      box-shadow: var(--ring);
-    }
-
-    input, select, textarea {
-      transition: border-color 0.18s var(--ease), box-shadow 0.18s var(--ease), background-color 0.18s var(--ease);
-    }
-    input:hover, select:hover, textarea:hover { border-color: #CBB4FC; }
-
-    .nav-tab-btn { transition: background-color 0.2s var(--ease), color 0.2s var(--ease), box-shadow 0.2s var(--ease); }
-    .nav-tab-btn:active { transform: scale(0.97); }
-
-    /* Content settles in when a tab is opened. */
-    .tab-content:not(.hidden) { animation: rise 0.3s var(--ease) both; }
-    @keyframes rise {
-      from { opacity: 0; transform: translateY(7px); }
-      to { opacity: 1; transform: none; }
-    }
-
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb {
-      background: #DFD1F8;
-      border-radius: 999px;
-    }
-    ::-webkit-scrollbar-thumb:hover { background: #C9B4F3; }
-
-    .pulse-dot { animation: pulse-animation 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-    @keyframes pulse-animation {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(0.85); }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-      }
-    }
-  </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/app.css">
 </head>
-<body class="min-h-screen flex flex-col antialiased selection:bg-[#EADBFC] selection:text-[#523A7E]">
+<body>
 
-  <!-- TOP APP BAR -->
-  <header class="bg-white/85 backdrop-blur-md border-b border-[#F0EAF8] sticky top-0 z-40">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6">
-      
-      <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 py-2.5 sm:flex-nowrap sm:h-16 sm:py-0">
+<!-- ======================================================== TOP APP BAR -->
+<header class="appbar">
+  <div class="shell">
+    <div class="appbar-inner">
+      <div class="logo">
+        <img src="https://img.bubbleshoproblox.store/img/2026-08/3a9b1e8f-f363-4469-8081-e6e708faa92b.webp"
+             alt="" onerror="this.remove()">
+      </div>
 
-        <!-- Brand & Realtime Live Status -->
-        <div class="flex items-center gap-2.5 min-w-0 flex-1">
-          <div class="w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-2xl bg-gradient-to-br from-[#F5F0FF] to-[#EBE0FF] border border-[#DDD0FA] flex items-center justify-center p-1.5 shadow-xs">
-            <img src="https://img.bubbleshoproblox.store/img/2026-08/3a9b1e8f-f363-4469-8081-e6e708faa92b.webp" class="w-full h-full object-contain" alt="Robux" onerror="this.style.display='none'">
-          </div>
-          <div class="min-w-0">
-            <div class="flex items-center gap-2 min-w-0">
-              <span class="font-bold text-sm sm:text-base text-[#2E2544] tracking-tight truncate">Cozy Robux Studio</span>
-              <div id="db-status-pill" class="flex items-center gap-1.5 shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-[#F0FDF4] text-[#059669] border-[#D1FAE5]">
-                <span class="w-1.5 h-1.5 rounded-full bg-[#059669] pulse-dot"></span>
-                <span id="db-status-text" class="hidden sm:inline">Real-time Live 🟢</span>
-              </div>
-            </div>
-            <p class="text-[11px] text-[#857B9B] hidden sm:block">ระบบเติมเกม & สต็อกเมล • อัปเดตสดอัตโนมัติ 100% ไม่ต้องรีโหลด</p>
-          </div>
+      <div class="grow" style="min-width:0">
+        <div class="row gap-sm" style="min-width:0">
+          <span class="brand-name truncate">Wonder Bubble Studio</span>
+          <span id="status" class="status is-live"><span class="dot"></span><span>ซิงก์สด</span></span>
         </div>
-
-        <!-- Today's numbers: a 3-up strip on phones, one inline pill on desktop -->
-        <div id="topbar-kpi-pill" class="order-last sm:order-none w-full sm:w-auto grid grid-cols-3 sm:flex items-center gap-1.5 sm:gap-2.5 bg-[#FAF8FF] px-3 py-1.5 rounded-2xl border border-[#EDE5FC] text-xs text-[#857B9B]"></div>
-
+        <p class="t-xs muted truncate">ระบบเติมเกม &amp; สต็อกเมล · อัปเดตสดทุกจอ ไม่ต้องรีโหลด</p>
       </div>
 
-      <!-- Segmented Nav Tabs -->
-      <div class="flex items-center gap-1.5 border-t border-[#F7F3FD] py-2 overflow-x-auto scrollbar-none">
-        <button onclick="switchTab('cashier')" data-tab="cashier" class="nav-tab-btn shrink-0 whitespace-nowrap px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2 bg-[#F3ECFF] text-[#8054F7] cursor-pointer">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-          </svg>
-          <span>บันทึกการเติม</span>
-        </button>
+      <div id="topkpi" class="topkpi shrink-0"></div>
 
-        <button onclick="switchTab('stocks')" data-tab="stocks" class="nav-tab-btn shrink-0 whitespace-nowrap px-3.5 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 text-[#857B9B] hover:text-[#2E2544] hover:bg-[#F9F6FE] cursor-pointer">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-            <line x1="12" y1="22.08" x2="12" y2="12"></line>
-          </svg>
-          <span>สต็อกเมล</span>
-          <span id="nav-count-stocks" class="text-[10px] px-1.5 py-0.2 rounded-full bg-[#EFE8FC] text-[#8054F7] font-mono">0</span>
-        </button>
-
-        <button onclick="switchTab('pricing')" data-tab="pricing" class="nav-tab-btn shrink-0 whitespace-nowrap px-3.5 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 text-[#857B9B] hover:text-[#2E2544] hover:bg-[#F9F6FE] cursor-pointer">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
-            <line x1="7" y1="7" x2="7.01" y2="7"></line>
-          </svg>
-          <span>ราคา & คำนวณเรท</span>
-        </button>
-
-        <button onclick="switchTab('summary')" data-tab="summary" class="nav-tab-btn shrink-0 whitespace-nowrap px-3.5 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 text-[#857B9B] hover:text-[#2E2544] hover:bg-[#F9F6FE] cursor-pointer">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="7" height="7"></rect>
-            <rect x="14" y="3" width="7" height="7"></rect>
-            <rect x="14" y="14" width="7" height="7"></rect>
-            <rect x="3" y="14" width="7" height="7"></rect>
-          </svg>
-          <span>สรุปภาพรวม</span>
-        </button>
-      </div>
-
+      <button class="iconbtn shrink-0" data-act="sync-now" title="ซิงก์เดี๋ยวนี้" aria-label="ซิงก์เดี๋ยวนี้">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 2v6h-6M3 22v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.9-3.4L21 8M20.5 15a9 9 0 0 1-14.9 3.4L3 16"/>
+        </svg>
+      </button>
     </div>
-  </header>
 
-  <!-- MAIN WRAPPER -->
-  <main class="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-6">
-
-    <!-- TAB 1: CASHIER -->
-    <section id="tab-cashier" class="tab-content space-y-6">
-      <div class="cozy-card p-5 sm:p-7 space-y-5 bg-white">
-        <div class="flex items-center justify-between border-b border-[#F7F3FD] pb-3">
-          <div>
-            <h2 class="text-base sm:text-lg font-bold text-[#2E2544]">บันทึกการเติมเงิน</h2>
-            <p class="text-xs text-[#857B9B]">เลือกแพ็กเกจ ➔ ระบบบอกวิธีกดตัวโตๆ ตัดสต็อกเมล และคำนวณกำไรทันที</p>
-          </div>
-          <div class="text-xs font-mono font-semibold text-[#8054F7] bg-[#F5EFFF] px-3 py-1 rounded-xl border border-[#E8DDFF]">
-            พร้อมเติม ✨
-          </div>
-        </div>
-
-        <form id="cashier-form" onsubmit="handleDirectFulfill(event)" class="space-y-4">
-          
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div class="sm:col-span-1">
-              <label class="block text-xs font-semibold text-[#2E2544] mb-1.5">
-                1. Username ในเกม <span class="text-rose-400">*</span>
-              </label>
-              <input type="text" id="cashier-username" required placeholder="เช่น Takanashi_Hoshino113" class="w-full px-3.5 py-2.5 bg-white border border-[#E2D5F8] rounded-2xl text-sm font-medium text-[#2E2544] placeholder-[#AAA0C0] focus:outline-none focus:ring-2 focus:ring-[#DDD0FA] focus:border-[#8054F7]">
-            </div>
-
-            <div>
-              <label class="block text-xs font-semibold text-[#665B7D] mb-1.5">
-                ผู้ทำรายการ
-              </label>
-              <select id="cashier-staff" class="w-full px-3.5 py-2.5 bg-white border border-[#E2D5F8] rounded-2xl text-xs font-medium text-[#2E2544] focus:outline-none focus:ring-2 focus:ring-[#DDD0FA] focus:border-[#8054F7] cursor-pointer">
-              </select>
-            </div>
-
-            <div>
-              <div class="flex items-center justify-between mb-1.5">
-                <label class="text-xs font-semibold text-[#2E2544] flex items-center gap-1">
-                  <span>บัญชีเมลที่ใช้</span>
-                </label>
-                <a href="javascript:void(0)" onclick="switchTab('stocks')" class="text-[10px] text-[#8054F7] hover:underline">จัดการเมล ➔</a>
-              </div>
-              <select id="cashier-stock-select" onchange="handleSelectMailChange(this.value)" class="w-full px-3 py-2.5 bg-[#FAF8FF] border border-[#DDD0FA] rounded-2xl text-xs font-mono font-bold text-[#8054F7] focus:outline-none focus:ring-2 focus:ring-[#DDD0FA] focus:border-[#8054F7] cursor-pointer">
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 mb-2">
-              <label class="text-xs font-semibold text-[#2E2544] flex flex-wrap items-center gap-x-1.5">
-                <span>2. เลือกแพ็กเกจ Robux</span>
-                <span class="text-[10px] text-[#857B9B] font-normal">(คลิกเลือกแพ็กเกจ)</span>
-              </label>
-              <button type="button" onclick="toggleOverpressSection()" id="btn-toggle-overpress" class="text-[11px] font-semibold text-[#8054F7] hover:underline flex items-center gap-1 cursor-pointer whitespace-nowrap">
-                <span>+ มีเผลอกดเกิน / เพิ่มเติม</span>
-              </button>
-            </div>
-
-            <div id="cashier-pkg-pills" class="grid grid-cols-3 sm:grid-cols-4 gap-2.5 min-h-[90px]"></div>
-          </div>
-
-          <div id="cashier-overpress-box" class="hidden p-3.5 rounded-2xl border border-[#EDE5FC] bg-[#FAF8FF] space-y-2.5 transition-all">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-[#2E2544] flex items-center gap-1.5">
-                <span>⚠️ ระบุกดแพ็กไหนเกินไปบ้าง?</span>
-                <span class="text-[10px] text-[#857B9B] font-normal">(คลิกปุ่มเพื่อเพิ่มจำนวน ไม่ต้องคิดเลขดอลลาร์)</span>
-              </span>
-              <button type="button" onclick="resetCashierOverpress()" class="text-[11px] text-[#E11D48] hover:underline cursor-pointer">
-                ✕ ล้างที่กดเกิน
-              </button>
-            </div>
-
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              <button type="button" onclick="addCashierExtraPack('80')" class="py-1.5 px-3 rounded-xl border border-[#E2D5F8] bg-white hover:bg-[#F3ECFF] text-xs font-mono font-semibold text-[#2E2544] flex items-center justify-between transition cursor-pointer">
-                <span>+ 80R</span>
-                <span id="badge-extra-80" class="text-[10px] px-1.5 py-0.2 rounded-full bg-[#FAF8FF] text-[#8054F7] border border-[#E8DDFF]">0</span>
-              </button>
-              <button type="button" onclick="addCashierExtraPack('500')" class="py-1.5 px-3 rounded-xl border border-[#E2D5F8] bg-white hover:bg-[#F3ECFF] text-xs font-mono font-semibold text-[#2E2544] flex items-center justify-between transition cursor-pointer">
-                <span>+ 500R</span>
-                <span id="badge-extra-500" class="text-[10px] px-1.5 py-0.2 rounded-full bg-[#FAF8FF] text-[#8054F7] border border-[#E8DDFF]">0</span>
-              </button>
-              <button type="button" onclick="addCashierExtraPack('1000')" class="py-1.5 px-3 rounded-xl border border-[#E2D5F8] bg-white hover:bg-[#F3ECFF] text-xs font-mono font-semibold text-[#2E2544] flex items-center justify-between transition cursor-pointer">
-                <span>+ 1,000R</span>
-                <span id="badge-extra-1000" class="text-[10px] px-1.5 py-0.2 rounded-full bg-[#FAF8FF] text-[#8054F7] border border-[#E8DDFF]">0</span>
-              </button>
-              <button type="button" onclick="addCashierExtraPack('2000')" class="py-1.5 px-3 rounded-xl border border-[#E2D5F8] bg-white hover:bg-[#F3ECFF] text-xs font-mono font-semibold text-[#2E2544] flex items-center justify-between transition cursor-pointer">
-                <span>+ 2,000R</span>
-                <span id="badge-extra-2000" class="text-[10px] px-1.5 py-0.2 rounded-full bg-[#FAF8FF] text-[#8054F7] border border-[#E8DDFF]">0</span>
-              </button>
-            </div>
-
-            <div id="cashier-overpress-summary-badge" class="text-[11px] text-[#857B9B] hidden"></div>
-          </div>
-
-          <!-- BIG PRESS GUIDE BANNER -->
-          <div id="cashier-smart-preview" class="p-4 sm:p-5 rounded-3xl border transition-all"></div>
-
-          <div class="pt-2 flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3">
-            <div class="text-xs text-[#857B9B] flex items-start gap-1.5">
-              <svg class="w-4 h-4 shrink-0 mt-0.5 text-[#059669]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-              <span>ระบบจะหักยอด USD จากเมลที่เลือกทันที (Sync อัตโนมัติทุกจอ)</span>
-            </div>
-
-            <button type="submit" id="btn-submit-order" class="btn-cute-primary w-full sm:w-auto shrink-0 whitespace-nowrap px-6 py-3.5 sm:py-3 text-white rounded-2xl text-sm font-semibold flex items-center justify-center gap-2">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-              <span>บันทึกการเติมสำเร็จ</span>
-            </button>
-          </div>
-
-        </form>
-      </div>
-
-      <!-- Recent Sales Log with Search & Edit Button -->
-      <div class="space-y-3">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1">
-          <div class="flex items-center gap-2 min-w-0">
-            <h3 class="text-sm font-bold text-[#2E2544] flex items-center gap-2 min-w-0">
-              <svg class="w-4 h-4 shrink-0 text-[#8054F7]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 6 12 12 16 14"></polyline>
-              </svg>
-              <span class="truncate">ประวัติการเติม</span>
-            </h3>
-            <span id="sales-count-badge" class="text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-[#F5EFFF] text-[#8054F7] border border-[#E8DDFF] whitespace-nowrap shrink-0">0 รายการ</span>
-          </div>
-
-          <div class="relative w-full sm:w-64">
-            <input type="text" id="sales-search-input" oninput="handleSearchSales(this.value)" placeholder="ค้นหา Username หรือ Order ID..." class="w-full pl-8 pr-3 py-1.5 bg-white border border-[#E2D5F8] rounded-xl text-xs text-[#2E2544] placeholder-[#AAA0C0] focus:outline-none focus:border-[#8054F7]">
-            <svg class="w-3.5 h-3.5 text-[#AAA0C0] absolute left-2.5 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          </div>
-        </div>
-
-        <div id="sales-log-container" class="space-y-2.5"></div>
-        <div id="sales-pagination-controls" class="flex justify-center pt-2"></div>
-      </div>
-    </section>
-
-    <!-- TAB 2: STOCKS -->
-    <section id="tab-stocks" class="tab-content hidden space-y-5">
-      <div class="cozy-card p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h2 class="text-base font-bold text-[#2E2544]">สต็อกเมล & เครดิต USD</h2>
-          <p class="text-xs text-[#857B9B]">กดปุ่มเปิด/ปิดเมลได้ง่ายๆ (ถ้าปิดแล้ว คนอื่นในร้านจะเห็นปิดตรงกันทันที)</p>
-        </div>
-        <button onclick="openAddStockModal()" class="btn-cute-primary px-4 py-2 text-white rounded-2xl text-xs font-semibold flex items-center gap-1.5 self-start sm:self-auto">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-          <span>+ เพิ่มสต็อกเมล</span>
-        </button>
-      </div>
-
-      <div id="stocks-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5"></div>
-    </section>
-
-    <!-- TAB 3: PRICING -->
-    <section id="tab-pricing" class="tab-content hidden space-y-5">
-      <div class="cozy-card p-5 space-y-3">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h2 class="text-base font-bold text-[#2E2544]">ตารางราคา & จำลองเรทกำไร</h2>
-            <p class="text-xs text-[#857B9B]">กรอกเรทเพื่อดูต้นทุน กำไรสุทธิ และ % มาร์จิ้นของแต่ละแพ็กเกจ</p>
-          </div>
-
-          <div class="flex items-center gap-2 bg-[#FAF8FF] p-2 rounded-2xl border border-[#EDE5FC] self-start sm:self-auto">
-            <label class="text-xs font-semibold text-[#665B7D] whitespace-nowrap">
-              เรทคำนวณ (บาท/USD):
-            </label>
-            <input type="number" step="0.1" value="25.50" id="pricing-rate-input" oninput="handlePricingRateChange(this.value)" class="w-20 px-2.5 py-1 bg-white border border-[#E2D5F8] rounded-xl text-xs font-mono font-bold text-[#2E2544] text-center focus:outline-none focus:border-[#8054F7]">
-          </div>
-        </div>
-      </div>
-
-      <div class="cozy-card overflow-hidden">
-        <div id="pricing-table-container"></div>
-      </div>
-    </section>
-
-    <!-- TAB 4: SUMMARY -->
-    <section id="tab-summary" class="tab-content hidden space-y-5">
-      <div id="summary-range-bar" class="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-0.5"></div>
-
-      <div id="summary-kpi-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
-
-      <div id="summary-trend-box"></div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div id="summary-packages-box"></div>
-        <div id="summary-stocks-box"></div>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div id="summary-staff-box"></div>
-        
-        <div class="cozy-card p-5 space-y-3">
-          <h3 class="text-sm font-bold text-[#2E2544] flex items-center gap-2">
-            <svg class="w-4 h-4 text-[#8054F7]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="7 10 12 15 17 10"></polyline>
-              <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-            <span>ส่งออก & สำรองข้อมูล</span>
-          </h3>
-          <p class="text-xs text-[#857B9B]">ข้อมูลทั้งหมดบันทึกในเครื่องและบนคลาวด์ สามารถโหลดไฟล์ Excel หรือ Backup ได้ตลอดเวลา</p>
-          <div class="space-y-2 pt-2">
-            <button onclick="exportOrdersCsv()" class="w-full py-2.5 bg-[#FAF8FF] hover:bg-[#F3ECFF] text-[#8054F7] border border-[#E4D7FC] rounded-2xl text-xs font-semibold transition flex items-center justify-center gap-2 cursor-pointer">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-              <span>ดาวน์โหลดรายงานออเดอร์ (Excel / CSV)</span>
-            </button>
-            <button onclick="exportBackupJson()" class="w-full py-2.5 bg-[#FAF8FF] hover:bg-[#F3ECFF] text-[#2E2544] border border-[#EFE9F9] rounded-2xl text-xs font-semibold transition flex items-center justify-center gap-2 cursor-pointer">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-              <span>ดาวน์โหลด Backup ทั้งระบบ (JSON)</span>
-            </button>
-            <label class="w-full py-2.5 bg-[#F0FDF4] hover:bg-[#DCFCE7] text-[#059669] border border-[#D1FAE5] rounded-2xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-              <span>📥 กู้คืน / นำเข้าไฟล์สำรอง (Merge JSON)</span>
-              <input type="file" accept=".json" onchange="handleImportBackupJson(event)" class="hidden">
-            </label>
-            <button onclick="resetToInitialData()" class="w-full py-2 text-[#E11D48] hover:bg-[#FFF5F7] rounded-2xl text-xs font-medium transition cursor-pointer">
-              รีเซ็ตข้อมูลเริ่มต้น (Factory Reset)
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- MODAL: ADD / EDIT STOCK ACCOUNT -->
-  <div id="stock-modal" onclick="handleModalBackdropClick(event, 'stock-modal')" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-[2px] hidden">
-    <div class="bg-white border border-[#EFE9F9] rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-      <div class="px-6 py-4 border-b border-[#F5EFFF] flex items-center justify-between bg-[#FAF8FF]">
-        <div>
-          <h3 id="stock-modal-title" class="text-sm font-bold text-[#2E2544]">เพิ่มสต็อกเมลใหม่</h3>
-          <p class="text-[11px] text-[#857B9B]">บันทึกข้อมูลเมล เครดิต USD และเรทที่ได้มา</p>
-        </div>
-        <button onclick="closeStockModal()" class="w-7 h-7 rounded-full text-[#857B9B] hover:bg-[#F5EFFF] hover:text-[#2E2544] flex items-center justify-center text-sm transition cursor-pointer">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </button>
-      </div>
-
-      <form onsubmit="handleSubmitStockAccount(event)" class="p-6 space-y-3.5 text-xs">
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block font-semibold text-[#665B7D] mb-1">รหัสเมล (เช่น PC-010)</label>
-            <input type="text" id="form-stock-id" required class="w-full px-3 py-2 bg-[#FAF8FF] border border-[#EFE9F9] rounded-xl font-mono font-bold text-[#8054F7]">
-          </div>
-          <div>
-            <label class="block font-semibold text-[#665B7D] mb-1">วันที่ซื้อ</label>
-            <input type="date" id="form-stock-buydate" class="w-full px-3 py-2 bg-white border border-[#EFE9F9] rounded-xl text-[#2E2544]">
-          </div>
-        </div>
-
-        <div>
-          <label class="block font-semibold text-[#665B7D] mb-1">อีเมล / ชื่อบัญชี</label>
-          <input type="text" id="form-stock-email" placeholder="เช่น account@qwbak.com" class="w-full px-3 py-2 bg-white border border-[#EFE9F9] rounded-xl text-[#2E2544] focus:outline-none focus:border-[#8054F7]">
-        </div>
-
-        <div class="bg-[#FAF8FF] p-3.5 rounded-2xl border border-[#EDE5FC] space-y-2.5">
-          <div class="grid grid-cols-2 gap-2.5">
-            <div>
-              <label class="block font-semibold text-[#665B7D] mb-1">ยอดเงิน ($ USD)</label>
-              <input type="number" step="0.01" id="form-stock-usd" required placeholder="500.00" oninput="calcStockFormThb()" class="w-full px-3 py-2 bg-white border border-[#EFE9F9] rounded-xl font-mono text-[#2E2544]">
-            </div>
-            <div>
-              <label class="block font-semibold text-[#665B7D] mb-1">เรทที่ได้มา (บาท / USD)</label>
-              <input type="number" step="0.01" id="form-stock-rate" required placeholder="25.50" oninput="calcStockFormThb()" class="w-full px-3 py-2 bg-white border border-[#EFE9F9] rounded-xl font-mono text-[#2E2544]">
-            </div>
-          </div>
-          <div class="flex items-center justify-between text-xs pt-1 border-t border-[#E8DCFC]">
-            <span class="text-[#857B9B]">ยอดจ่ายเงินไป (คำนวณอัตโนมัติ):</span>
-            <span id="form-stock-thb-preview" class="font-mono font-bold text-[#8054F7]">฿0.00</span>
-          </div>
-        </div>
-
-        <div>
-          <label class="block font-semibold text-[#665B7D] mb-1">สถานะ</label>
-          <select id="form-stock-status" class="w-full px-3 py-2 bg-white border border-[#EFE9F9] rounded-xl text-[#2E2544]">
-            <option value="พร้อมใช้">พร้อมใช้ (เปิดใช้งาน)</option>
-            <option value="ปิดใช้งาน">ปิดใช้งาน (หมดแล้ว / พักไว้)</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block font-semibold text-[#665B7D] mb-1">หมายเหตุ</label>
-          <input type="text" id="form-stock-note" placeholder="เช่น สต็อกล็อตพิเศษ" class="w-full px-3 py-2 bg-white border border-[#EFE9F9] rounded-xl text-[#2E2544]">
-        </div>
-
-        <div class="pt-2 border-t border-[#F5EFFF] flex items-center justify-between gap-2">
-          <div id="stock-modal-delete-btn-box"></div>
-          <div class="flex items-center gap-2 ml-auto">
-            <button type="button" onclick="closeStockModal()" class="px-4 py-2 text-xs font-medium text-[#857B9B] hover:bg-[#FAF8FF] rounded-xl transition cursor-pointer">
-              ยกเลิก
-            </button>
-            <button type="submit" class="btn-cute-primary px-5 py-2 text-white text-xs font-semibold rounded-xl">
-              บันทึกสต็อก
-            </button>
-          </div>
-        </div>
-      </form>
-    </div>
+    <nav class="tabs" role="tablist" aria-label="เมนูหลัก">
+      <button class="tab" role="tab" data-tab="cashier" aria-selected="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <span>บันทึกการเติม</span>
+      </button>
+      <button class="tab" role="tab" data-tab="history" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+        <span>ประวัติออเดอร์</span>
+        <span class="chip count" data-count="history">0</span>
+      </button>
+      <button class="tab" role="tab" data-tab="stocks" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.3 7L12 12l8.7-5M12 22V12"/></svg>
+        <span>สต็อกเมล</span>
+        <span class="chip count" data-count="stocks">0</span>
+      </button>
+      <button class="tab" role="tab" data-tab="pricing" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8z"/><path d="M7 7h.01"/></svg>
+        <span>ราคา &amp; เรท</span>
+      </button>
+      <button class="tab" role="tab" data-tab="summary" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+        <span>สรุปภาพรวม</span>
+      </button>
+    </nav>
   </div>
+</header>
 
-  <!-- MODAL: EDIT ORDER -->
-  <div id="order-edit-modal" onclick="handleModalBackdropClick(event, 'order-edit-modal')" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-[2px] hidden">
-    <div class="bg-white border border-[#EFE9F9] rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-      <div class="px-6 py-4 border-b border-[#F5EFFF] flex items-center justify-between bg-[#FAF8FF]">
+<!-- =============================================================== MAIN -->
+<main class="shell">
+
+  <!-- ---------------------------------------------------- TAB: CASHIER -->
+  <section class="panel" id="panel-cashier">
+    <div class="card">
+      <div class="card-head">
         <div>
-          <h3 id="order-edit-title" class="text-sm font-bold text-[#2E2544]">แก้ไขออเดอร์</h3>
-          <p id="order-edit-subtitle" class="text-[11px] text-[#857B9B]">ปรับการกดเกิน / เผลอกดผิด / หมายเหตุ</p>
+          <h2>บันทึกการเติมเงิน</h2>
+          <p>เลือกแพ็กเกจ → ระบบบอกวิธีกดตัวโต ตัดสต็อกเมล และคำนวณกำไรให้ทันที</p>
         </div>
-        <button onclick="closeOrderEditModal()" class="w-7 h-7 rounded-full text-[#857B9B] hover:bg-[#F5EFFF] hover:text-[#2E2544] flex items-center justify-center text-sm transition cursor-pointer">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </button>
+        <span class="chip good">พร้อมเติม ✨</span>
       </div>
 
-      <form onsubmit="handleSaveOrderEdit(event)" class="p-6 space-y-4 text-xs">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-[#FAF8FF] rounded-2xl border border-[#EDE5FC]">
-          <div>
-            <div class="text-[10px] font-semibold text-[#857B9B] mb-0.5">ลูกค้า & แพ็กเกจ</div>
-            <div id="edit-modal-customer-info" class="font-bold text-[#2E2544] text-xs"></div>
-          </div>
-          <div>
-            <label class="block text-[10px] font-semibold text-[#2E2544] mb-1">
-              🔄 บัญชีเมลที่ใช้ตัด (เปลี่ยนได้)
-            </label>
-            <select id="edit-modal-stock-select" onchange="renderEditModalCalcPreview()" class="w-full px-2.5 py-1.5 bg-white border border-[#DDD0FA] rounded-xl text-xs font-mono font-bold text-[#8054F7] focus:outline-none focus:border-[#8054F7] cursor-pointer">
-            </select>
-            <div id="edit-modal-stock-info" class="text-[10px] text-[#857B9B] mt-1"></div>
-          </div>
-        </div>
+      <form id="cashier-form" class="stack" autocomplete="off">
+        <div class="grid g3 g3-collapse">
+          <label class="field">
+            <span class="label">1. Username ในเกม <span class="req">*</span></span>
+            <input class="input" id="f-username" required placeholder="เช่น Takanashi_Hoshino113"
+                   autocomplete="off" autocapitalize="off" spellcheck="false">
+          </label>
 
-        <div class="space-y-2">
-          <div class="flex items-center justify-between">
-            <label class="font-bold text-[#2E2544] flex items-center gap-1.5">
-              <span>⚠️ มีการเผลอกดเกินหรือไม่?</span>
-              <span class="text-[10px] text-[#857B9B] font-normal">(คลิกเพื่อเพิ่ม/ลด ไม่ต้องคิดเลขดอลลาร์)</span>
-            </label>
-            <button type="button" onclick="resetEditModalOverpress()" class="text-[11px] text-[#E11D48] hover:underline cursor-pointer">
-              ล้างเป็น 0
-            </button>
-          </div>
+          <label class="field">
+            <span class="label">ผู้ทำรายการ</span>
+            <select class="select" id="f-staff"></select>
+          </label>
 
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <div class="p-2 bg-white rounded-xl border border-[#E2D5F8] text-center space-y-1">
-              <div class="text-[11px] font-mono font-bold text-[#2E2544]">+80R</div>
-              <div class="flex items-center justify-center gap-1">
-                <button type="button" onclick="adjustEditExtra('80', -1)" class="w-5 h-5 rounded bg-[#F5EFFF] text-[#8054F7] font-bold text-xs hover:bg-[#E8DDFF]">-</button>
-                <span id="modal-badge-extra-80" class="font-mono font-bold text-xs w-4">0</span>
-                <button type="button" onclick="adjustEditExtra('80', 1)" class="w-5 h-5 rounded bg-[#F5EFFF] text-[#8054F7] font-bold text-xs hover:bg-[#E8DDFF]">+</button>
-              </div>
-            </div>
-
-            <div class="p-2 bg-white rounded-xl border border-[#E2D5F8] text-center space-y-1">
-              <div class="text-[11px] font-mono font-bold text-[#2E2544]">+500R</div>
-              <div class="flex items-center justify-center gap-1">
-                <button type="button" onclick="adjustEditExtra('500', -1)" class="w-5 h-5 rounded bg-[#F5EFFF] text-[#8054F7] font-bold text-xs hover:bg-[#E8DDFF]">-</button>
-                <span id="modal-badge-extra-500" class="font-mono font-bold text-xs w-4">0</span>
-                <button type="button" onclick="adjustEditExtra('500', 1)" class="w-5 h-5 rounded bg-[#F5EFFF] text-[#8054F7] font-bold text-xs hover:bg-[#E8DDFF]">+</button>
-              </div>
-            </div>
-
-            <div class="p-2 bg-white rounded-xl border border-[#E2D5F8] text-center space-y-1">
-              <div class="text-[11px] font-mono font-bold text-[#2E2544]">+1,000R</div>
-              <div class="flex items-center justify-center gap-1">
-                <button type="button" onclick="adjustEditExtra('1000', -1)" class="w-5 h-5 rounded bg-[#F5EFFF] text-[#8054F7] font-bold text-xs hover:bg-[#E8DDFF]">-</button>
-                <span id="modal-badge-extra-1000" class="font-mono font-bold text-xs w-4">0</span>
-                <button type="button" onclick="adjustEditExtra('1000', 1)" class="w-5 h-5 rounded bg-[#F5EFFF] text-[#8054F7] font-bold text-xs hover:bg-[#E8DDFF]">+</button>
-              </div>
-            </div>
-
-            <div class="p-2 bg-white rounded-xl border border-[#E2D5F8] text-center space-y-1">
-              <div class="text-[11px] font-mono font-bold text-[#2E2544]">+2,000R</div>
-              <div class="flex items-center justify-center gap-1">
-                <button type="button" onclick="adjustEditExtra('2000', -1)" class="w-5 h-5 rounded bg-[#F5EFFF] text-[#8054F7] font-bold text-xs hover:bg-[#E8DDFF]">-</button>
-                <span id="modal-badge-extra-2000" class="font-mono font-bold text-xs w-4">0</span>
-                <button type="button" onclick="adjustEditExtra('2000', 1)" class="w-5 h-5 rounded bg-[#F5EFFF] text-[#8054F7] font-bold text-xs hover:bg-[#E8DDFF]">+</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div id="modal-edit-calc-preview" class="p-3 bg-[#FAF8FF] rounded-2xl border border-[#E8DDFF] text-xs"></div>
-
-        <div class="space-y-2 pt-1">
-          <div>
-            <label class="block font-semibold text-[#665B7D] mb-1">หมายเหตุออเดอร์ (ถ้ามี)</label>
-            <input type="text" id="edit-modal-note" placeholder="เช่น ลูกค้าขอเบิ้ล / เผลอกดเกิน 80R" class="w-full px-3 py-2 bg-white border border-[#EFE9F9] rounded-xl text-xs text-[#2E2544] focus:outline-none focus:border-[#8054F7]">
-          </div>
-
-          <label class="flex items-center gap-2 cursor-pointer pt-1">
-            <input type="checkbox" id="edit-modal-zero-profit" onchange="renderEditModalCalcPreview()" class="rounded text-[#8054F7] focus:ring-0">
-            <span class="text-[#665B7D] text-[11px]">ไม่นับกำไรออเดอร์นี้ (กรณีเคลม / ขาดทุน)</span>
+          <label class="field">
+            <span class="label">บัญชีเมลที่ใช้ตัด
+              <button type="button" class="t-xs brand" data-act="go" data-tab="stocks">จัดการเมล →</button>
+            </span>
+            <select class="select accent" id="f-stock"></select>
           </label>
         </div>
 
-        <div class="pt-2 border-t border-[#F5EFFF] flex items-center justify-end gap-2">
-          <button type="button" onclick="closeOrderEditModal()" class="px-4 py-2 text-xs font-medium text-[#857B9B] hover:bg-[#FAF8FF] rounded-xl transition cursor-pointer">
-            ยกเลิก
-          </button>
-          <button type="submit" class="btn-cute-primary px-5 py-2 text-white text-xs font-semibold rounded-xl">
-            บันทึกการแก้ไข
+        <div>
+          <div class="row between wrap gap-sm" style="margin-bottom:10px">
+            <span class="label" style="margin:0">2. เลือกแพ็กเกจ Robux</span>
+            <button type="button" class="t-sm semi brand" id="btn-extras">+ มีเผลอกดเกิน</button>
+          </div>
+          <div class="pkgs" id="pkg-grid"></div>
+        </div>
+
+        <div class="subbox hidden" id="extras-box">
+          <div class="row between wrap gap-sm" style="margin-bottom:10px">
+            <span class="t-sm bold">⚠️ กดเกินแพ็กไหนไปบ้าง?
+              <span class="t-xs muted semi">(กด + / − ไม่ต้องคิดเลขดอลลาร์)</span></span>
+            <button type="button" class="t-xs neg semi" data-act="clear-extras">✕ ล้างที่กดเกิน</button>
+          </div>
+          <div class="grid g4" id="extras-grid"></div>
+        </div>
+
+        <div id="guide" class="guide"></div>
+
+        <div class="submit-bar">
+          <span class="row gap-sm t-xs muted">
+            <svg style="width:16px;height:16px;color:var(--mint-600);flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+            <span>ระบบหักยอด USD จากเมลที่เลือกทันที และซิงก์ให้ทุกจอเอง</span>
+          </span>
+          <button type="submit" class="btn btn-primary lg">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+            <span>บันทึกการเติมสำเร็จ</span>
           </button>
         </div>
       </form>
     </div>
-  </div>
 
-  <!-- Toast Container -->
-  <div id="toast-box" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
-
-  <!-- APPLICATION SCRIPT (3-LAYER REALTIME SYNC: SSE + WEBSOCKET + 2S FAST-POLL) -->
-  <script>
-    const STORAGE_KEY = 'COZY_ROBUX_STUDIO_V13_BULLETPROOF';
-    const ROBUX_ICON_URL = 'https://img.bubbleshoproblox.store/img/2026-08/3a9b1e8f-f363-4469-8081-e6e708faa92b.webp';
-
-    const PACK_USD_RATES = {
-      '80': 0.99,
-      '500': 4.99,
-      '1000': 9.99,
-      '2000': 19.99
-    };
-
-    // Order timestamps must follow the shop's own clock.
-    // toISOString() returns UTC, which stamped every order 7 hours behind
-    // Thai time and made the "today" counters roll over at 07:00 instead of midnight.
-    function localDateTime(d) {
-      const t = d || new Date();
-      const p = n => String(n).padStart(2, '0');
-      return t.getFullYear() + '-' + p(t.getMonth() + 1) + '-' + p(t.getDate()) +
-        ' ' + p(t.getHours()) + ':' + p(t.getMinutes());
-    }
-
-    function localDate(d) {
-      return localDateTime(d).slice(0, 10);
-    }
-
-    const INITIAL_SEED = {
-  "settings": {
-    "defaultEvalRate": 25.5,
-    "employees": [
-      "ฟ้อน",
-      "เม้กโกะกีระบิด",
-      "แอดมินบอส"
-    ]
-  },
-  "packages": [
-    {
-      "robux": 80,
-      "price": 35,
-      "usd": 0.99,
-      "pressGuide": "กด 80R × 1"
-    },
-    {
-      "robux": 160,
-      "price": 69,
-      "usd": 1.98,
-      "pressGuide": "กด 80R × 2"
-    },
-    {
-      "robux": 240,
-      "price": 99,
-      "usd": 2.97,
-      "pressGuide": "กด 80R × 3"
-    },
-    {
-      "robux": 400,
-      "price": 159,
-      "usd": 4.95,
-      "pressGuide": "กด 80R × 5"
-    },
-    {
-      "robux": 500,
-      "price": 169,
-      "usd": 4.99,
-      "pressGuide": "กด 500R × 1"
-    },
-    {
-      "robux": 1000,
-      "price": 325,
-      "usd": 9.99,
-      "pressGuide": "กด 1,000R × 1"
-    },
-    {
-      "robux": 2000,
-      "price": 639,
-      "usd": 19.99,
-      "pressGuide": "กด 2,000R × 1"
-    },
-    {
-      "robux": 3000,
-      "price": 949,
-      "usd": 29.98,
-      "pressGuide": "กด 2,000R × 1 + กด 1,000R × 1"
-    },
-    {
-      "robux": 4000,
-      "price": 1249,
-      "usd": 39.98,
-      "pressGuide": "กด 2,000R × 2"
-    },
-    {
-      "robux": 5000,
-      "price": 1549,
-      "usd": 49.97,
-      "pressGuide": "กด 2,000R × 2 + กด 1,000R × 1"
-    },
-    {
-      "robux": 10000,
-      "price": 2990,
-      "usd": 99.95,
-      "pressGuide": "กด 2,000R × 5"
-    },
-    {
-      "robux": 20000,
-      "price": 5890,
-      "usd": 199.9,
-      "pressGuide": "กด 2,000R × 10"
-    }
-  ],
-  "stockAccounts": [
-    {
-      "id": "PC-001",
-      "email": "BuLpQrA8vcjeu@qwbak.com",
-      "buyDate": "2026-07-01",
-      "initialUsd": 410,
-      "rate": 27.5,
-      "investmentThb": 11275,
-      "status": "ปิดใช้งาน",
-      "note": "⚠️ ตรวจยอด USD/บาท จากสลิปให้ตรง"
-    },
-    {
-      "id": "PC-002",
-      "email": "",
-      "buyDate": "2026-08-06",
-      "initialUsd": 450,
-      "rate": 25.9,
-      "investmentThb": 11655,
-      "status": "ปิดใช้งาน",
-      "note": ""
-    },
-    {
-      "id": "PC-003",
-      "email": "8QHUadyJj6wqqe@qwbak.com",
-      "buyDate": "2026-08-06",
-      "initialUsd": 500,
-      "rate": 25.5,
-      "investmentThb": 12750,
-      "status": "ปิดใช้งาน",
-      "note": ""
-    },
-    {
-      "id": "PC-004",
-      "email": "hJD4LnRtBqmst@qwbak.com",
-      "buyDate": "2026-08-13",
-      "initialUsd": 305,
-      "rate": 26.1,
-      "investmentThb": 7960.5,
-      "status": "ปิดใช้งาน",
-      "note": ""
-    },
-    {
-      "id": "PC-005",
-      "email": "U4ZCw7SYBncVk@qwbak.com",
-      "buyDate": "2026-08-16",
-      "initialUsd": 303,
-      "rate": 25.9,
-      "investmentThb": 7847.7,
-      "status": "ปิดใช้งาน",
-      "note": ""
-    },
-    {
-      "id": "PC-006",
-      "email": "pGWDMhK4xpT7C5@qwbak.com",
-      "buyDate": "2026-08-19",
-      "initialUsd": 304,
-      "rate": 26.1,
-      "investmentThb": 7934.4,
-      "status": "ปิดใช้งาน",
-      "note": ""
-    },
-    {
-      "id": "PC-007",
-      "email": "Dy5mTEwPdW5B@qwbak.com",
-      "buyDate": "2026-08-22",
-      "initialUsd": 460,
-      "rate": 25.7,
-      "investmentThb": 11822,
-      "status": "ปิดใช้งาน",
-      "note": ""
-    },
-    {
-      "id": "PC-008",
-      "email": "s68WqTKxGkvg@qwbak.com",
-      "buyDate": "2026-08-25",
-      "initialUsd": 500,
-      "rate": 26.2,
-      "investmentThb": 13100,
-      "status": "ปิดใช้งาน",
-      "note": ""
-    },
-    {
-      "id": "PC-009",
-      "email": "UcVwcURY4PQcMh@qwbak.com",
-      "buyDate": "2026-08-29",
-      "initialUsd": 370,
-      "rate": 27.1,
-      "investmentThb": 10027,
-      "status": "พร้อมใช้",
-      "note": ""
-    }
-  ],
-  "salesLogs": []
-};
-
-    let appData = JSON.parse(JSON.stringify(INITIAL_SEED));
-    let currentTab = 'cashier';
-    let selectedRobux = 1000;
-    let selectedStockId = 'PC-009';
-    let currentPricingRate = 25.50;
-    let salesSearchQuery = '';
-    let salesDisplayLimit = 30;
-    let localLastUpdated = 0;
-    let ws = null;
-    let eventSource = null;
-    let isPollingActive = false;
-
-    let summaryRange = 'today';
-    let emojiPickerFor = null;
-    const STAFF_EMOJIS = ['🐰', '🐱', '🐶', '🦊', '🐼', '🐨', '🐯', '🦁',
-                          '🐸', '🐧', '🐥', '🐹', '🦄', '🦈', '🐙', '🌸',
-                          '🍓', '🍰', '🍭', '🌈', '⭐', '💜', '🔥', '👑'];
-
-    let cashierExtraPacks = { '80': 0, '500': 0, '1000': 0, '2000': 0 };
-    let currentLeaderboardPeriod = 'today';
-
-    function setLeaderboardPeriod(p) {
-      currentLeaderboardPeriod = p;
-      renderSummary();
-    }
-
-    async function initData() {
-      // 1. SMART DATA RESCUE: Search all localStorage keys to find the largest dataset (including today's 772 orders)
-      try {
-        let bestLocalLogs = [];
-        let bestAppData = null;
-
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && key.startsWith('COZY_ROBUX_STUDIO')) {
-            try {
-              const val = JSON.parse(localStorage.getItem(key));
-              if (val && val.salesLogs && val.salesLogs.length > bestLocalLogs.length) {
-                bestLocalLogs = val.salesLogs;
-                bestAppData = val;
-              }
-            } catch (err) {}
-          }
-        }
-
-        if (bestAppData && bestLocalLogs.length > (INITIAL_SEED.salesLogs || []).length) {
-          appData = bestAppData;
-          console.log('✨ Data Rescue: Restored ' + bestLocalLogs.length + ' orders from local storage cache!');
-        } else {
-          const saved = localStorage.getItem(STORAGE_KEY);
-          if (saved) {
-            const parsed = JSON.parse(saved);
-            if (parsed && parsed.salesLogs) appData = parsed;
-          }
-        }
-      } catch (e) {
-        console.error("Local Init Error:", e);
-      }
-
-      currentPricingRate = (appData.settings && appData.settings.defaultEvalRate) || 25.50;
-      selectedRobux = 1000;
-
-      const activeStocks = (appData.stockAccounts || []).filter(s => s.status === 'พร้อมใช้');
-      if (activeStocks.length > 0) {
-        selectedStockId = activeStocks[activeStocks.length - 1].id;
-      }
-
-      renderApp();
-
-      // 2. Fetch Server Data and Merge
-      await fetchServerData();
-      startServerSentEvents();
-      connectWebSocket();
-      startFastBackgroundPolling();
-    }
-
-    // Single guarded entry point for every piece of data arriving from the server
-    // (fetch, SSE and WebSocket all go through here).
-    // Rule: server data may NEVER replace a local cache that holds more orders.
-    // If the client is ahead, push the client's copy up instead of overwriting it.
-    function applyServerData(serverData, serverLastUpdated, source) {
-      if (!serverData) return false;
-
-      const serverOrders = Array.isArray(serverData.salesLogs) ? serverData.salesLogs : [];
-      const localOrders = (appData && Array.isArray(appData.salesLogs)) ? appData.salesLogs : [];
-
-      if (localOrders.length > serverOrders.length) {
-        console.warn('🛡️ [' + source + '] blocked overwrite: local has ' + localOrders.length +
-          ' orders vs server ' + serverOrders.length + '. Pushing local copy up instead.');
-        localLastUpdated = Date.now();
-        syncDataToServer();
-        setDbStatusUI(true);
-        return false;
-      }
-
-      appData = serverData;
-      localLastUpdated = serverLastUpdated || Date.now();
-      saveDataLocal();
-      renderApp();
-      setDbStatusUI(true);
-      return true;
-    }
-
-    async function fetchServerData() {
-      try {
-        if (window.location.protocol.startsWith('http')) {
-          const res = await fetch('/api/data?t=' + Date.now());
-          if (res.ok) {
-            const json = await res.json();
-            if (json && json.data) {
-              applyServerData(json.data, json.lastUpdated, 'fetch');
-            }
-          }
-        }
-      } catch (err) {
-        console.warn('Server fetch error:', err);
-      }
-    }
-
-    // LAYER 1: Server-Sent Events (SSE) - Works 100% on iOS, Safari, Chrome & Proxies
-    function startServerSentEvents() {
-      if (!window.location.protocol.startsWith('http') || typeof EventSource === 'undefined') return;
-      try {
-        if (eventSource) eventSource.close();
-        eventSource = new EventSource('/api/stream');
-
-        eventSource.onmessage = (event) => {
-          try {
-            const msg = JSON.parse(event.data);
-            if (msg.data && msg.lastUpdated && msg.lastUpdated > localLastUpdated) {
-              if (applyServerData(msg.data, msg.lastUpdated, 'SSE') && msg.type === 'DATA_SYNC') {
-                showToast('อัปเดตข้อมูลอัตโนมัติแล้ว ✨', 'info');
-              }
-            }
-          } catch (e) {
-            // Heartbeat or parse pass
-          }
-        };
-
-        eventSource.onerror = () => {
-          // SSE reconnects automatically by browser
-        };
-      } catch (e) {
-        console.warn('SSE start error:', e);
-      }
-    }
-
-    // LAYER 2: WebSocket with Auto-Reconnect
-    function connectWebSocket() {
-      if (!window.location.protocol.startsWith('http')) return;
-      try {
-        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = wsProtocol + '//' + window.location.host + '/ws';
-        ws = new WebSocket(wsUrl);
-
-        ws.onopen = () => {
-          setDbStatusUI(true);
-        };
-
-        ws.onmessage = (event) => {
-          try {
-            const msg = JSON.parse(event.data);
-            if (msg.data && msg.lastUpdated && msg.lastUpdated > localLastUpdated) {
-              if (applyServerData(msg.data, msg.lastUpdated, 'WS') && msg.type === 'DATA_SYNC') {
-                showToast('อัปเดตข้อมูลอัตโนมัติแล้ว ✨', 'info');
-              }
-            }
-          } catch (e) {
-            console.error('WS parse error:', e);
-          }
-        };
-
-        ws.onclose = () => {
-          setTimeout(connectWebSocket, 3000);
-        };
-      } catch (e) {
-        console.warn('WS connection failed:', e);
-      }
-    }
-
-    // LAYER 3: 2-Second Fast Background Polling (Indestructible Fallback)
-    function startFastBackgroundPolling() {
-      if (!window.location.protocol.startsWith('http') || isPollingActive) return;
-      isPollingActive = true;
-
-      async function checkVersion() {
-        try {
-          const res = await fetch('/api/version?t=' + Date.now());
-          if (res.ok) {
-            const json = await res.json();
-            if (json && json.lastUpdated && json.lastUpdated > localLastUpdated) {
-              // Server has newer data! Pull full data and update screen without reload!
-              await fetchServerData();
-            }
-          }
-        } catch (e) {
-          // offline or sleeping
-        }
-      }
-
-      // Check every 2 seconds
-      setInterval(checkVersion, 2000);
-
-      // Also check instantly when user focuses or touches the screen
-      if (typeof window !== 'undefined' && window.addEventListener) {
-        window.addEventListener('focus', checkVersion);
-      }
-      if (typeof document !== 'undefined' && document.addEventListener) {
-        document.addEventListener('visibilitychange', () => {
-          if (!document.hidden) checkVersion();
-        });
-        document.addEventListener('touchstart', checkVersion, { passive: true });
-      }
-    }
-
-    function setDbStatusUI(isOnline) {
-      const pill = document.getElementById('db-status-pill');
-      const text = document.getElementById('db-status-text');
-      if (!pill || !text) return;
-
-      if (isOnline) {
-        pill.className = 'flex items-center gap-1.5 shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-[#F0FDF4] text-[#059669] border-[#D1FAE5]';
-        text.textContent = 'Real-time Live 🟢';
-      } else {
-        pill.className = 'flex items-center gap-1.5 shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-[#FAF8FF] text-[#8054F7] border-[#E8DDFF]';
-        text.textContent = 'โหมดในเครื่อง (Local)';
-      }
-    }
-
-    function saveData() {
-      localLastUpdated = Date.now();
-      saveDataLocal();
-      syncDataToServer();
-    }
-
-    function saveDataLocal() {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
-      } catch (e) {
-        console.error("Save Error:", e);
-      }
-    }
-
-    function syncDataToServer() {
-      // 1. Send via WebSocket if open
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        try {
-          ws.send(JSON.stringify({ type: 'UPDATE_DATA', data: appData, lastUpdated: localLastUpdated }));
-        } catch (e) {
-          console.error("WS Send error:", e);
-        }
-      }
-
-      // 2. Send via HTTP POST
-      if (window.location.protocol.startsWith('http')) {
-        fetch('/api/sync', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(appData)
-        }).then(res => res.json()).then(res => {
-          if (res && res.lastUpdated) localLastUpdated = res.lastUpdated;
-        }).catch(err => console.warn('POST sync error:', err));
-      }
-    }
-
-    function formatNumber(val) {
-      if (val === undefined || val === null || isNaN(val)) return '0.00';
-      return Number(val).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
-
-    function formatInt(val) {
-      if (!val || isNaN(val)) return '0';
-      return Number(val).toLocaleString('th-TH');
-    }
-
-    function calculateStockBalances() {
-      const balances = {};
-      const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts;
-      accounts.forEach(acc => {
-        balances[acc.id] = {
-          initialUsd: Number(acc.initialUsd) || 0,
-          usedUsd: 0,
-          remainingUsd: Number(acc.initialUsd) || 0,
-          totalSalesThb: 0,
-          totalProfitThb: 0,
-          ordersCount: 0
-        };
-      });
-
-      const logs = appData.salesLogs || [];
-      logs.forEach(log => {
-        if (log.stockAccount && balances[log.stockAccount]) {
-          const usd = Number(log.usd) || 0;
-          balances[log.stockAccount].usedUsd += usd;
-          balances[log.stockAccount].remainingUsd -= usd;
-          balances[log.stockAccount].totalSalesThb += Number(log.priceThb) || 0;
-          balances[log.stockAccount].totalProfitThb += Number(log.profitThb) || 0;
-          balances[log.stockAccount].ordersCount += 1;
-        }
-      });
-
-      return balances;
-    }
-
-    function showToast(msg, type = 'success') {
-      const box = document.getElementById('toast-box');
-      if (!box) return;
-      const t = document.createElement('div');
-      const bg = type === 'success' ? 'bg-[#059669] text-white' : type === 'error' ? 'bg-[#E11D48] text-white' : 'bg-[#8054F7] text-white';
-      t.className = `px-4 py-2.5 rounded-2xl text-xs font-medium shadow-xl flex items-center gap-2 transform transition-all duration-200 translate-y-2 opacity-0 ${bg}`;
-      t.innerHTML = `<span>✓</span><span>${msg}</span>`;
-      box.appendChild(t);
-      setTimeout(() => t.classList.remove('translate-y-2', 'opacity-0'), 10);
-      setTimeout(() => {
-        t.classList.add('opacity-0', 'translate-y-2');
-        setTimeout(() => t.remove(), 250);
-      }, 2600);
-    }
-
-    function switchTab(tabId) {
-      currentTab = tabId;
-      document.querySelectorAll('.nav-tab-btn').forEach(btn => {
-        if (btn.dataset.tab === tabId) {
-          btn.className = 'nav-tab-btn shrink-0 whitespace-nowrap px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2 bg-[#F3ECFF] text-[#8054F7] cursor-pointer';
-        } else {
-          btn.className = 'nav-tab-btn shrink-0 whitespace-nowrap px-3.5 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 text-[#857B9B] hover:text-[#2E2544] hover:bg-[#F9F6FE] cursor-pointer';
-        }
-      });
-      document.querySelectorAll('.tab-content').forEach(c => {
-        if (c.id === 'tab-' + tabId) c.classList.remove('hidden');
-        else c.classList.add('hidden');
-      });
-      renderCurrentTab();
-    }
-
-    function renderApp() {
-      const bStocks = document.getElementById('nav-count-stocks');
-      if (bStocks) {
-        const activeCount = (appData.stockAccounts || []).filter(s => s.status === 'พร้อมใช้').length;
-        bStocks.textContent = `${activeCount} พร้อมใช้`;
-      }
-
-      const today = localDate();
-      const logs = appData.salesLogs || [];
-      const todaySales = logs.filter(s => (s.date || '').slice(0, 10) === today);
-      const todayTotal = todaySales.reduce((sum, s) => sum + (Number(s.priceThb) || 0), 0);
-      const todayProfit = todaySales.reduce((sum, s) => sum + (Number(s.profitThb) || 0), 0);
-
-      const topPill = document.getElementById('topbar-kpi-pill');
-      if (topPill) {
-        // Stacked label/value on phones, single inline line on desktop.
-        const kpi = (label, value, tone) => `
-          <span class="flex flex-col sm:flex-row sm:items-center sm:gap-1 min-w-0 leading-tight">
-            <span class="text-[10px] sm:text-xs">${label}</span>
-            <strong class="${tone} text-[13px] sm:text-xs truncate">${value}</strong>
-          </span>`;
-        const dot = '<span class="hidden sm:inline text-[#DDD0FA]">•</span>';
-        topPill.innerHTML =
-          kpi('วันนี้', `${todaySales.length} ออเดอร์`, 'text-[#2E2544]') + dot +
-          kpi('ยอดขาย', `<span class="baht">฿</span>${formatNumber(todayTotal)}`, 'text-[#2E2544]') + dot +
-          kpi('กำไร', `<span class="baht">฿</span>${formatNumber(todayProfit)}`, todayProfit >= 0 ? 'text-[#059669]' : 'text-[#E11D48]');
-      }
-
-      renderCurrentTab();
-    }
-
-    function renderCurrentTab() {
-      if (currentTab === 'cashier') renderCashier();
-      else if (currentTab === 'stocks') renderStocks();
-      else if (currentTab === 'pricing') renderPricing();
-      else if (currentTab === 'summary') renderSummary();
-    }
-
-    function toggleOverpressSection() {
-      const box = document.getElementById('cashier-overpress-box');
-      const btn = document.getElementById('btn-toggle-overpress');
-      if (!box) return;
-      if (box.classList.contains('hidden')) {
-        box.classList.remove('hidden');
-        if (btn) btn.innerHTML = '<span>✕ ซ่อนช่องกดเกิน</span>';
-      } else {
-        box.classList.add('hidden');
-        if (btn) btn.innerHTML = '<span>+ มีเผลอกดเกิน / เพิ่มเติม</span>';
-      }
-    }
-
-    function addCashierExtraPack(type) {
-      cashierExtraPacks[type] = (cashierExtraPacks[type] || 0) + 1;
-      updateCashierExtraBadges();
-      renderSmartFulfillmentPreview();
-    }
-
-    function resetCashierOverpress() {
-      cashierExtraPacks = { '80': 0, '500': 0, '1000': 0, '2000': 0 };
-      updateCashierExtraBadges();
-      renderSmartFulfillmentPreview();
-    }
-
-    function updateCashierExtraBadges() {
-      ['80', '500', '1000', '2000'].forEach(k => {
-        const el = document.getElementById('badge-extra-' + k);
-        if (el) el.textContent = cashierExtraPacks[k] || 0;
-      });
-
-      const summaryBadge = document.getElementById('cashier-overpress-summary-badge');
-      let extraUsd = 0;
-      let parts = [];
-      Object.entries(cashierExtraPacks).forEach(([k, count]) => {
-        if (count > 0) {
-          extraUsd += count * (PACK_USD_RATES[k] || 0);
-          parts.push(`+${k}R (${count} ครั้ง)`);
-        }
-      });
-
-      if (summaryBadge) {
-        if (parts.length > 0) {
-          summaryBadge.classList.remove('hidden');
-          summaryBadge.innerHTML = `<span class="font-bold text-[#8054F7]">${parts.join(', ')}</span> ➔ เพิ่มเครดิต USD อีก <strong>+$${extraUsd.toFixed(2)}</strong>`;
-        } else {
-          summaryBadge.classList.add('hidden');
-        }
-      }
-    }
-
-    function handleSelectMailChange(stockId) {
-      selectedStockId = stockId;
-      renderSmartFulfillmentPreview();
-    }
-
-    function renderCashier() {
-      const pkgs = appData.packages || INITIAL_SEED.packages;
-      const pillsContainer = document.getElementById('cashier-pkg-pills');
-      
-      if (pillsContainer) {
-        pillsContainer.innerHTML = pkgs.map(pkg => {
-          const isAct = pkg.robux === selectedRobux;
-          return `
-            <button type="button" onclick="selectCashierPackage(${pkg.robux})" class="pkg-pill py-2.5 px-3 rounded-2xl text-center flex flex-col items-center justify-center gap-0.5 ${isAct ? 'active' : ''}">
-              <div class="flex items-center gap-1.5 font-mono font-bold text-xs sm:text-sm">
-                <img src="${ROBUX_ICON_URL}" class="w-4 h-4 object-contain shrink-0" alt="R$" onerror="this.style.display='none'">
-                <span>${formatInt(pkg.robux)}</span>
-              </div>
-              <span class="text-[11px] opacity-85"><span class="baht">฿</span>${formatNumber(pkg.price)}</span>
-            </button>
-          `;
-        }).join('');
-      }
-
-      const staffSelect = document.getElementById('cashier-staff');
-      if (staffSelect) {
-        const curVal = staffSelect.value;
-        const employees = (appData.settings && appData.settings.employees) ? appData.settings.employees : INITIAL_SEED.settings.employees;
-        staffSelect.innerHTML = employees.map(e => `<option value="${e}" ${e === curVal ? 'selected' : ''}>${e}</option>`).join('');
-      }
-
-      const stockSelect = document.getElementById('cashier-stock-select');
-      if (stockSelect) {
-        const balances = calculateStockBalances();
-        const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts;
-        const openAccounts = accounts.filter(s => s.status === 'พร้อมใช้');
-        const displayAccounts = openAccounts.length > 0 ? openAccounts : accounts;
-
-        if (!displayAccounts.some(s => s.id === selectedStockId) && displayAccounts.length > 0) {
-          selectedStockId = displayAccounts[displayAccounts.length - 1].id;
-        }
-
-        stockSelect.innerHTML = displayAccounts.map(s => {
-          const bal = balances[s.id] ? balances[s.id].remainingUsd : s.initialUsd;
-          return `<option value="${s.id}" ${s.id === selectedStockId ? 'selected' : ''}>${s.id} (เหลือ $${formatNumber(bal)} • เรท ${s.rate})</option>`;
-        }).join('');
-      }
-
-      updateCashierExtraBadges();
-      renderSmartFulfillmentPreview();
-      renderSalesLog();
-    }
-
-    function selectCashierPackage(robuxVal) {
-      selectedRobux = robuxVal;
-      renderCashier();
-    }
-
-    function renderSmartFulfillmentPreview() {
-      const box = document.getElementById('cashier-smart-preview');
-      if (!box) return;
-
-      const pkgs = appData.packages || INITIAL_SEED.packages;
-      const pkg = pkgs.find(p => p.robux === selectedRobux) || pkgs[0];
-
-      let totalUsd = pkg.usd;
-      let extraParts = [];
-      Object.entries(cashierExtraPacks).forEach(([k, count]) => {
-        if (count > 0) {
-          totalUsd += count * (PACK_USD_RATES[k] || 0);
-          extraParts.push(`+${k}R × ${count}`);
-        }
-      });
-      totalUsd = Number(totalUsd.toFixed(2));
-
-      const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts;
-      let stock = accounts.find(s => s.id === selectedStockId);
-      if (!stock) stock = accounts.find(s => s.status === 'พร้อมใช้') || accounts[0];
-
-      const balances = calculateStockBalances();
-      const bal = balances[stock.id] ? balances[stock.id].remainingUsd : stock.initialUsd;
-      const remainAfter = bal - totalUsd;
-
-      const costThb = Number((totalUsd * stock.rate).toFixed(2));
-      const profitThb = Number((pkg.price - costThb).toFixed(2));
-      const marginPct = pkg.price > 0 ? ((profitThb / pkg.price) * 100).toFixed(1) : '0.0';
-
-      let guideText = pkg.pressGuide;
-      if (extraParts.length > 0) {
-        guideText += ` <span class="text-[#E11D48] text-base font-extrabold bg-[#FFF1F2] px-2 py-0.5 rounded-lg border border-[#FECDD3] ml-1">(เผลอกดเกิน ${extraParts.join(' + ')})</span>`;
-      }
-
-      box.className = 'p-3 sm:p-4 rounded-3xl border-2 border-[#86EFAC] bg-gradient-to-br from-[#F0FDF4] via-[#F6FDF9] to-[#ECFDF5] space-y-2.5 shadow-sm';
-      box.innerHTML = `
-        <!-- What to press in game - the one line staff actually act on -->
-        <div class="bg-white/95 p-3 rounded-2xl border border-[#A7F3D0] flex flex-wrap items-center gap-x-3 gap-y-2">
-          <div class="w-9 h-9 shrink-0 rounded-xl bg-gradient-to-br from-[#059669] to-[#10B981] text-white flex items-center justify-center text-base shadow-sm">
-            🎮
-          </div>
-
-          <div class="min-w-0 flex-1">
-            <div class="text-[10px] font-extrabold text-[#059669] tracking-wider">วิธีกดในเกม (ทำรายการตามนี้)</div>
-            <div class="text-lg sm:text-xl font-black text-[#059669] font-mono tracking-tight leading-tight mt-0.5 flex items-center gap-1.5">
-              <span>👉</span><span>${guideText}</span>
-            </div>
-          </div>
-
-          <div class="w-full sm:w-auto order-last sm:order-none shrink-0 flex items-center justify-center sm:justify-start gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#F0FDF4] border border-[#A7F3D0] text-xs font-mono font-bold text-[#059669]">
-            <img src="${ROBUX_ICON_URL}" class="w-3.5 h-3.5 object-contain" alt="" onerror="this.style.display='none'">
-            <span>ตัดเครดิต $${totalUsd.toFixed(2)} USD</span>
-          </div>
+    <div class="stack" style="margin-top:20px">
+      <div class="row between wrap gap-sm">
+        <h3 class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+          รายการล่าสุด
+          <span class="chip plain mono" id="recent-count">0</span>
+        </h3>
+        <button class="btn btn-line sm" data-act="go" data-tab="history">ดูประวัติทั้งหมด →</button>
+      </div>
+      <div class="stack-sm" id="recent-list"></div>
+    </div>
+  </section>
+
+  <!-- ---------------------------------------------------- TAB: HISTORY -->
+  <section class="panel hidden" id="panel-history">
+    <div class="card stack">
+      <div class="card-head" style="border:0;padding:0;margin:0">
+        <div>
+          <h2>ประวัติออเดอร์</h2>
+          <p>เลือกช่วงวัน ค้นหา และแก้ไขรายการที่บันทึกผิดได้ทุกช่อง รวมถึงวันที่</p>
         </div>
+      </div>
 
-        <div class="grid grid-cols-3 gap-2 text-center">
-          <div class="bg-white p-2.5 rounded-2xl border border-[#D1FAE5]">
-            <div class="text-[10px] font-semibold text-[#857B9B] leading-none">เมลที่ตัด</div>
-            <div class="font-mono font-bold text-[#8054F7] text-sm mt-1 leading-none">${stock.id}</div>
-            <div class="text-[10px] text-[#857B9B] mt-1 leading-tight">เรท ${stock.rate} ฿/$ · เหลือ $${formatNumber(remainAfter)}</div>
-          </div>
+      <div class="seg" id="hist-ranges"></div>
 
-          <div class="bg-white p-2.5 rounded-2xl border border-[#D1FAE5]">
-            <div class="text-[10px] font-semibold text-[#857B9B] leading-none">ราคา / ทุน</div>
-            <div class="font-mono font-bold text-[#2E2544] text-sm mt-1 leading-none"><span class="baht">฿</span>${formatNumber(pkg.price)}</div>
-            <div class="text-[10px] text-[#857B9B] mt-1 leading-tight">ทุน <span class="baht">฿</span>${formatNumber(costThb)}</div>
-          </div>
+      <div class="row gap-sm wrap hidden" id="hist-custom">
+        <label class="field"><span class="label">ตั้งแต่วันที่</span>
+          <input type="date" class="input sm" id="hist-from"></label>
+        <label class="field"><span class="label">ถึงวันที่</span>
+          <input type="date" class="input sm" id="hist-to"></label>
+      </div>
 
-          <div class="bg-[#059669] p-2.5 rounded-2xl text-white">
-            <div class="text-[10px] font-semibold text-white/85 leading-none">กำไรสุทธิ</div>
-            <div class="font-mono font-black text-sm mt-1 leading-none">${profitThb >= 0 ? '+<span class="baht">฿</span>' + formatNumber(profitThb) : '-<span class="baht">฿</span>' + formatNumber(Math.abs(profitThb))}</div>
-            <div class="text-[10px] text-white/90 mt-1 leading-tight">มาร์จิ้น ${marginPct}%</div>
-          </div>
-        </div>
-      `;
-    }
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input class="input" id="hist-search" placeholder="ค้นหา Username, Order ID, รหัสเมล, ชื่อพนักงาน... (Ctrl+K)">
+      </div>
 
-    function handleDirectFulfill(e) {
-      e.preventDefault();
-      const usernameInput = document.getElementById('cashier-username');
-      const username = usernameInput ? usernameInput.value.trim() : '';
-      const staffSelect = document.getElementById('cashier-staff');
-      const staff = staffSelect ? staffSelect.value : 'แอดมิน';
+      <div id="hist-health" class="notice hidden"></div>
+      <div class="row wrap gap-sm" id="hist-summary"></div>
+    </div>
 
-      if (!username) {
-        showToast('กรุณากรอก Username ในเกม', 'error');
-        return;
-      }
+    <div class="stack-sm" id="hist-list" style="margin-top:16px"></div>
+    <div class="row center" style="margin-top:16px" id="hist-more"></div>
+  </section>
 
-      const pkgs = appData.packages || INITIAL_SEED.packages;
-      const pkg = pkgs.find(p => p.robux === selectedRobux) || pkgs[0];
+  <!-- ----------------------------------------------------- TAB: STOCKS -->
+  <section class="panel hidden" id="panel-stocks">
+    <div class="card row between wrap gap-lg">
+      <div>
+        <h2 class="t-lg">สต็อกเมล &amp; เครดิต USD</h2>
+        <p class="t-sm muted">กดปุ่มเปิด/ปิดเมลได้เลย ทุกเครื่องในร้านจะเห็นตรงกันทันที</p>
+      </div>
+      <button class="btn btn-primary" data-act="add-stock">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        เพิ่มสต็อกเมล
+      </button>
+    </div>
+    <div class="grid g2" id="stocks-grid" style="margin-top:16px"></div>
+  </section>
 
-      let totalUsd = pkg.usd;
-      let extraParts = [];
-      Object.entries(cashierExtraPacks).forEach(([k, count]) => {
-        if (count > 0) {
-          totalUsd += count * (PACK_USD_RATES[k] || 0);
-          extraParts.push(`+${k}R × ${count}`);
-        }
-      });
-      totalUsd = Number(totalUsd.toFixed(2));
+  <!-- ---------------------------------------------------- TAB: PRICING -->
+  <section class="panel hidden" id="panel-pricing">
+    <div class="card row between wrap gap-lg">
+      <div>
+        <h2 class="t-lg">ตารางราคา &amp; จำลองเรทกำไร</h2>
+        <p class="t-sm muted">ใส่เรทเพื่อดูต้นทุน กำไรสุทธิ และ % มาร์จิ้นของทุกแพ็กเกจล่วงหน้า</p>
+      </div>
+      <label class="row gap-sm subbox">
+        <span class="t-sm semi nowrap">เรทคำนวณ (฿/USD)</span>
+        <input type="number" step="0.1" min="0" class="input sm mono" id="rate-input" style="width:92px;text-align:center">
+      </label>
+    </div>
+    <div class="card flush" id="pricing-table" style="margin-top:16px"></div>
+  </section>
 
-      const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts;
-      let stock = accounts.find(s => s.id === selectedStockId);
-      if (!stock) stock = accounts.find(s => s.status === 'พร้อมใช้') || accounts[0];
+  <!-- ---------------------------------------------------- TAB: SUMMARY -->
+  <section class="panel hidden" id="panel-summary">
+    <div class="seg" id="sum-ranges"></div>
+    <div class="grid g4" id="sum-kpi" style="margin-top:16px"></div>
+    <div style="margin-top:16px" id="sum-trend"></div>
 
-      if (!stock) {
-        showToast('ยังไม่มีบัญชีสต็อกเมลในระบบ เพิ่มเมลก่อนบันทึกออเดอร์', 'error');
-        return;
-      }
+    <div class="grid g2" style="margin-top:16px">
+      <div id="sum-packages"></div>
+      <div id="sum-stocks"></div>
+    </div>
 
-      // Nothing used to stop a sale being booked against a mail that could not
-      // cover it, which is how two accounts ended up with a negative balance.
-      const remainNow = (calculateStockBalances()[stock.id] || {}).remainingUsd;
-      const remaining = Number(remainNow !== undefined ? remainNow : stock.initialUsd) || 0;
-      if (remaining < totalUsd) {
-        const go = confirm(
-          'เครดิตของ ' + stock.id + ' ไม่พอ\n\n' +
-          'เหลือ $' + remaining.toFixed(2) + ' แต่รายการนี้ต้องใช้ $' + totalUsd.toFixed(2) + '\n\n' +
-          'กดตกลงเพื่อบันทึกต่อ (ยอดจะติดลบ) หรือยกเลิกเพื่อเปลี่ยนเมล');
-        if (!go) return;
-      }
+    <div class="grid g2" style="margin-top:16px">
+      <div id="sum-staff"></div>
 
-      const logs = appData.salesLogs || [];
-      let maxNum = 0;
-      logs.forEach(s => {
-        if (s && s.id) {
-          const digits = String(s.id).replace(/\D/g, '');
-          const n = parseInt(digits, 10);
-          if (!isNaN(n) && n > maxNum) maxNum = n;
-        }
-      });
-      const nextId = 'ORD-' + String(maxNum + 1).padStart(4, '0');
-      const nowStr = localDateTime();
+      <div class="stack">
+        <div id="sum-health"></div>
 
-      const costThb = Number((totalUsd * stock.rate).toFixed(2));
-      const profitThb = Number((pkg.price - costThb).toFixed(2));
-
-      let note = '';
-      if (extraParts.length > 0) {
-        note = `กดเกิน: ${extraParts.join(', ')}`;
-      }
-
-      if (!appData.salesLogs) appData.salesLogs = [];
-      appData.salesLogs.unshift({
-        id: nextId,
-        date: nowStr,
-        username,
-        robux: pkg.robux,
-        stockAccount: stock.id,
-        priceThb: pkg.price,
-        pressGuide: pkg.pressGuide,
-        rate: stock.rate,
-        usd: totalUsd,
-        costThb,
-        profitThb,
-        staff,
-        status: 'สำเร็จ',
-        note,
-        extraPacks: { ...cashierExtraPacks }
-      });
-
-      saveData();
-      if (usernameInput) usernameInput.value = '';
-      resetCashierOverpress();
-      renderApp();
-      showToast(`เติมสำเร็จ! ${username} (${pkg.robux}R) ตัดเมล ${stock.id} • ซิงค์ Real-time แล้ว`, 'success');
-    }
-
-    function handleSearchSales(query) {
-      salesSearchQuery = (query || '').toLowerCase().trim();
-      salesDisplayLimit = 30;
-      renderSalesLog();
-    }
-
-    function loadMoreSales() {
-      salesDisplayLimit += 50;
-      renderSalesLog();
-    }
-
-    function renderSalesLog() {
-      const container = document.getElementById('sales-log-container');
-      const countBadge = document.getElementById('sales-count-badge');
-      const paginationBox = document.getElementById('sales-pagination-controls');
-      if (!container) return;
-
-      const logs = appData.salesLogs || [];
-      
-      const filtered = logs.filter(log => {
-        if (!salesSearchQuery) return true;
-        const u = (log.username || '').toLowerCase();
-        const id = (log.id || '').toLowerCase();
-        const stock = (log.stockAccount || '').toLowerCase();
-        const staff = (log.staff || '').toLowerCase();
-        const note = (log.note || '').toLowerCase();
-        return u.includes(salesSearchQuery) || id.includes(salesSearchQuery) || stock.includes(salesSearchQuery) || staff.includes(salesSearchQuery) || note.includes(salesSearchQuery);
-      });
-
-      if (countBadge) {
-        if (salesSearchQuery) {
-          countBadge.textContent = `พบ ${filtered.length} / ${logs.length} รายการ`;
-        } else {
-          countBadge.textContent = `ทั้งหมด ${logs.length} รายการ`;
-        }
-      }
-
-      if (filtered.length === 0) {
-        container.innerHTML = `
-          <div class="cozy-card p-6 text-center text-xs text-[#857B9B]">
-            ${salesSearchQuery ? 'ไม่พบรายการที่ตรงกับคำค้นหา' : 'ยังไม่มีรายการเติมเงิน บันทึกออเดอร์แรกด้านบนได้เลยครับ 🌸'}
-          </div>
-        `;
-        if (paginationBox) paginationBox.innerHTML = '';
-        return;
-      }
-
-      const visibleLogs = filtered.slice(0, salesDisplayLimit);
-
-      let items = visibleLogs.map((log) => {
-        const hasNote = Boolean(log.note);
-        return `
-          <div class="cozy-card cozy-hover-card p-3 sm:p-3.5 text-xs">
-            <div class="flex items-start gap-2.5">
-              <div class="w-7 h-7 mt-0.5 rounded-lg bg-[#F0FDF4] text-[#059669] border border-[#D1FAE5] flex items-center justify-center font-bold text-[11px] shrink-0">
-                ✓
-              </div>
-
-              <div class="min-w-0 flex-1">
-                <!-- name + money -->
-                <div class="flex items-start justify-between gap-2">
-                  <span class="font-bold text-sm text-[#2E2544] leading-snug break-all">${log.username}</span>
-                  <div class="text-right shrink-0 leading-tight">
-                    <div class="font-mono font-bold text-sm text-[#2E2544]"><span class="baht">฿</span>${formatNumber(log.priceThb)}</div>
-                    <div class="font-mono font-bold text-[11px] ${log.profitThb >= 0 ? 'text-[#059669]' : 'text-[#E11D48]'}">
-                      ${log.profitThb >= 0 ? '+<span class="baht">฿</span>' + formatNumber(log.profitThb) : '-<span class="baht">฿</span>' + formatNumber(Math.abs(log.profitThb))}
-                    </div>
-                  </div>
-                </div>
-
-                <!-- badges -->
-                <div class="flex flex-wrap items-center gap-1.5 mt-1.5">
-                  <span class="px-2 py-0.5 rounded-lg bg-[#F5EFFF] text-[#8054F7] font-mono font-bold text-[11px] border border-[#E8DDFF] flex items-center gap-1">
-                    <img src="${ROBUX_ICON_URL}" class="w-3 h-3 object-contain" alt="" onerror="this.style.display='none'">
-                    <span>${formatInt(log.robux)}</span>
-                  </span>
-                  <span class="px-2 py-0.5 rounded-lg bg-[#FAF8FF] text-[#857B9B] font-mono text-[10px] border border-[#EDE5FC]">${log.id}</span>
-                  ${hasNote ? `<span class="px-2 py-0.5 rounded-md bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A] text-[10px] break-all">${log.note}</span>` : ''}
-                </div>
-
-                <!-- meta + actions share the last line -->
-                <div class="flex items-end justify-between gap-2 mt-1.5">
-                  <div class="text-[11px] text-[#857B9B] font-mono min-w-0 flex flex-wrap items-center gap-x-1.5">
-                    <span>${(log.date || '').slice(0, 16)}</span>
-                    <span class="text-[#DDD0FA]">•</span>
-                    <span>ตัด ${log.stockAccount} ($${log.usd})</span>
-                    <span class="text-[#DDD0FA]">•</span>
-                    <span>โดย ${log.staff}</span>
-                  </div>
-
-                  <div class="flex items-center gap-0.5 shrink-0 -mb-1 -mr-1">
-                    <button onclick="openOrderEditModal('${log.id}')" class="p-2 text-[#857B9B] hover:text-[#8054F7] hover:bg-[#F5EFFF] rounded-xl transition cursor-pointer" title="แก้ไข / ปรับยอดกดเกิน">
-                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                      </svg>
-                    </button>
-
-                    <button onclick="removeSalesLogById('${log.id}')" class="p-2 text-[#AAA0C0] hover:text-[#E11D48] hover:bg-[#FFF5F7] rounded-xl transition cursor-pointer" title="ลบรายการ (คืนสต็อก)">
-                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      container.innerHTML = items;
-
-      if (paginationBox) {
-        if (filtered.length > salesDisplayLimit) {
-          paginationBox.innerHTML = `
-            <button onclick="loadMoreSales()" class="px-5 py-2 rounded-2xl bg-white border border-[#E2D5F8] text-[#8054F7] text-xs font-semibold hover:bg-[#F5EFFF] transition shadow-xs cursor-pointer flex items-center gap-1.5">
-              <span>แสดงเพิ่มเติม (${filtered.length - salesDisplayLimit} รายการที่เหลือ)</span>
-              <span>↓</span>
-            </button>
-          `;
-        } else {
-          paginationBox.innerHTML = `
-            <span class="text-[11px] text-[#AAA0C0]">แสดงครบทั้งหมด ${filtered.length} รายการแล้ว</span>
-          `;
-        }
-      }
-    }
-
-    function removeSalesLogById(orderId) {
-      const idx = appData.salesLogs.findIndex(l => l.id === orderId);
-      if (idx === -1) return;
-      const log = appData.salesLogs[idx];
-      if (confirm(`ลบรายการของ ${log.username} (${log.robux}R)?\n(ระบบจะคืนเครดิต $${log.usd} ให้เมล ${log.stockAccount} ทันที)`)) {
-        appData.salesLogs.splice(idx, 1);
-        saveDataLocal();
-        renderApp();
-
-        // A plain sync would merge the row straight back, so deletions get
-        // their own endpoint; the server records a tombstone for it.
-        localLastUpdated = Date.now();
-        fetch('/api/delete-order', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: log.id, date: log.date, username: log.username })
-        })
-          .then(res => res.json())
-          .then(res => {
-            if (res && res.lastUpdated) localLastUpdated = res.lastUpdated;
-            showToast('ลบรายการและคืนสต็อกแล้ว', 'info');
-          })
-          .catch(() => showToast('ลบในเครื่องแล้ว แต่ยังไม่ได้ซิงก์ขึ้นเซิร์ฟเวอร์', 'info'));
-      }
-    }
-
-    // Stocks
-    function toggleStockStatus(idx) {
-      const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts;
-      const acc = accounts[idx];
-      if (!acc) return;
-
-      const newStatus = (acc.status === 'พร้อมใช้') ? 'ปิดใช้งาน' : 'พร้อมใช้';
-      acc.status = newStatus;
-      saveData();
-      renderApp();
-      showToast(`เปลี่ยนสถานะ ${acc.id} เป็น "${newStatus}" แล้ว`, 'success');
-    }
-
-    function renderStocks() {
-      const grid = document.getElementById('stocks-cards-grid');
-      if (!grid) return;
-
-      const balances = calculateStockBalances();
-      const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts;
-
-      let cards = accounts.map((acc, idx) => {
-        const bal = balances[acc.id] || { remainingUsd: acc.initialUsd, usedUsd: 0, totalSalesThb: 0, totalProfitThb: 0 };
-        const remainThb = bal.remainingUsd * (acc.rate || 0);
-        const percentRemain = acc.initialUsd > 0 ? Math.max(0, Math.min(100, (bal.remainingUsd / acc.initialUsd) * 100)) : 0;
-        const isOpen = (acc.status === 'พร้อมใช้');
-
-        let barColor = isOpen ? 'bg-[#8054F7]' : 'bg-slate-300';
-        if (isOpen && percentRemain < 15) barColor = 'bg-[#E11D48]';
-        else if (isOpen && percentRemain < 35) barColor = 'bg-[#D97706]';
-
-        return `
-          <div class="cozy-card p-4 space-y-3 ${isOpen ? 'border-[#E8DDFF]' : 'opacity-70 bg-[#FAFAFA] border-dashed'}">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <span class="font-mono font-bold text-sm ${isOpen ? 'text-[#8054F7] bg-[#F5EFFF]' : 'text-slate-500 bg-slate-100'} px-2.5 py-1 rounded-xl border ${isOpen ? 'border-[#E8DDFF]' : 'border-slate-200'}">${acc.id}</span>
-                <span class="text-xs font-semibold text-[#2E2544] truncate max-w-[130px]">${acc.email || '(ไม่มีอีเมล)'}</span>
-              </div>
-              
-              <div class="flex items-center gap-1.5">
-                <button type="button" onclick="toggleStockStatus(${idx})" class="px-3 py-1 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${isOpen ? 'bg-[#F0FDF4] text-[#059669] border border-[#D1FAE5] hover:bg-[#DCFCE7]' : 'bg-[#FAF8FF] text-slate-500 border border-slate-200 hover:bg-[#F3ECFF] hover:text-[#8054F7]'}">
-                  <span class="w-2 h-2 rounded-full ${isOpen ? 'bg-[#059669]' : 'bg-slate-400'}"></span>
-                  <span>${isOpen ? 'พร้อมใช้' : 'ปิดใช้งาน (หมด)'}</span>
-                </button>
-                <button onclick="openEditStockModal(${idx})" class="text-[#857B9B] hover:text-[#8054F7] hover:bg-[#F5EFFF] p-1.5 rounded-xl transition text-xs font-medium cursor-pointer" title="แก้ไข">
-                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                </button>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2 text-xs pt-1">
-              <div>
-                <div class="text-[10px] text-[#857B9B]">คงเหลือ USD</div>
-                <div class="font-mono font-bold text-base ${isOpen ? 'text-[#D97706]' : 'text-slate-500'}">$${formatNumber(bal.remainingUsd)}</div>
-                <div class="text-[10px] text-[#857B9B]">จากที่เติม $${formatNumber(acc.initialUsd)}</div>
-              </div>
-              <div class="text-right">
-                <div class="text-[10px] text-[#857B9B]">มูลค่าคงเหลือ (฿)</div>
-                <div class="font-mono font-bold text-base text-[#2E2544]"><span class="baht">฿</span>${formatNumber(remainThb)}</div>
-                <div class="text-[10px] text-[#8054F7] font-semibold">เรท ${acc.rate} ฿/$</div>
-              </div>
-            </div>
-
-            <div class="space-y-1 pt-1">
-              <div class="w-full h-2 bg-[#F3EDFB] rounded-full overflow-hidden">
-                <div class="h-full ${barColor} rounded-full transition-all duration-300" style="width: ${percentRemain}%"></div>
-              </div>
-              <div class="flex items-center justify-between text-[10px] text-[#857B9B]">
-                <span>ใช้ไปแล้ว $${formatNumber(bal.usedUsd)}</span>
-                <span>กำไรที่ทำได้ <span class="baht">฿</span>${formatNumber(bal.totalProfitThb)}</span>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      grid.innerHTML = cards;
-    }
-
-    let curStockEditIdx = null;
-
-    function openAddStockModal() {
-      curStockEditIdx = null;
-      const modal = document.getElementById('stock-modal');
-      if (!modal) return;
-
-      let maxNum = 0;
-      const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts;
-      accounts.forEach(a => {
-        const m = (a.id || '').match(/PC-(d+)/);
-        if (m) {
-          const n = parseInt(m[1]);
-          if (n > maxNum) maxNum = n;
-        }
-      });
-      const nextId = 'PC-' + String(maxNum + 1).padStart(3, '0');
-
-      document.getElementById('stock-modal-title').textContent = 'เพิ่มสต็อกเมลใหม่';
-      document.getElementById('form-stock-id').value = nextId;
-      document.getElementById('form-stock-email').value = '';
-      document.getElementById('form-stock-buydate').value = localDate();
-      document.getElementById('form-stock-usd').value = '';
-      document.getElementById('form-stock-rate').value = '25.50';
-      document.getElementById('form-stock-status').value = 'พร้อมใช้';
-      document.getElementById('form-stock-note').value = '';
-
-      const deleteBox = document.getElementById('stock-modal-delete-btn-box');
-      if (deleteBox) deleteBox.innerHTML = '';
-
-      calcStockFormThb();
-      modal.classList.remove('hidden');
-    }
-
-    function openEditStockModal(idx) {
-      const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts;
-      const acc = accounts[idx];
-      if (!acc) return;
-      curStockEditIdx = idx;
-      const modal = document.getElementById('stock-modal');
-      if (!modal) return;
-
-      document.getElementById('stock-modal-title').textContent = 'แก้ไขสต็อก ' + acc.id;
-      document.getElementById('form-stock-id').value = acc.id;
-      document.getElementById('form-stock-email').value = acc.email || '';
-      document.getElementById('form-stock-buydate').value = acc.buyDate || '';
-      document.getElementById('form-stock-usd').value = acc.initialUsd;
-      document.getElementById('form-stock-rate').value = acc.rate;
-      document.getElementById('form-stock-status').value = acc.status || 'พร้อมใช้';
-      document.getElementById('form-stock-note').value = acc.note || '';
-
-      const deleteBox = document.getElementById('stock-modal-delete-btn-box');
-      if (deleteBox) {
-        deleteBox.innerHTML = `
-          <button type="button" onclick="deleteStockAccount(${idx})" class="text-[#E11D48] hover:bg-[#FFF5F7] px-3 py-1.5 rounded-xl transition font-medium cursor-pointer">
-            ลบสต็อกนี้
+        <div class="card stack-sm">
+          <h3 class="section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
+            ส่งออก &amp; สำรองข้อมูล
+          </h3>
+          <p class="t-xs muted">ไฟล์ CSV จะออกตามตัวกรองที่เลือกไว้ในแท็บ “ประวัติออเดอร์”</p>
+          <button class="btn btn-soft block" data-act="export-csv">📊 ดาวน์โหลดรายงาน Excel / CSV</button>
+          <button class="btn btn-line block" data-act="export-json">💾 ดาวน์โหลด Backup ทั้งระบบ (JSON)</button>
+          <label class="btn btn-good block">
+            📥 กู้คืนจากไฟล์สำรอง (รวมข้อมูล)
+            <input type="file" accept=".json,application/json" id="import-file" class="sr-only">
+          </label>
+          <button class="btn btn-line block" data-act="recovery">🗃️ กู้ข้อมูลเก่าที่ค้างในเบราว์เซอร์นี้</button>
+          <button class="btn btn-ghost block" data-act="reset-local" style="color:var(--rose-600)">
+            ล้างข้อมูลในเครื่องนี้ (ไม่แตะเซิร์ฟเวอร์)
           </button>
-        `;
-      }
-
-      calcStockFormThb();
-      modal.classList.remove('hidden');
-    }
-
-    function deleteStockAccount(idx) {
-      const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts;
-      const acc = accounts[idx];
-      if (!acc) return;
-      if (confirm(`ลบสต็อก ${acc.id} (${acc.email || 'ไม่มีเมล'}) ใช่หรือไม่?`)) {
-        accounts.splice(idx, 1);
-        saveData();
-        closeStockModal();
-        renderApp();
-        showToast(`ลบสต็อก ${acc.id} แล้ว`, 'info');
-      }
-    }
-
-    function closeStockModal() {
-      const modal = document.getElementById('stock-modal');
-      if (modal) modal.classList.add('hidden');
-      curStockEditIdx = null;
-    }
-
-    function handleModalBackdropClick(e, modalId) {
-      if (e.target && e.target.id === modalId) {
-        if (modalId === 'stock-modal') closeStockModal();
-        if (modalId === 'order-edit-modal') closeOrderEditModal();
-      }
-    }
-
-    function calcStockFormThb() {
-      const usd = parseFloat(document.getElementById('form-stock-usd').value) || 0;
-      const rate = parseFloat(document.getElementById('form-stock-rate').value) || 0;
-      const thb = usd * rate;
-      const el = document.getElementById('form-stock-thb-preview');
-      if (el) el.textContent = `฿ ${formatNumber(thb)}`;
-    }
-
-    function handleSubmitStockAccount(e) {
-      e.preventDefault();
-      const id = document.getElementById('form-stock-id').value.trim();
-      const email = document.getElementById('form-stock-email').value.trim();
-      const buyDate = document.getElementById('form-stock-buydate').value;
-      const initialUsd = parseFloat(document.getElementById('form-stock-usd').value) || 0;
-      const rate = parseFloat(document.getElementById('form-stock-rate').value) || 25.50;
-      const investmentThb = Number((initialUsd * rate).toFixed(2));
-      const status = document.getElementById('form-stock-status').value;
-      const note = document.getElementById('form-stock-note').value.trim();
-
-      if (!id) {
-        showToast('กรุณากรอกรหัสเมล เช่น PC-011', 'error');
-        return;
-      }
-      // A second account with the same id splits its balance across two records
-      // and both end up wrong.
-      const clash = (appData.stockAccounts || []).findIndex(a => a && a.id === id);
-      if (clash !== -1 && clash !== curStockEditIdx) {
-        showToast('มีเมล ' + id + ' อยู่แล้ว ใช้รหัสอื่น', 'error');
-        return;
-      }
-      if (!(initialUsd > 0)) {
-        showToast('กรุณากรอกยอดเงิน USD ให้ถูกต้อง', 'error');
-        return;
-      }
-      if (!(rate > 0)) {
-        showToast('กรุณากรอกเรทให้ถูกต้อง', 'error');
-        return;
-      }
-
-      const obj = { id, email, buyDate, initialUsd, rate, investmentThb, status, note };
-
-      if (!appData.stockAccounts) appData.stockAccounts = [];
-
-      if (curStockEditIdx !== null) {
-        appData.stockAccounts[curStockEditIdx] = obj;
-        showToast(`อัปเดตสต็อก ${id} สำเร็จ`, 'success');
-      } else {
-        appData.stockAccounts.push(obj);
-        showToast(`เพิ่มสต็อก ${id} สำเร็จ`, 'success');
-      }
-
-      saveData();
-      closeStockModal();
-      renderApp();
-    }
-
-    // ORDER EDIT MODAL
-    let editingOrderId = null;
-    let modalEditExtraPacks = { '80': 0, '500': 0, '1000': 0, '2000': 0 };
-
-    function openOrderEditModal(orderId) {
-      const log = appData.salesLogs.find(l => l.id === orderId);
-      if (!log) return;
-      editingOrderId = orderId;
-
-      const modal = document.getElementById('order-edit-modal');
-      if (!modal) return;
-
-      // Written defensively: a missing #edit-modal-stock-info used to throw here
-      // and the modal never opened, so the edit button did nothing at all.
-      const setText = (id, text) => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = text;
-      };
-      const setValue = (id, value) => {
-        const el = document.getElementById(id);
-        if (el) el.value = value;
-      };
-
-      setText('order-edit-title', `แก้ไข ${log.id} • ${log.username}`);
-      setText('edit-modal-customer-info', `${log.username} (${formatInt(log.robux)} Robux • ฿ ${formatNumber(log.priceThb)})`);
-      setValue('edit-modal-note', log.note || '');
-
-      // The mail selector shipped as empty markup with no code behind it.
-      const stockSelect = document.getElementById('edit-modal-stock-select');
-      if (stockSelect) {
-        const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts || [];
-        const known = accounts.some(a => a.id === log.stockAccount);
-        const options = accounts.map(a =>
-          `<option value="${a.id}">${a.id} — เรท ${a.rate} ฿/$${a.status === 'พร้อมใช้' ? '' : ' (ปิดใช้งาน)'}</option>`);
-        // Keep the order's own account selectable even if it was removed later.
-        if (!known) options.unshift(`<option value="${log.stockAccount}">${log.stockAccount} — เรท ${log.rate} ฿/$ (ไม่อยู่ในรายการแล้ว)</option>`);
-        stockSelect.innerHTML = options.join('');
-        stockSelect.value = log.stockAccount;
-      }
-
-      const zero = document.getElementById('edit-modal-zero-profit');
-      if (zero) zero.checked = (log.profitThb === 0 && log.costThb > 0);
-
-      modalEditExtraPacks = { '80': 0, '500': 0, '1000': 0, '2000': 0 };
-      if (log.extraPacks) {
-        modalEditExtraPacks = { ...modalEditExtraPacks, ...log.extraPacks };
-      }
-
-      updateEditModalExtraBadges();
-      renderEditModalCalcPreview();
-      modal.classList.remove('hidden');
-    }
-
-    function closeOrderEditModal() {
-      const modal = document.getElementById('order-edit-modal');
-      if (modal) modal.classList.add('hidden');
-      editingOrderId = null;
-    }
-
-    function adjustEditExtra(type, delta) {
-      modalEditExtraPacks[type] = Math.max(0, (modalEditExtraPacks[type] || 0) + delta);
-      updateEditModalExtraBadges();
-      renderEditModalCalcPreview();
-    }
-
-    function resetEditModalOverpress() {
-      modalEditExtraPacks = { '80': 0, '500': 0, '1000': 0, '2000': 0 };
-      updateEditModalExtraBadges();
-      renderEditModalCalcPreview();
-    }
-
-    function updateEditModalExtraBadges() {
-      ['80', '500', '1000', '2000'].forEach(k => {
-        const el = document.getElementById('modal-badge-extra-' + k);
-        if (el) el.textContent = modalEditExtraPacks[k] || 0;
-      });
-    }
-
-    // Which stock account the edit modal is currently pointing at, falling back
-    // to the one the order was booked against.
-    function getEditModalStock(log) {
-      const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts || [];
-      const sel = document.getElementById('edit-modal-stock-select');
-      const id = (sel && sel.value) || log.stockAccount;
-      return accounts.find(a => a.id === id) || { id: log.stockAccount, rate: log.rate };
-    }
-
-    function renderEditModalCalcPreview() {
-      const preview = document.getElementById('modal-edit-calc-preview');
-      if (!preview || !editingOrderId) return;
-      const log = appData.salesLogs.find(l => l.id === editingOrderId);
-      if (!log) return;
-
-      const pkgMatch = (appData.packages || []).find(p => p.robux === log.robux) || { usd: log.usd };
-      let baseUsd = pkgMatch.usd || log.usd;
-
-      let extraUsd = 0;
-      let extraParts = [];
-      Object.entries(modalEditExtraPacks).forEach(([k, count]) => {
-        if (count > 0) {
-          extraUsd += count * (PACK_USD_RATES[k] || 0);
-          extraParts.push(`+${k}R (${count} ครั้ง)`);
-        }
-      });
-
-      const stock = getEditModalStock(log);
-      const totalUsd = Number((baseUsd + extraUsd).toFixed(2));
-      const costThb = Number((totalUsd * stock.rate).toFixed(2));
-      const isZeroProfit = document.getElementById('edit-modal-zero-profit').checked;
-      const profitThb = isZeroProfit ? 0 : Number((log.priceThb - costThb).toFixed(2));
-
-      const info = document.getElementById('edit-modal-stock-info');
-      if (info) {
-        info.textContent = stock.id === log.stockAccount
-          ? `เรท ${stock.rate} ฿/$`
-          : `ย้ายจาก ${log.stockAccount} → ${stock.id} • เรทใหม่ ${stock.rate} ฿/$`;
-      }
-
-      preview.innerHTML = `
-        <div class="flex items-center justify-between text-xs pb-1 border-b border-[#E8DDFF]">
-          <span class="text-[#857B9B]">ยอดตัดเครดิต USD จริง:</span>
-          <span class="font-mono font-bold text-[#8054F7] text-sm">$${totalUsd.toFixed(2)} USD</span>
         </div>
-        <div class="flex items-center justify-between text-xs pt-1">
-          <span class="text-[#857B9B]">ต้นทุน: <strong><span class="baht">฿</span>${formatNumber(costThb)}</strong></span>
-          <span class="font-mono font-bold ${profitThb >= 0 ? 'text-[#059669]' : 'text-[#E11D48]'}">
-            กำไรสุทธิ: ${profitThb >= 0 ? '+<span class="baht">฿</span>' + formatNumber(profitThb) : '-<span class="baht">฿</span>' + formatNumber(Math.abs(profitThb))}
-          </span>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ==================================================== BOTTOM NAV (มือถือ) -->
+<nav class="bottomnav" aria-label="เมนูหลัก (มือถือ)">
+  <button class="tab" data-tab="cashier" aria-selected="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    <span>เติมเงิน</span>
+  </button>
+  <button class="tab" data-tab="history" aria-selected="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+    <span>ประวัติ</span>
+  </button>
+  <button class="tab" data-tab="stocks" aria-selected="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.3 7L12 12l8.7-5M12 22V12"/></svg>
+    <span>สต็อก</span>
+  </button>
+  <button class="tab" data-tab="pricing" aria-selected="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8z"/><path d="M7 7h.01"/></svg>
+    <span>ราคา</span>
+  </button>
+  <button class="tab" data-tab="summary" aria-selected="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+    <span>สรุป</span>
+  </button>
+</nav>
+
+<!-- ============================================== MODAL: STOCK ACCOUNT -->
+<div class="modal hidden" id="modal-stock">
+  <form class="modal-box">
+    <div class="modal-head">
+      <div>
+        <h3 id="sm-title">เพิ่มสต็อกเมลใหม่</h3>
+        <p>บันทึกข้อมูลเมล เครดิต USD และเรทที่ได้มา</p>
+      </div>
+      <button type="button" class="iconbtn" data-act="close-modal" aria-label="ปิด">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="modal-body stack">
+      <div class="grid g2">
+        <label class="field"><span class="label">รหัสเมล <span class="req">*</span></span>
+          <input class="input sm mono" id="sm-id" required placeholder="PC-012"></label>
+        <label class="field"><span class="label">วันที่ซื้อ</span>
+          <input type="date" class="input sm" id="sm-buydate"></label>
+      </div>
+
+      <label class="field"><span class="label">อีเมล / ชื่อบัญชี</span>
+        <input class="input sm" id="sm-email" placeholder="account@qwbak.com" autocapitalize="off" spellcheck="false"></label>
+
+      <div class="subbox stack-sm">
+        <div class="grid g2">
+          <label class="field"><span class="label">ยอดเงิน ($ USD) <span class="req">*</span></span>
+            <input type="number" step="0.01" min="0" class="input sm mono" id="sm-usd" required placeholder="500.00"></label>
+          <label class="field"><span class="label">เรทที่ได้มา (฿/USD) <span class="req">*</span></span>
+            <input type="number" step="0.01" min="0" class="input sm mono" id="sm-rate" required placeholder="25.50"></label>
         </div>
-      `;
-    }
-
-    function handleSaveOrderEdit(e) {
-      e.preventDefault();
-      if (!editingOrderId) return;
-      const log = appData.salesLogs.find(l => l.id === editingOrderId);
-      if (!log) return;
-
-      const pkgMatch = (appData.packages || []).find(p => p.robux === log.robux) || { usd: log.usd };
-      let baseUsd = pkgMatch.usd || log.usd;
-
-      let extraUsd = 0;
-      let extraParts = [];
-      Object.entries(modalEditExtraPacks).forEach(([k, count]) => {
-        if (count > 0) {
-          extraUsd += count * (PACK_USD_RATES[k] || 0);
-          extraParts.push(`+${k}R × ${count}`);
-        }
-      });
-
-      const stock = getEditModalStock(log);
-      const totalUsd = Number((baseUsd + extraUsd).toFixed(2));
-      const costThb = Number((totalUsd * stock.rate).toFixed(2));
-      const zeroBox = document.getElementById('edit-modal-zero-profit');
-      const isZeroProfit = zeroBox ? zeroBox.checked : false;
-      const profitThb = isZeroProfit ? 0 : Number((log.priceThb - costThb).toFixed(2));
-      const noteBox = document.getElementById('edit-modal-note');
-      let note = noteBox ? noteBox.value.trim() : (log.note || '');
-
-      if (extraParts.length > 0 && !note) {
-        note = `กดเกิน: ${extraParts.join(', ')}`;
-      }
-
-      log.usd = totalUsd;
-      log.stockAccount = stock.id;
-      log.rate = stock.rate;
-      log.costThb = costThb;
-      log.profitThb = profitThb;
-      log.note = note;
-      log.extraPacks = { ...modalEditExtraPacks };
-
-      saveData();
-      closeOrderEditModal();
-      renderApp();
-      showToast(`อัปเดตออเดอร์ ${log.id} สำเร็จ • ซิงค์คลาวด์แล้ว`, 'success');
-    }
-
-    // Pricing
-    function renderPricing() {
-      const container = document.getElementById('pricing-table-container');
-      if (!container) return;
-
-      const pkgs = appData.packages || INITIAL_SEED.packages;
-      let rows = pkgs.map(pkg => {
-        const costThb = Number((pkg.usd * currentPricingRate).toFixed(2));
-        const profitThb = Number((pkg.price - costThb).toFixed(2));
-        const marginPct = pkg.price > 0 ? ((profitThb / pkg.price) * 100).toFixed(1) : '0.0';
-
-        let badge = 'bg-[#ECFDF5] text-[#059669] border-[#D1FAE5]';
-        if (Number(marginPct) < 15) badge = 'bg-[#FFF1F2] text-[#E11D48] border-[#FECDD3]';
-        else if (Number(marginPct) < 20) badge = 'bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]';
-
-        return `
-          <tr class="border-b border-[#F7F3FD] hover:bg-[#FAF8FF] transition text-xs">
-            <td class="py-3 px-4 font-mono font-bold text-[#2E2544]">
-              <div class="flex items-center gap-1.5">
-                <img src="${ROBUX_ICON_URL}" class="w-4 h-4 object-contain" alt="Robux" onerror="this.style.display='none'">
-                <span>${formatInt(pkg.robux)} Robux</span>
-              </div>
-            </td>
-            <td class="py-3 px-3 text-[#857B9B]">${pkg.pressGuide}</td>
-            <td class="py-3 px-3 text-right font-mono font-bold text-[#8054F7]">
-              <span class="baht">฿</span>${formatNumber(pkg.price)}
-            </td>
-            <td class="py-3 px-3 text-right font-mono text-[#857B9B]">
-              $${Number(pkg.usd).toFixed(2)} (<span class="baht">฿</span>${formatNumber(costThb)})
-            </td>
-            <td class="py-3 px-4 text-right font-mono font-bold text-[#059669]">
-              +<span class="baht">฿</span>${formatNumber(profitThb)}
-            </td>
-            <td class="py-3 px-4 text-center">
-              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${badge}">
-                ${marginPct}%
-              </span>
-            </td>
-          </tr>
-        `;
-      }).join('');
-
-      container.innerHTML = `
-        <table class="w-full text-left">
-          <thead>
-            <tr class="text-[10px] text-[#857B9B] bg-[#FAF8FF] border-b border-[#EFE9F9]">
-              <th class="py-2.5 px-4">แพ็กเกจ</th>
-              <th class="py-2.5 px-3">วิธีกด</th>
-              <th class="py-2.5 px-3 text-right">ราคาขาย</th>
-              <th class="py-2.5 px-3 text-right">ต้นทุน (USD / ฿)</th>
-              <th class="py-2.5 px-4 text-right">กำไรสุทธิ</th>
-              <th class="py-2.5 px-4 text-center">% มาร์จิ้น</th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
-      `;
-    }
-
-    function handlePricingRateChange(val) {
-      const r = parseFloat(val);
-      if (!isNaN(r) && r > 0) {
-        currentPricingRate = r;
-        renderPricing();
-      }
-    }
-
-    // Summary
-    // ---------------------------------------------------------------
-    // SUMMARY DASHBOARD
-    // Every figure below follows the selected period, so the shop can look
-    // back at any day instead of only "today".
-    // ---------------------------------------------------------------
-    const SUMMARY_RANGES = [
-      { key: 'today', label: 'วันนี้' },
-      { key: 'yesterday', label: 'เมื่อวาน' },
-      { key: '7d', label: '7 วัน' },
-      { key: '30d', label: '30 วัน' },
-      { key: 'month', label: 'เดือนนี้' },
-      { key: 'all', label: 'ทั้งหมด' },
-    ];
-
-    function setSummaryRange(key) {
-      summaryRange = key;
-      renderSummary();
-    }
-
-    // Days covered by the period, oldest first. null means "no limit".
-    function summaryRangeDays(key) {
-      const shift = n => { const d = new Date(); d.setDate(d.getDate() - n); return d; };
-      if (key === 'today') return [localDate()];
-      if (key === 'yesterday') return [localDate(shift(1))];
-      if (key === '7d') return Array.from({ length: 7 }, (_, i) => localDate(shift(6 - i)));
-      if (key === '30d') return Array.from({ length: 30 }, (_, i) => localDate(shift(29 - i)));
-      if (key === 'month') {
-        const now = new Date();
-        return Array.from({ length: now.getDate() },
-          (_, i) => localDate(new Date(now.getFullYear(), now.getMonth(), i + 1)));
-      }
-      return null;
-    }
-
-    function renderSummary() {
-      const allLogs = (appData.salesLogs || []).filter(l => l && l.status !== 'ปรับยอด');
-      const days = summaryRangeDays(summaryRange);
-      const daySet = days ? new Set(days) : null;
-      const logs = daySet
-        ? allLogs.filter(l => daySet.has(String(l.date || '').slice(0, 10)))
-        : allLogs;
-
-      const sum = (arr, f) => arr.reduce((s, x) => s + (Number(f(x)) || 0), 0);
-      const sales = sum(logs, l => l.priceThb);
-      const profit = sum(logs, l => l.profitThb);
-      const cost = sum(logs, l => l.costThb);
-      const robux = sum(logs, l => l.robux);
-      const margin = sales > 0 ? (profit / sales) * 100 : 0;
-      const avg = logs.length ? sales / logs.length : 0;
-
-      const allSales = sum(allLogs, l => l.priceThb);
-      const allProfit = sum(allLogs, l => l.profitThb);
-      const rangeLabel = (SUMMARY_RANGES.find(r => r.key === summaryRange) || {}).label || '';
-
-      // ---- period picker ----
-      const bar = document.getElementById('summary-range-bar');
-      if (bar) {
-        bar.innerHTML = SUMMARY_RANGES.map(r => {
-          const on = r.key === summaryRange;
-          return `<button onclick="setSummaryRange('${r.key}')" class="shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
-            on ? 'bg-[#8054F7] text-white shadow-[0_6px_16px_-6px_rgba(114,66,245,0.7)]'
-               : 'bg-white text-[#857B9B] border border-[#EDE5FC] hover:text-[#2E2544] hover:border-[#D8C7FF]'
-          }">${r.label}</button>`;
-        }).join('');
-      }
-
-      // ---- headline numbers ----
-      const kpiGrid = document.getElementById('summary-kpi-grid');
-      if (kpiGrid) {
-        const kpiCard = (o) => `
-          <div class="cozy-card p-3.5 sm:p-4 flex flex-col justify-between min-h-[104px] ${o.card || ''}">
-            <div class="flex items-start justify-between gap-2">
-              <div class="text-[10px] font-semibold ${o.label || 'text-[#857B9B]'} leading-tight">${o.title}</div>
-              <div class="w-6 h-6 shrink-0 rounded-lg flex items-center justify-center ${o.chip}">${o.icon}</div>
-            </div>
-            <div class="mt-2">
-              <div class="font-mono font-bold ${o.size || 'text-lg'} ${o.value} leading-none tracking-tight">${o.big}</div>
-              <div class="text-[10px] ${o.foot || 'text-[#857B9B]'} mt-1.5 truncate">${o.small}</div>
-            </div>
-          </div>`;
-        const kpiIcon = (p) => `<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
-
-        kpiGrid.innerHTML =
-          kpiCard({
-            title: 'ออเดอร์ · ' + rangeLabel,
-            big: formatInt(logs.length),
-            small: `ทั้งหมด ${formatInt(allLogs.length)} ออเดอร์`,
-            size: 'text-2xl', value: 'text-[#2E2544]',
-            chip: 'bg-[#F3ECFF] text-[#8054F7]',
-            icon: kpiIcon('<path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>')
-          }) +
-          kpiCard({
-            title: 'ยอดขาย · ' + rangeLabel,
-            big: `<span class="baht">฿</span>${formatNumber(sales)}`,
-            small: `ทั้งหมด <span class="baht">฿</span>${formatNumber(allSales)}`,
-            value: 'text-[#2E2544]',
-            chip: 'bg-[#FFF7ED] text-[#D97706]',
-            icon: kpiIcon('<line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>')
-          }) +
-          kpiCard({
-            title: 'กำไร · ' + rangeLabel,
-            big: `<span class="baht">฿</span>${formatNumber(profit)}`,
-            small: `มาร์จิ้น ${margin.toFixed(1)}% · สะสม <span class="baht">฿</span>${formatNumber(allProfit)}`,
-            card: 'bg-[#F0FDF4] border-[#D1FAE5]',
-            label: 'text-[#059669]', foot: 'text-[#059669]/80', value: 'text-[#059669]',
-            chip: 'bg-white/70 text-[#059669]',
-            icon: kpiIcon('<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline>')
-          }) +
-          kpiCard({
-            title: 'เฉลี่ยต่อออเดอร์',
-            big: `<span class="baht">฿</span>${formatNumber(avg)}`,
-            small: `ขาย Robux รวม ${formatInt(robux)}`,
-            value: 'text-[#8054F7]',
-            chip: 'bg-[#F3ECFF] text-[#8054F7]',
-            icon: kpiIcon('<line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line>')
-          });
-      }
-
-      // ---- daily trend ----
-      const trend = document.getElementById('summary-trend-box');
-      if (trend) {
-        let chartDays = days;
-        if (!chartDays) {
-          chartDays = [...new Set(allLogs.map(l => String(l.date || '').slice(0, 10)))].sort().slice(-30);
-        } else if (chartDays.length === 1) {
-          // A single day is not a trend - show the surrounding fortnight instead.
-          const anchor = new Date(chartDays[0] + 'T00:00:00');
-          chartDays = Array.from({ length: 14 }, (_, i) => {
-            const d = new Date(anchor);
-            d.setDate(d.getDate() - (13 - i));
-            return localDate(d);
-          });
-        }
-
-        const byDay = {};
-        chartDays.forEach(d => { byDay[d] = { count: 0, sales: 0, profit: 0 }; });
-        allLogs.forEach(l => {
-          const d = String(l.date || '').slice(0, 10);
-          if (byDay[d]) {
-            byDay[d].count += 1;
-            byDay[d].sales += Number(l.priceThb) || 0;
-            byDay[d].profit += Number(l.profitThb) || 0;
-          }
-        });
-
-        const maxSale = Math.max(1, ...chartDays.map(d => byDay[d].sales));
-        const best = chartDays.reduce((a, d) => (byDay[d].sales > byDay[a].sales ? d : a), chartDays[0]);
-
-        const bars = chartDays.map(d => {
-          const s = byDay[d];
-          const h = s.sales > 0 ? Math.max(4, Math.round((s.sales / maxSale) * 100)) : 2;
-          const profitShare = s.sales > 0 ? Math.max(0, Math.min(100, Math.round((s.profit / s.sales) * 100))) : 0;
-          const isBest = d === best && s.sales > 0;
-          return `
-            <div class="flex-1 min-w-0 h-full flex flex-col justify-end group cursor-default"
-                 title="${d} · ${s.count} ออเดอร์ · ขาย ฿${formatNumber(s.sales)} · กำไร ฿${formatNumber(s.profit)}">
-              <div class="w-full rounded-t-md overflow-hidden flex flex-col justify-end transition-all
-                          ${isBest ? 'bg-[#C9AEFB]' : 'bg-[#E7DBFB]'} group-hover:bg-[#B893F9]"
-                   style="height:${h}%">
-                <div class="w-full bg-[#34D399]" style="height:${profitShare}%"></div>
-              </div>
-            </div>`;
-        }).join('');
-
-        const dayLabel = d => d.slice(8, 10) + '/' + d.slice(5, 7);
-        trend.innerHTML = `
-          <div class="cozy-card p-4 sm:p-5 space-y-3">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <h3 class="text-sm font-bold text-[#2E2544]">ยอดขายรายวัน</h3>
-              <div class="flex items-center gap-3 text-[10px] text-[#857B9B]">
-                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-[#34D399]"></span>กำไร</span>
-                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-[#E7DBFB]"></span>ต้นทุน</span>
-              </div>
-            </div>
-
-            <div class="flex items-end gap-[3px] h-28 sm:h-36">${bars}</div>
-
-            <div class="flex items-center justify-between text-[10px] text-[#857B9B] font-mono">
-              <span>${dayLabel(chartDays[0])}</span>
-              <span class="text-[#8054F7] font-semibold">
-                วันที่ขายดีสุด ${dayLabel(best)} · <span class="baht">฿</span>${formatNumber(byDay[best].sales)}
-              </span>
-              <span>${dayLabel(chartDays[chartDays.length - 1])}</span>
-            </div>
-          </div>`;
-      }
-
-      // ---- best selling packages ----
-      const pkgBox = document.getElementById('summary-packages-box');
-      if (pkgBox) {
-        const byPkg = {};
-        logs.forEach(l => {
-          const k = Number(l.robux) || 0;
-          if (!byPkg[k]) byPkg[k] = { robux: k, count: 0, sales: 0, profit: 0 };
-          byPkg[k].count += 1;
-          byPkg[k].sales += Number(l.priceThb) || 0;
-          byPkg[k].profit += Number(l.profitThb) || 0;
-        });
-        const top = Object.values(byPkg).sort((a, b) => b.count - a.count).slice(0, 6);
-        const maxCount = Math.max(1, ...top.map(p => p.count));
-
-        pkgBox.innerHTML = `
-          <div class="cozy-card p-4 sm:p-5 space-y-3 h-full">
-            <div class="flex items-center justify-between">
-              <h3 class="text-sm font-bold text-[#2E2544]">แพ็กเกจขายดี</h3>
-              <span class="text-[10px] text-[#857B9B]">${rangeLabel}</span>
-            </div>
-            ${top.length ? top.map(p => `
-              <div class="space-y-1">
-                <div class="flex items-center justify-between text-xs">
-                  <span class="font-mono font-bold text-[#2E2544]">${formatInt(p.robux)} R</span>
-                  <span class="text-[10px] text-[#857B9B] font-mono">
-                    ${formatInt(p.count)} ครั้ง · <span class="baht">฿</span>${formatInt(Math.round(p.sales))}
-                    · <span class="text-[#059669]">+<span class="baht">฿</span>${formatInt(Math.round(p.profit))}</span>
-                  </span>
-                </div>
-                <div class="h-1.5 rounded-full bg-[#F3ECFF] overflow-hidden">
-                  <div class="h-full rounded-full bg-gradient-to-r from-[#A681FF] to-[#8054F7]"
-                       style="width:${Math.round((p.count / maxCount) * 100)}%"></div>
-                </div>
-              </div>`).join('')
-            : '<p class="text-xs text-[#857B9B] py-4 text-center">ยังไม่มีออเดอร์ในช่วงนี้</p>'}
-          </div>`;
-      }
-
-      // ---- stock mail health ----
-      const stockBox = document.getElementById('summary-stocks-box');
-      if (stockBox) {
-        const accounts = appData.stockAccounts || INITIAL_SEED.stockAccounts || [];
-        const balances = calculateStockBalances();
-        const rows = accounts.map(a => {
-          const b = balances[a.id] || {};
-          const initial = Number(a.initialUsd) || 0;
-          const remain = Number(b.remainingUsd !== undefined ? b.remainingUsd : initial) || 0;
-          const usedPct = initial > 0 ? Math.max(0, Math.min(100, ((initial - remain) / initial) * 100)) : 0;
-          const low = remain <= 20;
-          return { a, remain, initial, usedPct, low };
-        }).sort((x, y) => y.remain - x.remain);
-
-        const totalRemain = rows.reduce((s, r) => s + r.remain, 0);
-
-        stockBox.innerHTML = `
-          <div class="cozy-card p-4 sm:p-5 space-y-3 h-full">
-            <div class="flex items-center justify-between">
-              <h3 class="text-sm font-bold text-[#2E2544]">เครดิตคงเหลือแต่ละเมล</h3>
-              <span class="text-[10px] font-mono text-[#8054F7] font-semibold">รวม $${formatNumber(totalRemain)}</span>
-            </div>
-            <div class="space-y-2.5 max-h-64 overflow-y-auto pr-1">
-              ${rows.map(r => `
-                <div class="space-y-1">
-                  <div class="flex items-center justify-between text-xs gap-2">
-                    <span class="font-mono font-bold ${r.low ? 'text-[#E11D48]' : 'text-[#2E2544]'} truncate">
-                      ${r.a.id}${r.a.status !== 'พร้อมใช้' ? ' <span class="text-[9px] font-normal text-[#AAA0C0]">ปิด</span>' : ''}
-                    </span>
-                    <span class="font-mono text-[10px] shrink-0 ${r.low ? 'text-[#E11D48] font-bold' : 'text-[#857B9B]'}">
-                      $${formatNumber(r.remain)} / $${formatInt(r.initial)}
-                    </span>
-                  </div>
-                  <div class="h-1.5 rounded-full bg-[#F3ECFF] overflow-hidden">
-                    <div class="h-full rounded-full ${r.low ? 'bg-gradient-to-r from-[#FB7185] to-[#E11D48]' : 'bg-gradient-to-r from-[#34D399] to-[#059669]'}"
-                         style="width:${100 - r.usedPct}%"></div>
-                  </div>
-                </div>`).join('')}
-            </div>
-          </div>`;
-      }
-
-      // ---- staff leaderboard (follows the period too) ----
-      const staffBox = document.getElementById('summary-staff-box');
-      if (staffBox) {
-        const staffStats = {};
-        const employees = (appData.settings && appData.settings.employees) ? appData.settings.employees : INITIAL_SEED.settings.employees;
-        employees.forEach(n => { staffStats[n] = { name: n, count: 0, sales: 0, profit: 0 }; });
-        logs.forEach(s => {
-          const name = s.staff || 'ไม่ระบุ';
-          if (!staffStats[name]) staffStats[name] = { name, count: 0, sales: 0, profit: 0 };
-          staffStats[name].count += 1;
-          staffStats[name].sales += Number(s.priceThb) || 0;
-          staffStats[name].profit += Number(s.profitThb) || 0;
-        });
-
-        const ranked = Object.values(staffStats).sort((a, b) => b.profit - a.profit);
-        const medal = ['🥇', '🥈', '🥉'];
-
-        let rows = ranked.map((st, i) => {
-          const arg = String(st.name).replace(/'/g, "\\'");
-          const emoji = getStaffEmoji(st.name);
-
-          const picker = emojiPickerFor === st.name ? `
-            <div class="mt-2 p-2 rounded-2xl bg-white border border-[#E8DDFF]">
-              <div class="text-[10px] text-[#857B9B] mb-1.5 px-0.5">เลือกอีโมจิประจำตัว ${st.name}</div>
-              <div class="flex flex-wrap gap-1">
-                ${STAFF_EMOJIS.map(e => `<button onclick="setStaffEmoji('${arg}', '${e}')" class="w-8 h-8 rounded-xl hover:bg-[#F5EFFF] text-lg leading-none transition cursor-pointer">${e}</button>`).join('')}
-              </div>
-            </div>` : '';
-
-          return `
-          <div class="p-2.5 bg-[#FAF8FF] rounded-2xl border border-[#EDE5FC] text-xs">
-            <div class="flex items-center gap-2.5">
-              <button onclick="toggleEmojiPicker('${arg}')" class="relative w-8 h-8 shrink-0 rounded-full bg-[#F3ECFF] hover:bg-[#EADCFF] text-[#8054F7] flex items-center justify-center font-bold text-base transition cursor-pointer" title="เปลี่ยนอีโมจิ">
-                <span>${emoji || st.name.slice(0, 1)}</span>
-                ${i < 3 ? `<span class="absolute -bottom-1 -right-1 text-[10px] leading-none">${medal[i]}</span>` : ''}
-              </button>
-
-              <div class="min-w-0 flex-1">
-                <div class="font-semibold text-[#2E2544] truncate">${st.name}</div>
-                <div class="text-[10px] text-[#857B9B] font-mono truncate">${formatInt(st.count)} ออเดอร์</div>
-              </div>
-
-              <div class="text-right shrink-0 font-mono">
-                <div class="text-[10px] text-[#857B9B] leading-none">ขาย <span class="baht">฿</span>${formatInt(Math.round(st.sales))}</div>
-                <strong class="text-[#059669] text-[13px]">+<span class="baht">฿</span>${formatNumber(st.profit)}</strong>
-              </div>
-
-              <div class="flex items-center gap-0.5 shrink-0">
-                <button onclick="renameEmployee('${arg}')" class="w-6 h-6 rounded-lg hover:bg-[#F5EFFF] transition text-[11px] cursor-pointer" title="เปลี่ยนชื่อ">✏️</button>
-                <button onclick="removeEmployee('${arg}')" class="w-6 h-6 rounded-lg text-[#C9C0DE] hover:text-[#E11D48] hover:bg-[#FFF5F7] transition text-[11px] cursor-pointer" title="ลบพนักงาน">✕</button>
-              </div>
-            </div>
-            ${picker}
-          </div>`;
-        }).join('');
-
-        staffBox.innerHTML = `
-          <div class="cozy-card p-4 sm:p-5 space-y-3 h-full">
-            <div class="flex items-center justify-between">
-              <h3 class="text-sm font-bold text-[#2E2544]">ผลงานพนักงาน</h3>
-              <span class="text-[10px] text-[#857B9B]">${rangeLabel} · ${employees.length} คน</span>
-            </div>
-            <div class="space-y-2">${rows}</div>
-
-            <form onsubmit="handleAddEmployee(event)" class="flex gap-2 pt-2 border-t border-[#F7F3FD]">
-              <input type="text" id="input-new-staff-name" placeholder="ชื่อพนักงานใหม่..." class="flex-1 px-3 py-1.5 bg-[#FAF8FF] border border-[#EFE9F9] rounded-xl text-xs text-[#2E2544] focus:outline-none focus:border-[#8054F7]">
-              <button type="submit" class="btn-cute-primary px-3.5 py-1.5 text-white rounded-xl text-xs font-semibold cursor-pointer">
-                + เพิ่ม
-              </button>
-            </form>
-          </div>`;
-      }
-    }
-
-    function handleAddEmployee(e) {
-      e.preventDefault();
-      const input = document.getElementById('input-new-staff-name');
-      const name = input ? input.value.trim() : '';
-      if (!name) return;
-      if (!appData.settings) appData.settings = {};
-      if (!appData.settings.employees) appData.settings.employees = [];
-
-      if (appData.settings.employees.includes(name)) {
-        showToast('มีชื่อนี้แล้ว', 'error');
-        return;
-      }
-      appData.settings.employees.push(name);
-      saveData();
-      renderApp();
-      showToast(`เพิ่มพนักงาน "${name}" แล้ว`, 'success');
-    }
-
-    function removeEmployee(name) {
-      if (confirm(`ต้องการลบพนักงาน "${name}" ใช่หรือไม่?`)) {
-        appData.settings.employees = appData.settings.employees.filter(e => e !== name);
-        saveData();
-        renderApp();
-        showToast(`ลบพนักงาน "${name}" แล้ว`, 'info');
-      }
-    }
-
-    function getStaffEmoji(name) {
-      const map = (appData.settings && appData.settings.employeeEmojis) || {};
-      return map[name] || '';
-    }
-
-    function toggleEmojiPicker(name) {
-      emojiPickerFor = (emojiPickerFor === name) ? null : name;
-      renderSummary();
-    }
-
-    function setStaffEmoji(name, emoji) {
-      if (!appData.settings) appData.settings = {};
-      if (!appData.settings.employeeEmojis) appData.settings.employeeEmojis = {};
-      appData.settings.employeeEmojis[name] = emoji;
-      emojiPickerFor = null;
-      saveData();
-      renderApp();
-      showToast(`ตั้งอีโมจิของ "${name}" เป็น ${emoji} แล้ว`, 'success');
-    }
-
-    function renameEmployee(oldName) {
-      const answer = prompt(`เปลี่ยนชื่อพนักงาน "${oldName}" เป็น:`, oldName);
-      if (answer === null) return;
-      const newName = answer.trim();
-      if (!newName || newName === oldName) return;
-
-      if (!appData.settings) appData.settings = {};
-      const employees = appData.settings.employees || [];
-      if (employees.includes(newName)) {
-        showToast('มีชื่อนี้อยู่แล้ว', 'error');
-        return;
-      }
-
-      appData.settings.employees = employees.map(e => (e === oldName ? newName : e));
-
-      const emojis = appData.settings.employeeEmojis;
-      if (emojis && emojis[oldName]) {
-        emojis[newName] = emojis[oldName];
-        delete emojis[oldName];
-      }
-
-      // Past orders store the staff name as text, so carry every one of them
-      // across - otherwise the rename would zero out this person's history.
-      let moved = 0;
-      (appData.salesLogs || []).forEach(l => {
-        if (l.staff === oldName) { l.staff = newName; moved++; }
-      });
-
-      saveData();
-      renderApp();
-      showToast(`เปลี่ยนเป็น "${newName}" แล้ว (ย้าย ${formatInt(moved)} ออเดอร์)`, 'success');
-    }
-
-    function exportOrdersCsv() {
-      const headers = ['Order ID', 'วันที่', 'Username', 'จำนวน Robux', 'สต็อกเมล', 'ราคาขาย (฿)', 'ต้นทุน USD ($)', 'เรท (฿/$)', 'ต้นทุน (฿)', 'กำไร (฿)', 'ผู้ทำรายการ', 'หมายเหตุ'];
-      const logs = appData.salesLogs || [];
-      const rows = logs.map(o => [
-        `"${o.id}"`,
-        `"${o.date}"`,
-        `"${(o.username || '').replace(/"/g, '""')}"`,
-        o.robux,
-        `"${o.stockAccount}"`,
-        o.priceThb,
-        o.usd,
-        o.rate,
-        o.costThb,
-        o.profitThb,
-        `"${(o.staff || '').replace(/"/g, '""')}"`,
-        `"${(o.note || '').replace(/"/g, '""')}"`
-      ]);
-      const csv = '\uFEFF' + headers.join(',') + '\n' + rows.map(r => r.join(',')).join('\n');
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Robux_Sales_${localDate()}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      showToast('ดาวน์โหลดไฟล์ CSV เรียบร้อย', 'success');
-    }
-
-    function exportBackupJson() {
-      const str = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(appData, null, 2));
-      const a = document.createElement('a');
-      a.href = str;
-      a.download = `Robux_Studio_Backup_${localDate()}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      showToast('ดาวน์โหลด Backup JSON เรียบร้อย', 'success');
-    }
-
-    // The restore button had markup but no handler at all, so picking a backup
-    // file did nothing. It merges rather than replaces: the point is to bring
-    // lost orders back without dropping anything newer.
-    function handleImportBackupJson(event) {
-      const input = event && event.target;
-      const file = input && input.files && input.files[0];
-      if (!file) return;
-      const clear = () => { try { input.value = ''; } catch (e) {} };
-
-      const reader = new FileReader();
-      reader.onerror = () => { showToast('อ่านไฟล์ไม่สำเร็จ', 'error'); clear(); };
-      reader.onload = () => {
-        let parsed;
-        try {
-          parsed = JSON.parse(String(reader.result));
-        } catch (err) {
-          showToast('ไฟล์นี้อ่านไม่ออก ต้องเป็นไฟล์ .json ที่ดาวน์โหลดจากระบบ', 'error');
-          clear();
-          return;
-        }
-
-        // Accept a bare appData object or a saved server reply {data:{...}}.
-        const data = (parsed && Array.isArray(parsed.salesLogs)) ? parsed
-          : (parsed && parsed.data && Array.isArray(parsed.data.salesLogs)) ? parsed.data
-          : null;
-        if (!data) {
-          showToast('ไฟล์นี้ไม่มีข้อมูลออเดอร์', 'error');
-          clear();
-          return;
-        }
-
-        const sig = l => [l.id, l.date, l.username, l.robux].join('|');
-        const have = new Set((appData.salesLogs || []).map(sig));
-        const freshOrders = data.salesLogs.filter(l => l && !have.has(sig(l)));
-
-        const knownAccounts = new Set((appData.stockAccounts || []).map(a => a.id));
-        const freshAccounts = (data.stockAccounts || []).filter(a => a && a.id && !knownAccounts.has(a.id));
-
-        if (!freshOrders.length && !freshAccounts.length) {
-          showToast('ไฟล์นี้ไม่มีอะไรใหม่ ข้อมูลครบอยู่แล้ว', 'info');
-          clear();
-          return;
-        }
-
-        const ok = confirm(
-          'นำเข้าไฟล์สำรองนี้?\n\n' +
-          '• ออเดอร์ใหม่ ' + freshOrders.length + ' รายการ\n' +
-          '• เมลใหม่ ' + freshAccounts.length + ' บัญชี\n\n' +
-          'ข้อมูลเดิมจะไม่ถูกลบ ระบบจะรวมเข้าด้วยกัน');
-        if (!ok) { clear(); return; }
-
-        if (!appData.salesLogs) appData.salesLogs = [];
-        if (!appData.stockAccounts) appData.stockAccounts = [];
-        appData.salesLogs.push(...freshOrders);
-        appData.stockAccounts.push(...freshAccounts);
-        appData.salesLogs.sort((a, b) => String(a.date).localeCompare(String(b.date)));
-
-        saveData();
-        renderApp();
-        showToast('นำเข้าสำเร็จ • เพิ่ม ' + formatInt(freshOrders.length) + ' ออเดอร์, ' +
-          freshAccounts.length + ' เมล', 'success');
-        clear();
-      };
-      reader.readAsText(file);
-    }
-
-    function resetToInitialData() {
-      const answer = prompt(
-        'ล้างข้อมูลในเครื่องนี้ทั้งหมด?\n\n' +
-        'พิมพ์  RESET  แล้วกดตกลงเพื่อยืนยัน\n\n' +
-        'ข้อมูลบนเซิร์ฟเวอร์จะไม่ถูกลบ และจะถูกดึงกลับมาให้ทันที');
-      if (String(answer || '').trim().toUpperCase() !== 'RESET') {
-        showToast('ยกเลิกการรีเซ็ต', 'info');
-        return;
-      }
-      // Local only - deliberately not saveData(), so an empty set is never
-      // pushed up to the server.
-      appData = JSON.parse(JSON.stringify(INITIAL_SEED));
-      saveDataLocal();
-      renderApp();
-      showToast('ล้างข้อมูลในเครื่องแล้ว กำลังดึงจากเซิร์ฟเวอร์', 'info');
-      fetchServerData();
-    }
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        closeStockModal();
-        closeOrderEditModal();
-      }
-    });
-
-    initData();
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initData);
-    }
-  </script>
+        <div class="row between t-sm" style="padding-top:8px;border-top:1px solid var(--line)">
+          <span class="muted">ยอดจ่ายเงินไป (คำนวณให้)</span>
+          <b class="num brand" id="sm-preview">฿0.00</b>
+        </div>
+      </div>
+
+      <div class="grid g2">
+        <label class="field"><span class="label">สถานะ</span>
+          <select class="select sm" id="sm-status">
+            <option value="พร้อมใช้">พร้อมใช้ (เปิดใช้งาน)</option>
+            <option value="ปิดใช้งาน">ปิดใช้งาน (หมด / พักไว้)</option>
+          </select></label>
+        <label class="field"><span class="label">หมายเหตุ</span>
+          <input class="input sm" id="sm-note" placeholder="เช่น ล็อตพิเศษ"></label>
+      </div>
+    </div>
+
+    <div class="modal-foot">
+      <button type="button" class="btn btn-danger sm spread hidden" id="sm-delete" data-act="del-stock">ลบสต็อกนี้</button>
+      <button type="button" class="btn btn-ghost" data-act="close-modal">ยกเลิก</button>
+      <button type="submit" class="btn btn-primary">บันทึกสต็อก</button>
+    </div>
+  </form>
+</div>
+
+<!-- ================================================ MODAL: EDIT ORDER -->
+<div class="modal hidden" id="modal-order">
+  <form class="modal-box wide">
+    <div class="modal-head">
+      <div>
+        <h3 id="oe-title">แก้ไขออเดอร์</h3>
+        <p>แก้ได้ทุกช่อง รวมถึงวันที่และเวลา — เผื่อบันทึกผิดวัน</p>
+      </div>
+      <button type="button" class="iconbtn" data-act="close-modal" aria-label="ปิด">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="modal-body stack">
+      <div class="grid g2">
+        <label class="field"><span class="label">Username ลูกค้า <span class="req">*</span></span>
+          <input class="input sm" id="oe-username" required autocapitalize="off" spellcheck="false"></label>
+        <label class="field"><span class="label">ผู้ทำรายการ</span>
+          <select class="select sm" id="oe-staff"></select></label>
+      </div>
+
+      <div class="subbox">
+        <div class="grid g2">
+          <label class="field"><span class="label">📅 วันที่ (แก้ได้)</span>
+            <input type="date" class="input sm" id="oe-date"></label>
+          <label class="field"><span class="label">🕒 เวลา</span>
+            <input type="time" class="input sm" id="oe-time"></label>
+        </div>
+      </div>
+
+      <div class="grid g3 g3-collapse">
+        <label class="field"><span class="label">แพ็กเกจ</span>
+          <select class="select sm" id="oe-pkg"></select></label>
+        <label class="field"><span class="label">ราคาขาย (฿)</span>
+          <input type="number" step="0.01" min="0" class="input sm mono" id="oe-price"></label>
+        <label class="field"><span class="label">🔄 เมลที่ตัด</span>
+          <select class="select sm accent" id="oe-stock"></select></label>
+      </div>
+
+      <div>
+        <div class="row between wrap gap-sm" style="margin-bottom:8px">
+          <span class="label" style="margin:0">⚠️ เผลอกดเกินกี่ครั้ง?</span>
+          <button type="button" class="t-xs neg semi" data-act="oe-clear">ล้างเป็น 0</button>
+        </div>
+        <div class="grid g4" id="oe-extras"></div>
+      </div>
+
+      <div class="subbox" id="oe-preview"></div>
+
+      <label class="field"><span class="label">หมายเหตุ</span>
+        <input class="input sm" id="oe-note" placeholder="เช่น ลูกค้าขอเบิ้ล / เคลม"></label>
+
+      <label class="check">
+        <input type="checkbox" id="oe-zero">
+        <span>ไม่นับกำไรออเดอร์นี้ (กรณีเคลม / ขาดทุน)</span>
+      </label>
+    </div>
+
+    <div class="modal-foot">
+      <button type="button" class="btn btn-ghost" data-act="close-modal">ยกเลิก</button>
+      <button type="submit" class="btn btn-primary">บันทึกการแก้ไข</button>
+    </div>
+  </form>
+</div>
+
+<!-- ================================================== MODAL: RECOVERY -->
+<div class="modal hidden" id="modal-recovery">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div>
+        <h3>กู้ข้อมูลเก่าในเบราว์เซอร์นี้</h3>
+        <p>เลือกนำเข้าเองเฉพาะชุดที่ต้องการ</p>
+      </div>
+      <button type="button" class="iconbtn" data-act="close-modal" aria-label="ปิด">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="rc-body"></div>
+    <div class="modal-foot">
+      <button type="button" class="btn btn-ghost" data-act="close-modal">ปิด</button>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script src="assets/seed.js" defer></script>
+<script src="assets/app.js" defer></script>
 </body>
 </html>

@@ -2,3 +2,8 @@ node_modules/
 npm-debug.log*
 .env
 .DS_Store
+
+# Live backups pulled from /api/backup. They hold customer usernames, so keep
+# them out of the (public) repo.
+backups/
+data/shop_data.json.tmp
