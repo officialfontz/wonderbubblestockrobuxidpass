@@ -310,10 +310,29 @@ function mergeShopData(incoming) {
   sortLogs(shopData.salesLogs);
 
   // Stock accounts merge per id, so a stale client cannot wipe a mail somebody
-  // else added a minute ago.
+  // else added a minute ago. Credit counts and top-ups are a log, so they union
+  // by uid rather than being replaced wholesale - two tills reconciling
+  // different mails at once must not drop each other's entries.
   if (Array.isArray(incoming.stockAccounts) && incoming.stockAccounts.length) {
     const acc = new Map((shopData.stockAccounts || []).map(a => [a.id, a]));
-    incoming.stockAccounts.forEach(a => { if (a && a.id) acc.set(a.id, a); });
+    incoming.stockAccounts.forEach(a => {
+      if (!a || !a.id) return;
+      const prev = acc.get(a.id);
+      const merged = Object.assign({}, prev, a);
+
+      // Deleting an entry has to stick, or the union would just hand it back.
+      const gone = new Set(
+        ((prev && prev.removedAdjustments) || []).concat(a.removedAdjustments || []));
+      merged.removedAdjustments = Array.from(gone).slice(-500);
+
+      const adj = new Map();
+      ((prev && prev.adjustments) || []).forEach(x => { if (x && x.uid) adj.set(x.uid, x); });
+      (a.adjustments || []).forEach(x => { if (x && x.uid) adj.set(x.uid, x); });
+      merged.adjustments = Array.from(adj.values())
+        .filter(x => !gone.has(x.uid))
+        .sort((x, y) => (String(x.date) < String(y.date) ? 1 : -1));
+      acc.set(a.id, merged);
+    });
     shopData.stockAccounts = Array.from(acc.values());
   }
   if (incoming.settings && typeof incoming.settings === 'object') {

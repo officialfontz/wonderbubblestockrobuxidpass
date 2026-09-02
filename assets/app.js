@@ -196,6 +196,8 @@ const state = {
   summaryRange: 'today',
   emojiFor: null,
   editStockIdx: null,
+  adjustIdx: null,
+  adjustType: 'count',
   editUid: null,
   editExtras: emptyExtras(),
   orphanCount: 0,
@@ -237,16 +239,38 @@ function normalize(raw) {
     out.settings.employeeEmojis = {};
   }
 
-  out.stockAccounts = out.stockAccounts.filter(a => a && a.id).map(a => ({
-    id: String(a.id),
-    email: String(a.email || ''),
-    buyDate: String(a.buyDate || ''),
-    initialUsd: num(a.initialUsd),
-    rate: num(a.rate) || 25.5,
-    investmentThb: num(a.investmentThb) || round2(num(a.initialUsd) * (num(a.rate) || 25.5)),
-    status: a.status === 'ปิดใช้งาน' ? 'ปิดใช้งาน' : 'พร้อมใช้',
-    note: String(a.note || '')
-  }));
+  out.stockAccounts = out.stockAccounts.filter(a => a && a.id).map(a => {
+    const rate = num(a.rate) || 25.5;
+    const seenAdj = new Set();
+    return {
+      id: String(a.id),
+      email: String(a.email || ''),
+      buyDate: String(a.buyDate || ''),
+      initialUsd: num(a.initialUsd),
+      rate: rate,
+      investmentThb: num(a.investmentThb) || round2(num(a.initialUsd) * rate),
+      status: a.status === 'ปิดใช้งาน' ? 'ปิดใช้งาน' : 'พร้อมใช้',
+      note: String(a.note || ''),
+      removedAdjustments: (Array.isArray(a.removedAdjustments) ? a.removedAdjustments : []).slice(-500),
+      // Top-ups and stock counts. Kept as a list rather than folded into
+      // initialUsd so the shop can see when the credit drifted and by how much.
+      adjustments: (Array.isArray(a.adjustments) ? a.adjustments : [])
+        .filter(x => x && typeof x === 'object')
+        .map(x => ({
+          uid: String(x.uid || newUid()),
+          date: normalizeStamp(x.date),
+          type: x.type === 'topup' ? 'topup' : 'count',
+          usd: num(x.usd),
+          rate: num(x.rate) || rate,
+          thb: num(x.thb),
+          note: String(x.note || ''),
+          staff: String(x.staff || '')
+        }))
+        .filter(x => (seenAdj.has(x.uid) ? false : (seenAdj.add(x.uid), true)))
+        .filter(x => (Array.isArray(a.removedAdjustments) ? a.removedAdjustments : []).indexOf(x.uid) === -1)
+        .sort((x, y) => (x.date < y.date ? 1 : -1))
+    };
+  });
 
   const seen = new Set();
   (Array.isArray(d.salesLogs) ? d.salesLogs : []).forEach(l => {
@@ -505,12 +529,33 @@ async function checkVersion() {
 }
 
 /* ------------------------------------------------------------- derived   */
+/**
+ * remaining = first top-up + every later top-up + every counted correction
+ *             - the USD every order charged to this mail
+ *
+ * `variance` is the correction total on its own: credit that went missing (or
+ * turned up) without an order to explain it. That is the number worth watching
+ * - a mail that keeps needing the same size of correction is losing money
+ * somewhere the till never sees.
+ */
 function stockBalances() {
   const bal = {};
   data.stockAccounts.forEach(a => {
+    let topup = 0, variance = 0, investment = a.investmentThb;
+    (a.adjustments || []).forEach(x => {
+      if (x.type === 'topup') { topup += x.usd; investment += x.thb; }
+      else variance += x.usd;
+    });
     bal[a.id] = {
-      initialUsd: a.initialUsd, usedUsd: 0, remainingUsd: a.initialUsd,
-      salesThb: 0, profitThb: 0, orders: 0
+      initialUsd: a.initialUsd,
+      topupUsd: topup,
+      fundedUsd: a.initialUsd + topup,
+      varianceUsd: variance,
+      investmentThb: investment,
+      usedUsd: 0,
+      remainingUsd: a.initialUsd + topup + variance,
+      salesThb: 0, profitThb: 0, orders: 0,
+      lastCount: (a.adjustments || []).find(x => x.type === 'count') || null
     };
   });
   data.salesLogs.forEach(l => {
@@ -913,10 +958,27 @@ function renderStocks() {
   }
 
   grid.innerHTML = data.stockAccounts.map((a, i) => {
-    const b = bal[a.id] || { remainingUsd: a.initialUsd, usedUsd: 0, profitThb: 0, orders: 0 };
+    const b = bal[a.id];
     const open = a.status === 'พร้อมใช้';
-    const pct = a.initialUsd > 0 ? Math.max(0, Math.min(100, (b.remainingUsd / a.initialUsd) * 100)) : 0;
-    let tone = !open ? 'dead' : pct < 15 ? 'low' : pct < 35 ? 'mid' : 'ok';
+    const funded = b.fundedUsd;
+    const pct = funded > 0 ? Math.max(0, Math.min(100, (b.remainingUsd / funded) * 100)) : 0;
+    const tone = !open ? 'dead' : pct < 15 ? 'low' : pct < 35 ? 'mid' : 'ok';
+
+    const counted = b.lastCount
+      ? '<span class="chip plain t-xs">นับล่าสุด ' + esc(b.lastCount.date.slice(0, 10)) + '</span>'
+      : '<span class="chip note t-xs">ยังไม่เคยนับ</span>';
+
+    const variance = Math.abs(b.varianceUsd) > 0.004
+      ? '<div class="row between t-xs ' + (b.varianceUsd < 0 ? 'neg' : 'pos') + '">' +
+          '<span>ส่วนต่างจากการนับ</span>' +
+          '<b class="mono">' + (b.varianceUsd < 0 ? '-' : '+') + '$' + fmt(Math.abs(b.varianceUsd)) +
+          ' · ' + baht(b.varianceUsd * a.rate, true) + '</b></div>'
+      : '';
+
+    const topup = b.topupUsd > 0
+      ? '<div class="row between t-xs muted"><span>เติมเพิ่มภายหลัง</span>' +
+        '<b class="mono">+$' + fmt(b.topupUsd) + '</b></div>'
+      : '';
 
     return '<div class="card stock' + (open ? '' : ' off') + '">' +
       '<div class="row between gap-sm">' +
@@ -927,13 +989,13 @@ function renderStocks() {
         '<div class="row gap-xs shrink-0">' +
           '<button class="toggle' + (open ? '' : ' off') + '" data-act="toggle-stock" data-i="' + i + '">' +
             '<span class="dot"></span>' + (open ? 'พร้อมใช้' : 'ปิดใช้งาน') + '</button>' +
-          '<button class="iconbtn" data-act="edit-stock" data-i="' + i + '" title="แก้ไข">' + svg(ICON.edit) + '</button>' +
+          '<button class="iconbtn" data-act="edit-stock" data-i="' + i + '" title="แก้ไขข้อมูลเมล">' + svg(ICON.edit) + '</button>' +
         '</div>' +
       '</div>' +
       '<div class="row between gap-sm">' +
         '<div><div class="t-xs muted">คงเหลือ USD</div>' +
           '<div class="num t-lg ' + (b.remainingUsd < 0 ? 'neg' : open ? 'warn' : 'muted') + '">$' + fmt(b.remainingUsd) + '</div>' +
-          '<div class="t-xs muted">จากที่เติม $' + fmt(a.initialUsd) + '</div></div>' +
+          '<div class="t-xs muted">เติมมาแล้วรวม $' + fmt(funded) + '</div></div>' +
         '<div class="right"><div class="t-xs muted">มูลค่าคงเหลือ</div>' +
           '<div class="num t-lg">' + baht(b.remainingUsd * a.rate) + '</div>' +
           '<div class="t-xs brand semi">เรท ' + fmt(a.rate) + ' ฿/$</div></div>' +
@@ -942,7 +1004,13 @@ function renderStocks() {
         '<div class="row between t-xs muted" style="margin-top:6px">' +
           '<span>ใช้ไป $' + fmt(b.usedUsd) + ' · ' + fmtInt(b.orders) + ' ออเดอร์</span>' +
           '<span>กำไร ' + baht(b.profitThb) + '</span></div></div>' +
+      (topup || variance
+        ? '<div class="subbox stack-sm" style="padding:9px 11px">' + topup + variance + '</div>' : '') +
       (a.note ? '<div class="t-xs muted break">📝 ' + esc(a.note) + '</div>' : '') +
+      '<div class="row between gap-sm" style="padding-top:2px">' +
+        counted +
+        '<button class="btn btn-soft sm" data-act="adjust-stock" data-i="' + i + '">⚖️ กรอกยอดจริง / เติมเงิน</button>' +
+      '</div>' +
       '</div>';
   }).join('');
 }
@@ -1088,13 +1156,20 @@ function renderStockHealth() {
   const rows = data.stockAccounts.map(a => {
     const b = bal[a.id] || {};
     const remain = num(b.remainingUsd, a.initialUsd);
-    const pct = a.initialUsd > 0 ? Math.max(0, Math.min(100, (remain / a.initialUsd) * 100)) : 0;
-    return { a, remain, pct, low: remain <= 20 };
+    const funded = num(b.fundedUsd, a.initialUsd);
+    const pct = funded > 0 ? Math.max(0, Math.min(100, (remain / funded) * 100)) : 0;
+    return { a, remain, funded, pct, low: remain <= 20, variance: num(b.varianceUsd) };
   }).sort((x, y) => y.remain - x.remain);
+
+  const drift = rows.reduce((s, r) => s + r.variance, 0);
 
   byId('sum-stocks').innerHTML = '<div class="card stack-sm" style="height:100%">' +
     '<div class="row between"><h3 class="t-md">เครดิตคงเหลือแต่ละเมล</h3>' +
     '<span class="t-xs brand semi mono">รวม $' + fmt(rows.reduce((s, r) => s + r.remain, 0)) + '</span></div>' +
+    (Math.abs(drift) > 0.004
+      ? '<div class="t-xs ' + (drift < 0 ? 'neg' : 'pos') + '">' +
+        'ส่วนต่างจากการนับสะสมทุกเมล ' + (drift > 0 ? '+' : '') + '$' + fmt(drift) + '</div>'
+      : '') +
     '<div class="scroll-y max-h-64 stack-sm">' + (rows.length ? rows.map(r => '<div class="rank">' +
       '<div class="rank-head"><b class="mono ' + (r.low ? 'neg' : '') + '">' + esc(r.a.id) +
       (r.a.status !== 'พร้อมใช้' ? ' <span class="t-xs muted-2">ปิด</span>' : '') + '</b>' +
@@ -1455,10 +1530,16 @@ function saveStock(e) {
   if (!(usd > 0)) { toast('กรุณากรอกยอด USD ให้ถูกต้อง', 'error'); return; }
   if (!(rate > 0)) { toast('กรุณากรอกเรทให้ถูกต้อง', 'error'); return; }
 
+  const prev = state.editStockIdx !== null ? data.stockAccounts[state.editStockIdx] : null;
   const obj = {
     id, email: byId('sm-email').value.trim(), buyDate: byId('sm-buydate').value,
     initialUsd: usd, rate, investmentThb: round2(usd * rate),
-    status: byId('sm-status').value, note: byId('sm-note').value.trim()
+    status: byId('sm-status').value, note: byId('sm-note').value.trim(),
+    // This form rebuilds the account from its fields, so the credit log has to
+    // be carried across explicitly or editing an email address would erase
+    // every top-up and stock count on the mail.
+    adjustments: (prev && prev.adjustments) || [],
+    removedAdjustments: (prev && prev.removedAdjustments) || []
   };
 
   if (state.editStockIdx !== null) {
@@ -1490,6 +1571,169 @@ function deleteStock() {
   closeModal();
   render();
   toast('ลบสต็อก ' + a.id + ' แล้ว', 'info');
+}
+
+/* ------------------------------------------- credit count / top-up      */
+/**
+ * The computed balance drifts from the real one: an order goes unlogged, gets
+ * charged to the wrong mail, or Roblox takes a different amount. Rather than
+ * quietly rewriting the opening balance, a correction is recorded as its own
+ * line so the shop can see when the credit moved and by how much.
+ */
+function openAdjustModal(idx) {
+  const a = data.stockAccounts[idx];
+  if (!a) return;
+  state.adjustIdx = idx;
+  state.adjustType = 'count';
+
+  const b = stockBalances()[a.id];
+  byId('adj-title').textContent = 'ยอดเครดิต ' + a.id;
+  byId('adj-computed').innerHTML = '$' + fmt(b.remainingUsd);
+  byId('adj-usd').value = '';
+  byId('adj-rate').value = a.rate;
+  byId('adj-note').value = '';
+
+  byId('adj-staff').innerHTML = data.settings.employees
+    .map(n => '<option value="' + esc(n) + '">' + esc(n) + '</option>').join('');
+
+  renderAdjustType();
+  renderAdjustHistory();
+  openModal('modal-adjust');
+  setTimeout(() => byId('adj-usd').focus(), 50);
+}
+
+function renderAdjustType() {
+  const isCount = state.adjustType === 'count';
+  byId('adj-tabs').innerHTML =
+    '<button type="button" data-act="adj-type" data-t="count" aria-pressed="' + isCount + '">⚖️ นับยอดจริง</button>' +
+    '<button type="button" data-act="adj-type" data-t="topup" aria-pressed="' + !isCount + '">➕ เติมเงินเข้าเมล</button>';
+
+  byId('adj-usd-label').textContent = isCount
+    ? 'ยอดที่เห็นในบัญชีจริงตอนนี้ ($)'
+    : 'เติมเงินเข้าไปเพิ่ม ($)';
+  byId('adj-usd').placeholder = isCount ? 'เช่น 152.40' : 'เช่น 300.00';
+  byId('adj-rate-field').classList.toggle('hidden', isCount);
+  byId('adj-note').placeholder = isCount ? 'เช่น นับจากหน้าเว็บ Roblox' : 'เช่น เติมล็อตใหม่';
+  renderAdjustPreview();
+}
+
+function renderAdjustPreview() {
+  const a = data.stockAccounts[state.adjustIdx];
+  if (!a) return;
+  const b = stockBalances()[a.id];
+  const box = byId('adj-preview');
+  const raw = byId('adj-usd').value;
+
+  if (raw === '') {
+    box.innerHTML = '<span class="muted t-sm">กรอกตัวเลขเพื่อดูผลก่อนบันทึก</span>';
+    return;
+  }
+  const v = num(raw);
+
+  if (state.adjustType === 'count') {
+    const diff = round2(v - b.remainingUsd);
+    const cls = Math.abs(diff) < 0.005 ? '' : diff < 0 ? 'neg' : 'pos';
+    box.innerHTML =
+      '<div class="row between t-sm"><span class="muted">ระบบคิดว่าเหลือ</span>' +
+        '<b class="mono">$' + fmt(b.remainingUsd) + '</b></div>' +
+      '<div class="row between t-sm" style="margin-top:5px"><span class="muted">คุณนับได้จริง</span>' +
+        '<b class="mono">$' + fmt(v) + '</b></div>' +
+      '<div class="row between t-sm" style="margin-top:7px;padding-top:7px;border-top:1px solid var(--line)">' +
+        '<span class="muted">ส่วนต่างที่จะบันทึก</span>' +
+        '<b class="mono ' + cls + '">' + (diff > 0 ? '+' : '') + '$' + fmt(diff) +
+        ' · ' + baht(diff * a.rate, true) + '</b></div>' +
+      (Math.abs(diff) < 0.005
+        ? '<div class="t-xs pos" style="margin-top:6px">✅ ตรงกันพอดี ไม่ต้องบันทึกก็ได้</div>'
+        : '<div class="t-xs muted" style="margin-top:6px">ยอดคงเหลือจะถูกปรับเป็น $' + fmt(v) +
+          ' และบันทึกส่วนต่างไว้เป็นประวัติ (ออเดอร์เดิมไม่ถูกแก้)</div>');
+  } else {
+    const rate = num(byId('adj-rate').value) || a.rate;
+    box.innerHTML =
+      '<div class="row between t-sm"><span class="muted">จ่ายเงินไป</span>' +
+        '<b class="mono brand">' + baht(v * rate) + '</b></div>' +
+      '<div class="row between t-sm" style="margin-top:5px"><span class="muted">เครดิตหลังเติม</span>' +
+        '<b class="mono">$' + fmt(b.remainingUsd + v) + '</b></div>' +
+      '<div class="t-xs muted" style="margin-top:6px">' + fmt(v) + ' × ' + fmt(rate) + ' ฿/$ — ' +
+      'จะถูกนับรวมเป็นต้นทุนของเมลนี้ด้วย</div>';
+  }
+}
+
+function renderAdjustHistory() {
+  const a = data.stockAccounts[state.adjustIdx];
+  const list = (a.adjustments || []);
+  byId('adj-history').innerHTML = list.length
+    ? list.map(x => '<div class="row between gap-sm t-xs" style="padding:7px 0;border-bottom:1px solid var(--line-soft)">' +
+        '<div class="grow" style="min-width:0">' +
+          '<b>' + (x.type === 'topup' ? '➕ เติมเงิน' : '⚖️ นับยอด') + '</b> ' +
+          '<span class="muted mono">' + esc(x.date) + '</span>' +
+          (x.staff ? ' <span class="muted">· ' + esc(x.staff) + '</span>' : '') +
+          (x.note ? '<div class="muted break">' + esc(x.note) + '</div>' : '') +
+        '</div>' +
+        '<b class="mono shrink-0 ' + (x.usd < 0 ? 'neg' : 'pos') + '">' +
+          (x.usd > 0 ? '+' : '') + '$' + fmt(x.usd) + '</b>' +
+        '<button type="button" class="iconbtn danger shrink-0" data-act="del-adjust" data-uid="' +
+          esc(x.uid) + '" title="ลบรายการนี้">' + svg(ICON.trash) + '</button>' +
+      '</div>').join('')
+    : '<div class="muted t-xs" style="padding:8px 0">ยังไม่มีประวัติการปรับยอด</div>';
+}
+
+function saveAdjust(e) {
+  e.preventDefault();
+  const a = data.stockAccounts[state.adjustIdx];
+  if (!a) return;
+  const raw = byId('adj-usd').value;
+  if (raw === '') { toast('กรุณากรอกตัวเลข', 'error'); return; }
+  const v = num(raw);
+
+  const b = stockBalances()[a.id];
+  let usd, thb, rate = a.rate;
+
+  if (state.adjustType === 'count') {
+    if (v < 0) { toast('ยอดคงเหลือติดลบไม่ได้', 'error'); return; }
+    usd = round2(v - b.remainingUsd);
+    if (Math.abs(usd) < 0.005) { toast('ยอดตรงกันอยู่แล้ว ไม่ต้องปรับ', 'info'); return; }
+    thb = 0;
+  } else {
+    if (!(v > 0)) { toast('ยอดเติมต้องมากกว่า 0', 'error'); return; }
+    rate = num(byId('adj-rate').value) || a.rate;
+    if (!(rate > 0)) { toast('กรุณากรอกเรทให้ถูกต้อง', 'error'); return; }
+    usd = round2(v);
+    thb = round2(v * rate);
+  }
+
+  a.adjustments = a.adjustments || [];
+  a.adjustments.unshift({
+    uid: newUid(),
+    date: localDateTime(),
+    type: state.adjustType,
+    usd, rate, thb,
+    note: byId('adj-note').value.trim(),
+    staff: byId('adj-staff').value || ''
+  });
+
+  commit([], true);
+  renderAdjustHistory();
+  renderAdjustPreview();
+  byId('adj-usd').value = '';
+  byId('adj-computed').innerHTML = '$' + fmt(stockBalances()[a.id].remainingUsd);
+  render();
+  toast(state.adjustType === 'count'
+    ? 'ปรับยอด ' + a.id + ' เป็น $' + fmt(v) + ' แล้ว (ส่วนต่าง ' + (usd > 0 ? '+' : '') + '$' + fmt(usd) + ')'
+    : 'เติมเครดิต ' + a.id + ' +$' + fmt(v) + ' แล้ว', 'success');
+}
+
+function deleteAdjustment(uid) {
+  const a = data.stockAccounts[state.adjustIdx];
+  if (!a || !confirm('ลบรายการปรับยอดนี้? ยอดคงเหลือจะเปลี่ยนกลับ')) return;
+  a.adjustments = (a.adjustments || []).filter(x => x.uid !== uid);
+  // Tombstoned, or the next sync merges it straight back from the server.
+  a.removedAdjustments = (a.removedAdjustments || []).concat(uid).slice(-500);
+  commit([], true);
+  renderAdjustHistory();
+  byId('adj-computed').innerHTML = '$' + fmt(stockBalances()[a.id].remainingUsd);
+  renderAdjustPreview();
+  render();
+  toast('ลบรายการปรับยอดแล้ว', 'info');
 }
 
 /* ------------------------------------------------------------ staff      */
@@ -1716,6 +1960,9 @@ function onClick(e) {
     case 'add-stock': openStockModal(null); break;
     case 'edit-stock': openStockModal(num(d.i)); break;
     case 'del-stock': deleteStock(); break;
+    case 'adjust-stock': openAdjustModal(num(d.i)); break;
+    case 'adj-type': state.adjustType = d.t; renderAdjustType(); break;
+    case 'del-adjust': deleteAdjustment(d.uid); break;
     case 'toggle-stock': {
       const a = data.stockAccounts[num(d.i)];
       a.status = a.status === 'พร้อมใช้' ? 'ปิดใช้งาน' : 'พร้อมใช้';
@@ -1756,6 +2003,9 @@ function bind() {
 
   byId('modal-stock').addEventListener('submit', saveStock);
   ['sm-usd', 'sm-rate'].forEach(id => byId(id).addEventListener('input', calcStockPreview));
+
+  byId('modal-adjust').addEventListener('submit', saveAdjust);
+  ['adj-usd', 'adj-rate'].forEach(id => byId(id).addEventListener('input', renderAdjustPreview));
 
   byId('modal-order').addEventListener('submit', saveOrderEdit);
   ['oe-pkg', 'oe-stock', 'oe-zero', 'oe-price'].forEach(id =>

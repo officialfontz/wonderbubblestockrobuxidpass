@@ -394,6 +394,60 @@
   </form>
 </div>
 
+<!-- ============================================ MODAL: CREDIT ADJUST -->
+<div class="modal hidden" id="modal-adjust">
+  <form class="modal-box">
+    <div class="modal-head">
+      <div>
+        <h3 id="adj-title">ยอดเครดิต</h3>
+        <p>กรอกยอดที่นับได้จริง ระบบจะบันทึกส่วนต่างไว้ให้ โดยไม่แก้ออเดอร์เดิม</p>
+      </div>
+      <button type="button" class="iconbtn" data-act="close-modal" aria-label="ปิด">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="modal-body stack">
+      <div class="subbox row between">
+        <span class="t-sm muted">ระบบคำนวณว่าเหลือ</span>
+        <b class="num t-lg brand" id="adj-computed">$0.00</b>
+      </div>
+
+      <div class="seg" id="adj-tabs"></div>
+
+      <div class="grid g2">
+        <label class="field">
+          <span class="label" id="adj-usd-label">ยอดที่เห็นในบัญชีจริงตอนนี้ ($)</span>
+          <input type="number" step="0.01" min="0" class="input sm mono" id="adj-usd" required>
+        </label>
+        <label class="field hidden" id="adj-rate-field">
+          <span class="label">เรทที่ซื้อมา (฿/USD)</span>
+          <input type="number" step="0.01" min="0" class="input sm mono" id="adj-rate">
+        </label>
+      </div>
+
+      <div class="subbox" id="adj-preview"></div>
+
+      <div class="grid g2">
+        <label class="field"><span class="label">ผู้ทำรายการ</span>
+          <select class="select sm" id="adj-staff"></select></label>
+        <label class="field"><span class="label">หมายเหตุ</span>
+          <input class="input sm" id="adj-note"></label>
+      </div>
+
+      <div>
+        <div class="label">ประวัติการปรับยอดเมลนี้</div>
+        <div class="scroll-y max-h-64" id="adj-history"></div>
+      </div>
+    </div>
+
+    <div class="modal-foot">
+      <button type="button" class="btn btn-ghost" data-act="close-modal">ปิด</button>
+      <button type="submit" class="btn btn-primary">บันทึก</button>
+    </div>
+  </form>
+</div>
+
 <!-- ================================================== MODAL: RECOVERY -->
 <div class="modal hidden" id="modal-recovery">
   <div class="modal-box">
