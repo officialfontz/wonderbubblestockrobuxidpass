@@ -246,6 +246,18 @@ window.SEED_DATA = {
       "note": "",
       "adjustments": [],
       "removedAdjustments": []
+    },
+    {
+      "id": "PC-014",
+      "email": "2ekdvE7kV3Ff@qwbak.com",
+      "buyDate": "2026-09-03",
+      "initialUsd": 300,
+      "rate": 27.55,
+      "investmentThb": 8265,
+      "status": "พร้อมใช้",
+      "note": "",
+      "adjustments": [],
+      "removedAdjustments": []
     }
   ],
   "salesLogs": [],

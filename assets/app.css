@@ -175,6 +175,8 @@ table { border-collapse: collapse; width: 100%; }
 .g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .g4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+/* Fits however many KPI cards there are without leaving a ragged last row. */
+.g-auto { grid-template-columns: repeat(auto-fit, minmax(158px, 1fr)); }
 @media (max-width: 720px) {
   .g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .g3.g3-collapse { grid-template-columns: 1fr; }
@@ -263,7 +265,11 @@ main.shell { padding-top: 20px; padding-bottom: 48px; }
 
 @media (max-width: 700px) {
   :root { --bottom-nav-h: 62px; }
-  .appbar-inner { height: 56px; }
+  /* The figures move to their own full-width row so they stay readable and
+     stop squeezing the shop name down to an ellipsis. */
+  .appbar-inner { height: auto; flex-wrap: wrap; padding: 8px 0; row-gap: 8px; }
+  .appbar-inner > .topkpi { order: 3; width: 100%; justify-content: space-between; padding: 6px 12px; }
+  .topkpi .sep { display: none; }
   .tabs { display: none; }
   .bottomnav {
     display: flex;

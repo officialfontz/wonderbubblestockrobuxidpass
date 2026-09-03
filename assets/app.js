@@ -179,7 +179,8 @@ const ICON = {
   trend: '<path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/>',
   bars: '<path d="M18 20V10M12 20V4M6 20v-6"/>',
   cart: '<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/>',
-  shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'
+  shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+  robux: '<path d="M4 7.2 12 3l8 4.2v9.6L12 21l-8-4.2z"/><path d="M9.2 9.6h5.6v4.8H9.2z"/>'
 };
 
 /* ----------------------------------------------------------------- state */
@@ -709,10 +710,13 @@ function renderTopKpi() {
   const todays = data.salesLogs.filter(l => dayOf(l) === today);
   const sales = sum(todays, l => l.priceThb);
   const profit = sum(todays, l => l.profitThb);
+  const robux = sum(todays, l => l.robux);
   const cell = (k, v, cls) =>
     '<div><span class="t-xs">' + k + '</span><b class="' + (cls || '') + '">' + v + '</b></div>';
   box.innerHTML =
     cell('วันนี้', fmtInt(todays.length) + ' ออเดอร์') +
+    '<span class="sep"></span>' +
+    cell('ส่ง Robux', fmtInt(robux), 'brand') +
     '<span class="sep"></span>' +
     cell('ยอดขาย', baht(sales)) +
     '<span class="sep"></span>' +
@@ -963,8 +967,11 @@ function renderHistory() {
   const list = historyLogs();
   const sales = sum(list, l => l.priceThb);
   const profit = sum(list, l => l.profitThb);
+  const robux = sum(list, l => l.robux);
   byId('hist-summary').innerHTML =
     '<span class="chip mono">' + fmtInt(list.length) + ' ออเดอร์</span>' +
+    '<span class="chip mono"><img src="' + ROBUX_ICON + '" alt="" onerror="this.remove()">' +
+      'ส่งรวม ' + fmtInt(robux) + '</span>' +
     '<span class="chip mono">ขาย ' + baht(sales) + '</span>' +
     '<span class="chip mono ' + (profit >= 0 ? 'good' : 'bad') + '">กำไร ' + baht(profit, true) + '</span>';
 
@@ -1107,11 +1114,19 @@ function renderSummary() {
       '<span class="k">' + o.k + '</span><span class="icon">' + svg(o.icon) + '</span></div>' +
     '<div><div class="v ' + (o.cls || '') + '">' + o.v + '</div><div class="s">' + o.s + '</div></div></div>';
 
+  const allRobux = sum(all, l => l.robux);
   byId('sum-kpi').innerHTML =
     kpi({ k: 'ออเดอร์ · ' + label, v: fmtInt(logs.length), s: 'ทั้งหมด ' + fmtInt(all.length) + ' ออเดอร์', icon: ICON.cart }) +
+    kpi({
+      k: 'ส่ง Robux · ' + label,
+      v: '<img src="' + ROBUX_ICON + '" alt="" style="width:17px;height:17px;display:inline-block;vertical-align:-2px;margin-right:5px" onerror="this.remove()">' + fmtInt(robux),
+      s: 'ทั้งหมด ' + fmtInt(allRobux) + ' R · เฉลี่ย ' +
+        fmtInt(logs.length ? robux / logs.length : 0) + ' R/ออเดอร์',
+      icon: ICON.robux, cls: 'brand'
+    }) +
     kpi({ k: 'ยอดขาย · ' + label, v: baht(sales), s: 'ทั้งหมด ' + baht(sum(all, l => l.priceThb)), icon: ICON.cashier }) +
     kpi({ k: 'กำไร · ' + label, v: baht(profit, true), s: 'มาร์จิ้น ' + margin.toFixed(1) + '% · สะสม ' + baht(sum(all, l => l.profitThb)), icon: ICON.trend, accent: true }) +
-    kpi({ k: 'เฉลี่ยต่อออเดอร์', v: baht(avg), s: 'ขาย Robux รวม ' + fmtInt(robux), icon: ICON.bars, cls: 'brand' });
+    kpi({ k: 'เฉลี่ยต่อออเดอร์', v: baht(avg), s: fmtInt(logs.length) + ' ออเดอร์ในช่วงนี้', icon: ICON.bars });
 
   renderTrend(all, days);
   renderTopPackages(logs, label);
